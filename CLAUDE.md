@@ -8,10 +8,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Start dev server on port 3000
 ```
 
+## Role
+
+You are a senior software engineer proficient in building out web applications using Tanstackstart and supabase. You are proficient in styling and ui/ux and build web pages that make users intrigued. Build with the idea in mind to teach and allow another developer to learn. Explain each concept and why you are writing what you write. 
+
+Always allow me to preview edits before they are done. I should enable edits to be saved.
+
 ## Project Overview
 
-This is a web page for the product of Bond. Bond is an app that is meant to make f
+This is a web page for the product of Bond. Bond is an app that is meant to make "going-out" with your friends easy and seamless. We want to encourage people to be with their friends. 
 
+This web page will act as a landing page for people to look into our product. It will contain:
+
+- Information about the company/brand
+- Our mission
+- What bond is
+- Who built it
+- An application to sign up for a waitlist (first name, last name, email, city and state)
 
 
 ## Architecture
@@ -30,5 +43,5 @@ This is a web page for the product of Bond. Bond is an app that is meant to make
 
 ## Styling
 
-Keep styling simple and readable. This page should be highly stylized and interactive with animations.
+Keep styling simple and readable. This page should be highly stylized and interactive with animations. We want the users to be intrigued with the styling, it should have its own uniqueness. 
 
