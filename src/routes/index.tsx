@@ -5,38 +5,61 @@ export const Route = createFileRoute('/')({ component: Home })
 function Home() {
   return (
     <div className="p-8">
-      <h1 className="text-4xl font-bold text-center">Welcome to Bond</h1>
+      {/* Header Section */}
+      <header className="border-b-2 pb-4 mb-6">
+        <h1 className="text-2xl font-bold text-center">
+          {/* TODO: When user presses Bond, takes back to home page/top of page. */}
+          <button>Bond</button> 
+        </h1>
+      </header>
 
-      <div className="flex-row">
-        <div className="justify-self-center">
-          <p className="mt-4 text-lg">
-            Stop Planning
-          </p>
-          <p>
-            Start going out.
-          </p>
-          <p>
-            Bond makes being with your friends easy and seamless, no matter the situation.
-          </p>
-          <button className="border-1 hover:bg-sky-400">
+      {/* Action/Body Statement */}
+      <div className="flex justify-center items-center">
+        <div className="text-center mt-4 text-lg">
+          <div className="text-5xl font-bold mb-6">
+            <p>Stop Planning</p>
+            <p>Start going out.</p>
+          </div>
+          <p>Bond makes being with your friends easy and seamless, no matter the situation.</p>
+          <button className="border-1 hover:bg-sky-400 rounded-4xl p-2 bg-amber-400">
             Get early access
           </button>
         </div>
       </div>
 
-      <p>Everything your friend group needs</p>
-      <div>
-        <p>Discover</p>
-        <p>Plan Together</p>
-        <p>Just show up</p>
+      {/* Video */}
+      <div className="flex justify-center items-center m-6">
+        <video width="800px" controls autoPlay muted loop>
+          <source src="../videos/bond_example.mp4" type="video/mp4" />
+          <source src="../videos/bond_example.webm" type="video/webm" />
+        </video>
       </div>
 
-      <div>Our mission</div>
-
-
-      <div>
-        Get early access...waitlist
+      {/* How does Bond Work? */}
+      <div className="flex justify-center items-center">
+        <div className="text-center mt-4 text-lg w-full">
+          <p>How Bond helps your friends get together</p>
+          <div className="flex justify-evenly items-center w-full">
+            <p>Your group signs up</p>
+            <p>Bond curates a plan</p>
+            <p>All you have to do is just show up!</p>
+          </div>
+        </div>
       </div>
+
+      {/* <div className="flex justify-center items-center">
+        <div className="text-center mt-4 text-lg w-full">
+          <p>Our mission</p>
+          <p>We created Bond because making plans with your friends shouldn't feel like a chore. Our goal is simple, to bring people together easily and seamless.</p>
+        </div>
+      </div>
+
+
+      <div className="flex justify-center items-center">
+        <div className="text-center mt-4 text-lg w-full">
+          <p>Get early access!</p>
+        </div>
+      </div> */}
       
     </div>
   )
