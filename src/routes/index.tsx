@@ -21,7 +21,7 @@ function Home() {
             <p>Start going out.</p>
           </div>
           <p>Bond makes being with your friends easy and seamless, no matter the situation.</p>
-          <button className="border-1 hover:bg-sky-400 rounded-4xl p-2 bg-amber-400">
+          <button className="border-1 hover:bg-sky-400 rounded-4xl p-2 bg-amber-400 mt-6">
             Get early access
           </button>
         </div>
@@ -38,19 +38,25 @@ function Home() {
       {/* How does Bond Work? */}
       <div className="flex justify-center items-center">
         <div className="text-center mt-4 text-lg w-full">
-          <p>How Bond helps your friends get together</p>
-          <div className="flex justify-evenly items-center w-full">
-            <p>Your group signs up</p>
-            <p>Bond curates a plan</p>
-            <p>All you have to do is just show up!</p>
+          <p>How Bond helps your friend group</p>
+          <div className="flex justify-evenly items-center w-full gap-4 mt-6">
+            <div className="border-2 rounded-2xl p-6 flex-1 text-center"> 
+              <p>Create/Join your Crew</p>
+            </div>
+            <div className="border-2 rounded-2xl p-6 flex-1 text-center"> 
+              <p>Bond will then curate a plan</p>
+            </div>
+            <div className="border-2 rounded-2xl p-6 flex-1 text-center"> 
+              <p>All you have to do is just show up!</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center">
         <div className="text-center mt-4 text-lg w-full">
-          <p>Our mission</p>
-          <p>We created Bond because making plans with your friends shouldn't feel like a chore. Our goal is simple, to bring people together easily and seamless.</p>
+          <p className="font-bold flex justify-evenly items-center w-full gap-4 m-6">Our mission</p>
+          <p className="border-2 rounded-2xl p-6 flex-1 text-center">We created Bond because making plans with your friends shouldn't feel like a chore. Our goal is simple, to bring people together easily and seamless.</p>
         </div>
       </div>
 
@@ -59,7 +65,7 @@ function Home() {
         <div className="text-center mt-4 text-lg w-full">
           <p>Get early access!</p>
         </div>
-      </div> */}
+      </div>
       
     </div>
   )
