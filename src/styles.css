@@ -6,6 +6,27 @@
 
 @theme inline {
   --font-sans: 'Manrope', ui-sans-serif, sans-serif;
+
+  /* Brand */
+  --color-bond-orange: #CC6137;
+  --color-bond-cream:  #E6D297;
+
+  /* Warm palette */
+  --color-warm-orange: #E98A36;
+  --color-warm-red:    #CA3634;
+  --color-warm-rose:   #CC6A67;
+  --color-warm-rust:   #B54A26;
+
+  /* Light/yellow palette */
+  --color-light-sage:       #D8DAA9;
+  --color-light-sand:       #E7C28D;
+  --color-light-gold:       #EBCD6D;
+  --color-light-chartreuse: #D6C960;
+
+  /* Dark palette */
+  --color-dark-oxblood: #791B01;
+  --color-dark-brown:   #551E00;
+  --color-dark-black:   #000000;
 }
 
 body {
