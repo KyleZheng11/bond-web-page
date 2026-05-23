@@ -7,29 +7,33 @@
 @theme inline {
   --font-sans: 'Manrope', ui-sans-serif, sans-serif;
 
-  /* Brand */
-  --color-bond-orange: #CC6137;
-  --color-bond-cream:  #E6D297;
+  /* Surfaces — warm darks (the night canvas) */
+  --color-surface-midnight: #160E13; /* App background — deepest warm black */
+  --color-surface-ember:    #2A1822; /* Default surface — cards, sheets, nav bars */
+  --color-surface-dusk:     #3E2433; /* Elevated surface — modals, popovers, raised cards */
 
-  /* Warm palette */
-  --color-warm-orange: #E98A36;
-  --color-warm-red:    #CA3634;
-  --color-warm-rose:   #CC6A67;
-  --color-warm-rust:   #B54A26;
+  /* Accents — the pops (use sparingly so they keep glowing) */
+  --color-accent-tangerine: #FF6B2C; /* Primary action — main CTAs, active states, key buttons */
+  --color-accent-coral:     #FF3E5B; /* Secondary / energy — likes, live indicators, hot moments */
+  --color-accent-neon:      #FF4D8D; /* Playful pop — tags, badges, "nearby"/social highlights */
+  --color-accent-amber:     #FFC23D; /* Highlight / warmth — outlined buttons, stars, accents, alerts */
 
-  /* Light/yellow palette */
-  --color-light-sage:       #D8DAA9;
-  --color-light-sand:       #E7C28D;
-  --color-light-gold:       #EBCD6D;
-  --color-light-chartreuse: #D6C960;
-
-  /* Dark palette */
-  --color-dark-oxblood: #791B01;
-  --color-dark-brown:   #551E00;
-  --color-dark-black:   #000000;
+  /* Supporting & text */
+  --color-warm-peach:  #FF9E6B; /* Soft warm tint — progress bars, illustrations, gentle highlights */
+  --color-text-cream:  #FFEFDD; /* Primary text & icons on dark surfaces */
+  --color-text-taupe:  #B89A8E; /* Secondary / muted text — captions, metadata, placeholders */
 }
 
 body {
   font-family: var(--font-sans);
+  background-color: var(--color-surface-midnight);
+  color: var(--color-text-cream);
 }
 
+.text-gradient-bond {
+  background: linear-gradient(to right, var(--color-accent-amber), var(--color-accent-tangerine), var(--color-accent-coral));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  padding-bottom: 0.2em;
+}
