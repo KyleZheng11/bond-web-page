@@ -1,9 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { motion } from 'motion/react'
+import { useForm } from '@tanstack/react-form'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
+
+  const form = useForm({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      city: '',
+      state: '',
+    },
+    onSubmit: async ({ value }) => {
+      // #TODO: Must link to supabase and insert into waitlist table
+      console.log("Waitlist Submission: ", value)
+    },
+  })
+
   return (
     <div>
       {/* Section 1: Header */}
@@ -135,18 +151,187 @@ function Home() {
             <p className="text-2xl leading-relaxed text-(--color-text-cream)">
               We created Bond with belief that people are at their best when surrounded by good company. 
               We want to make going out with your friends easy and fulfilling.
-              <span className="text-(--color-accent-amber"> No fuss, no long planning</span>, just living in the moment. That's what Bond is all about.
+              <span className="text-(--color-accent-amber)"> No fuss, no long planning</span>, just living in the moment. That's what Bond is all about.
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* Section 4: Waitlist */}
-      <section id="waitlist">
-        <div className="flex justify-center items-center">
-          <div className="text-center mt-4 text-lg w-full">
-            <p>Get early access!</p>
-          </div>
+      <section id="waitlist" className="px-8 py-24">
+        <div className="max-w-md mx-auto">
+          <p className="text-2xl font-bold mb-8 text-center">Get Early Access!</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              form.handleSubmit() // calls our onSubmit
+            }}
+            className="flex flex-col gap-4"
+          >
+            <form.Field
+              name="firstName"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'First name is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">First Name</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
+                    onBlur={field.handleBlur}
+                    placeholder="First Name"
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="lastName"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'Last name is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">Last Name</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
+                    onBlur={field.handleBlur}
+                    placeholder="Last Name"
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="email"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'Email is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">Email</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
+                    onBlur={field.handleBlur}
+                    placeholder="Email"
+                    type='email'
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="city"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'City is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">City</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
+                    onBlur={field.handleBlur}
+                    placeholder="City"
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="state"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'State is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">State</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
+                    onBlur={field.handleBlur}
+                    placeholder="State"
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <button type="submit"
+              className="border-1 rounded-full p-2 font-bold hover:bg-accent-electric"
+            >
+              Join Waitlist  
+            </button>
+
+          </form>
         </div>
       </section>
       
