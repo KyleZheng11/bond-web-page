@@ -5,35 +5,62 @@
 @import 'tw-animate-css';
 
 @theme inline {
-  --font-sans: 'Manrope', ui-sans-serif, sans-serif;
+  --font-sans:    'Manrope', ui-sans-serif, sans-serif;
+  --font-display: 'Fraunces', ui-serif, serif;
 
-  /* Surfaces — warm darks (the night canvas) */
-  --color-surface-midnight: #160E13; /* App background — deepest warm black */
-  --color-surface-ember:    #2A1822; /* Default surface — cards, sheets, nav bars */
-  --color-surface-dusk:     #3E2433; /* Elevated surface — modals, popovers, raised cards */
+  /*
+  RULES OF THUMB
+  • One dominant accent per screen — tangerine leads, everything else supports.
+  • Never place coral or neon directly against tangerine (orange + hot-pink edges vibrate).
+    Keep a surface color or whitespace between them.
+  • Coral = "live/now", neon = "spark/reward". If a screen starts feeling like a
+    dating app, pull the neon first.
+  • On any colored fill, use the matching --color-on-* token for text, never plain white/black.
+*/
 
-  /* Accents — the pops (use sparingly so they keep glowing) */
-  --color-accent-tangerine: #FF6B2C; /* Primary action — main CTAs, active states, key buttons */
-  --color-accent-coral:     #FF3E5B; /* Secondary / energy — likes, live indicators, hot moments */
-  --color-accent-neon:      #FF4D8D; /* Playful pop — tags, badges, "nearby"/social highlights */
-  --color-accent-amber:     #FFC23D; /* Highlight / warmth — outlined buttons, stars, accents, alerts */
+  /* ── Surfaces — the indigo night canvas (most of every screen) ── */
+  --color-surface-indigo: #12172E; /* App background — deepest base, behind everything */
+  --color-surface-card:   #1C2444; /* Default surface — cards, list rows, nav, sheets */
+  --color-surface-slate:  #2C375F; /* Elevated surface — modals, popovers, hover states, dividers */
 
-  /* Supporting & text */
-  --color-warm-peach:  #FF9E6B; /* Soft warm tint — progress bars, illustrations, gentle highlights */
-  --color-text-cream:  #FFEFDD; /* Primary text & icons on dark surfaces */
-  --color-text-taupe:  #B89A8E; /* Secondary / muted text — captions, metadata, placeholders */
+  /* ── Accents — strict pecking order, loud to rare ── */
+  --color-accent-tangerine: #FF7A3D; /* PRIMARY action — main CTAs, active tabs, the "press me" color. Dominant warm. */
+  --color-accent-electric:  #3D8BFF; /* COUNTERPOINT — info tags, counts, links, selected states. The cool balance. */
+  --color-accent-amber:     #FFC23D; /* HIGHLIGHT — icons, stars, "filling fast", subtle emphasis. */
+  --color-accent-coral:     #FF3E5B; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Use sparingly. */
+  --color-accent-neon:      #FF4D8D; /* RARE SPARK — streaks, celebrations, delight moments only. Never on profile/1:1 UI. */
+
+  /* ── Text & muted ── */
+  --color-text-cream: #F2EEE6; /* Primary text & icons on dark surfaces */
+  --color-text-muted: #9AA3C4; /* Secondary text — captions, metadata, placeholders, labels */
+
+  /* ── On-accent text — darkest shade of each family, for legible labels ON colored fills ── */
+  --color-on-tangerine: #3A1607; /* Text/icons sitting on a tangerine fill */
+  --color-on-electric:  #0A1730; /* Text/icons sitting on an electric-blue fill */
+  --color-on-amber:     #412402; /* Text/icons sitting on an amber fill */
+  --color-on-coral:     #501320; /* Text/icons sitting on a coral fill */
+  --color-on-neon:      #4B1528; /* Text/icons sitting on a neon fill */
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-surface-midnight);
+  background-color: var(--color-surface-indigo);
   color: var(--color-text-cream);
 }
 
 .text-gradient-bond {
-  background: linear-gradient(to right, var(--color-accent-amber), var(--color-accent-tangerine), var(--color-accent-coral));
+  background: linear-gradient(to right, var(--color-text-cream), var(--color-accent-amber));
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
   padding-bottom: 0.2em;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.video-float-frame {
+  animation: float 6s ease-in-out infinite;
 }
