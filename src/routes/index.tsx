@@ -1,10 +1,54 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useForm } from '@tanstack/react-form'
+import { useState, useEffect } from 'react'
+import Select from 'react-select'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
+
+  const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([])
+  const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([])
+  const [loadingStates, setLoadingStates] = useState(false)
+  const [loadingCities, setLoadingCities] = useState(false)
+
+  useEffect(() => {
+    setLoadingStates(true)
+    fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: 'United States' }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const options = data.data.states.map((s: { name: string; state_code: string }) => ({
+          label: s.name,
+          value: s.name,
+        }))
+        setStateOptions(options)
+      })
+      .finally(() => setLoadingStates(false))
+  }, [])
+
+  function fetchCities(stateName: string) {
+    setCityOptions([])
+    setLoadingCities(true)
+    fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: 'United States', state: stateName }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const options = data.data.map((city: string) => ({
+          label: city,
+          value: city,
+        }))
+        setCityOptions(options)
+      })
+      .finally(() => setLoadingCities(false))
+  }
 
   const form = useForm({
     defaultValues: {
@@ -263,6 +307,8 @@ function Home() {
               )}
             </form.Field>
 
+            
+
             <form.Field
               name="city"
               validators={{
@@ -273,17 +319,16 @@ function Home() {
               {(field) => (
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">City</label>
-                  <input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)} 
-                    onBlur={field.handleBlur}
-                    placeholder="City"
-                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
-  focus:ring-2 focus:ring-(--color-accent-electric)"
-                    style={{
-                      background: 'var(--color-surface-card)',
-                      border: '1px solid var(--color-surface-slate)',
+                  <Select 
+                    options={cityOptions}
+                    isLoading={loadingCities}
+                    isDisabled={!form.getFieldValue('state')}
+                    placeholder="Select a City..."
+                    value={cityOptions.find((o) => o.value === field.state.value) ?? null}
+                    onChange={(option) => {
+                      field.handleChange(option?.value ?? '')
                     }}
+                    onBlur={field.handleBlur}
                   />
                   {field.state.meta.isTouched && field.state.meta.errors[0] && (
                     <p className="text-xs text-(--color-accent-coral)">
@@ -304,17 +349,17 @@ function Home() {
               {(field) => (
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">State</label>
-                  <input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)} 
-                    onBlur={field.handleBlur}
-                    placeholder="State"
-                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
-  focus:ring-2 focus:ring-(--color-accent-electric)"
-                    style={{
-                      background: 'var(--color-surface-card)',
-                      border: '1px solid var(--color-surface-slate)',
+                  <Select 
+                    options={stateOptions}
+                    isLoading={loadingStates}
+                    placeholder="Select a State..."
+                    value={stateOptions.find((o) => o.value === field.state.value) ?? null}
+                    onChange={(option) => {
+                      field.handleChange(option?.value ?? '')
+                      form.setFieldValue('city', '') // reset city when state changes
+                      if (option?.value) fetchCities(option.value)
                     }}
+                    onBlur={field.handleBlur}
                   />
                   {field.state.meta.isTouched && field.state.meta.errors[0] && (
                     <p className="text-xs text-(--color-accent-coral)">
