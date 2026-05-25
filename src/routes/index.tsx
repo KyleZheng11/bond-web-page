@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useForm } from '@tanstack/react-form'
 import { useState, useEffect } from 'react'
+import { supabase } from '../utils/supabase'
 import Select from 'react-select'
 
 export const Route = createFileRoute('/')({ component: Home })
