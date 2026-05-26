@@ -92,7 +92,11 @@ function Home() {
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([])
   const [loadingStates, setLoadingStates] = useState(false)
   const [loadingCities, setLoadingCities] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  // Track whether the external location API failed so we can show a fallback message
+  const [locationError, setLocationError] = useState(false)
+  // 'duplicate' is its own state so we can show a specific message when
+  // Supabase rejects the insert because that email already exists (error code 23505).
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'duplicate'>('idle')
 
   useEffect(() => {
     setLoadingStates(true)
@@ -109,6 +113,9 @@ function Home() {
         }))
         setStateOptions(options)
       })
+      // If the API is down or returns a bad response, we surface a friendly error
+      // instead of leaving the user staring at an endless spinner.
+      .catch(() => setLocationError(true))
       .finally(() => setLoadingStates(false))
   }, [])
 
@@ -128,6 +135,7 @@ function Home() {
         }))
         setCityOptions(options)
       })
+      .catch(() => setLocationError(true))
       .finally(() => setLoadingCities(false))
   }
 
@@ -152,7 +160,12 @@ function Home() {
       })
       if (error) {
         console.error("Failed to add user to supabase waitlist", error)
-        setSubmitStatus('error')
+        // Postgres unique-violation code — means this email is already on the list
+        if (error.code === '23505') {
+          setSubmitStatus('duplicate')
+        } else {
+          setSubmitStatus('error')
+        }
       } else {
         setSubmitStatus('success')
       }
@@ -322,6 +335,7 @@ function Home() {
                     onChange={(e) => field.handleChange(e.target.value)} 
                     onBlur={field.handleBlur}
                     placeholder="First Name"
+                    maxLength={50}
                     className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
   focus:ring-2 focus:ring-(--color-accent-electric)"
                     style={{
@@ -353,6 +367,7 @@ function Home() {
                     onChange={(e) => field.handleChange(e.target.value)} 
                     onBlur={field.handleBlur}
                     placeholder="Last Name"
+                    maxLength={50}
                     className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
   focus:ring-2 focus:ring-(--color-accent-electric)"
                     style={{
@@ -372,8 +387,16 @@ function Home() {
             <form.Field
               name="email"
               validators={{
-                onChange: ({ value }) =>
-                  !value ? 'Email is required' : undefined,
+                // We check two things in sequence:
+                // 1. The field isn't empty
+                // 2. It matches a basic email pattern (local@domain.tld)
+                // This runs client-side on every keystroke, giving instant feedback.
+                // The DB unique constraint (step 3) is the server-side safety net.
+                onChange: ({ value }) => {
+                  if (!value) return 'Email is required'
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Enter a valid email address'
+                  return undefined
+                },
               }}
             >
               {(field) => (
@@ -385,6 +408,7 @@ function Home() {
                     onBlur={field.handleBlur}
                     placeholder="Email"
                     type='email'
+                    maxLength={254}
                     className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
   focus:ring-2 focus:ring-(--color-accent-electric)"
                     style={{
@@ -416,6 +440,7 @@ function Home() {
                     onChange={(e) => field.handleChange(e.target.value)} 
                     onBlur={field.handleBlur}
                     placeholder="Profession (e.g. student, software engineer, doctor, etc)"
+                    maxLength={100}
                     className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
   focus:ring-2 focus:ring-(--color-accent-electric)"
                     style={{
@@ -431,6 +456,13 @@ function Home() {
                 </div>
               )}
             </form.Field>
+
+            {/* If the location API is unreachable, tell the user rather than showing a broken dropdown */}
+            {locationError && (
+              <p className="text-sm text-(--color-accent-coral)">
+                ⚠️ Could not load locations. Please type your city and state below instead, or try again later.
+              </p>
+            )}
 
             <form.Field
               name="state"
@@ -502,7 +534,14 @@ function Home() {
               </p>
             )}
 
-            {/* Error message if Supabase rejected the insert */}
+            {/* Duplicate email — friendly nudge instead of a generic error */}
+            {submitStatus === 'duplicate' && (
+              <p className="text-center text-sm font-semibold text-(--color-accent-amber)">
+                Looks like you're already on the list! We'll be in touch. 👀
+              </p>
+            )}
+
+            {/* Generic error if Supabase rejected the insert for any other reason */}
             {submitStatus === 'error' && (
               <p className="text-center text-sm font-semibold text-(--color-accent-coral)">
                 Something went wrong. Please try again.
@@ -511,7 +550,7 @@ function Home() {
 
             <button 
               type="submit"
-              disabled={submitStatus === 'loading' || submitStatus === 'success'}
+              disabled={submitStatus === 'loading' || submitStatus === 'success' || submitStatus === 'duplicate'}
               className="border rounded-full p-2 font-bold hover:bg-accent-electric disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {submitStatus === 'loading' ? 'Submitting...' : 'Join Waitlist'}
