@@ -7,12 +7,92 @@ import Select from 'react-select'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+// ─── react-select custom styles ────────────────────────────────────────────
+// react-select doesn't use regular CSS classes — it has its own CSS-in-JS
+// "styles" prop where each sub-component slot is a function:
+//   (base, state) => ({ ...base, ...overrides })
+// We spread `base` first so we only override what we need.
+const selectStyles = {
+  // The visible input box
+  control: (base: object, state: { isFocused: boolean }) => ({
+    ...base,
+    background: 'var(--color-surface-card)',
+    border: state.isFocused
+      ? '1px solid var(--color-accent-electric)'
+      : '1px solid var(--color-surface-slate)',
+    borderRadius: '0.75rem',       // matches rounded-xl on your other inputs
+    padding: '4px 4px',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--color-accent-electric)' : 'none',
+    '&:hover': { borderColor: 'var(--color-accent-electric)' },
+  }),
+
+  // The dropdown panel that appears
+  menu: (base: object) => ({
+    ...base,
+    background: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-slate)',
+    borderRadius: '0.75rem',
+    overflow: 'hidden',
+  }),
+
+  // The scrollable list inside the panel
+  menuList: (base: object) => ({
+    ...base,
+    padding: 0,
+  }),
+
+  // Each individual option row
+  option: (base: object, state: { isFocused: boolean; isSelected: boolean }) => ({
+    ...base,
+    background: state.isSelected
+      ? 'var(--color-accent-electric)'        // selected  → electric highlight
+      : state.isFocused
+        ? 'var(--color-surface-slate)'        // hovered   → subtle slate
+        : 'transparent',                       // default   → transparent
+    color: state.isSelected ? '#000' : 'var(--color-text-cream)',
+    cursor: 'pointer',
+  }),
+
+  // The chosen value displayed in the control
+  singleValue: (base: object) => ({
+    ...base,
+    color: 'var(--color-text-cream)',
+  }),
+
+  // Placeholder text
+  placeholder: (base: object) => ({
+    ...base,
+    color: 'var(--color-text-muted)',
+  }),
+
+  // The text cursor / search input inside the control
+  input: (base: object) => ({
+    ...base,
+    color: 'var(--color-text-cream)',
+  }),
+
+  // The little divider line between the value and the arrow icon
+  indicatorSeparator: (base: object) => ({
+    ...base,
+    background: 'var(--color-surface-slate)',
+  }),
+
+  // The dropdown arrow icon
+  dropdownIndicator: (base: object) => ({
+    ...base,
+    color: 'var(--color-text-muted)',
+    '&:hover': { color: 'var(--color-text-cream)' },
+  }),
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 function Home() {
 
   const [stateOptions, setStateOptions] = useState<{ label: string; value: string }[]>([])
   const [cityOptions, setCityOptions] = useState<{ label: string; value: string }[]>([])
   const [loadingStates, setLoadingStates] = useState(false)
   const [loadingCities, setLoadingCities] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
   useEffect(() => {
     setLoadingStates(true)
@@ -53,15 +133,29 @@ function Home() {
 
   const form = useForm({
     defaultValues: {
-      firstName: '',
-      lastName: '',
+      first_name: '',
+      last_name: '',
       email: '',
+      profession: '',
       city: '',
       state: '',
     },
     onSubmit: async ({ value }) => {
-      // #TODO: Must link to supabase and insert into waitlist table
-      console.log("Waitlist Submission: ", value)
+      setSubmitStatus('loading')
+      const { error } = await supabase.from('waitlist').insert({
+        first_name: value.first_name,
+        last_name: value.last_name,
+        email: value.email,
+        profession: value.profession,
+        city: value.city,
+        state: value.state,
+      })
+      if (error) {
+        console.error("Failed to add user to supabase waitlist", error)
+        setSubmitStatus('error')
+      } else {
+        setSubmitStatus('success')
+      }
     },
   })
 
@@ -72,7 +166,6 @@ function Home() {
         <div className="p-8">
           <header className="pb-4 mb-6">
             <h1 className="flex items-center gap-4 text-2xl font-bold text-center">
-              {/* TODO: When user presses Bond, takes back to home page/top of page. */}
               <motion.button 
                 className="text-accent-amber"
                 whileHover={{scale: 1.2}}
@@ -215,7 +308,7 @@ function Home() {
             className="flex flex-col gap-4"
           >
             <form.Field
-              name="firstName"
+              name="first_name"
               validators={{
                 onChange: ({ value }) =>
                   !value ? 'First name is required' : undefined,
@@ -246,7 +339,7 @@ function Home() {
             </form.Field>
 
             <form.Field
-              name="lastName"
+              name="last_name"
               validators={{
                 onChange: ({ value }) =>
                   !value ? 'Last name is required' : undefined,
@@ -308,28 +401,27 @@ function Home() {
               )}
             </form.Field>
 
-            
-
             <form.Field
-              name="city"
+              name="profession"
               validators={{
                 onChange: ({ value }) =>
-                  !value ? 'City is required' : undefined,
+                  !value ? 'Profession is required' : undefined,
               }}
             >
               {(field) => (
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">City</label>
-                  <Select 
-                    options={cityOptions}
-                    isLoading={loadingCities}
-                    isDisabled={!form.getFieldValue('state')}
-                    placeholder="Select a City..."
-                    value={cityOptions.find((o) => o.value === field.state.value) ?? null}
-                    onChange={(option) => {
-                      field.handleChange(option?.value ?? '')
-                    }}
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">Profession</label>
+                  <input
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)} 
                     onBlur={field.handleBlur}
+                    placeholder="Profession (e.g. student, software engineer, doctor, etc)"
+                    className="rounded-xl px-4 py-3 text-(--color-text-cream) placeholder:text-(--color-text-muted) outline-none transition-all duration-200
+  focus:ring-2 focus:ring-(--color-accent-electric)"
+                    style={{
+                      background: 'var(--color-surface-card)',
+                      border: '1px solid var(--color-surface-slate)',
+                    }}
                   />
                   {field.state.meta.isTouched && field.state.meta.errors[0] && (
                     <p className="text-xs text-(--color-accent-coral)">
@@ -350,7 +442,7 @@ function Home() {
               {(field) => (
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">State</label>
-                  <Select 
+                  <Select
                     options={stateOptions}
                     isLoading={loadingStates}
                     placeholder="Select a State..."
@@ -361,6 +453,7 @@ function Home() {
                       if (option?.value) fetchCities(option.value)
                     }}
                     onBlur={field.handleBlur}
+                    styles={selectStyles}
                   />
                   {field.state.meta.isTouched && field.state.meta.errors[0] && (
                     <p className="text-xs text-(--color-accent-coral)">
@@ -371,10 +464,57 @@ function Home() {
               )}
             </form.Field>
 
-            <button type="submit"
-              className="border-1 rounded-full p-2 font-bold hover:bg-accent-electric"
+            <form.Field
+              name="city"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? 'City is required' : undefined,
+              }}
             >
-              Join Waitlist  
+              {(field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-(--color-text-muted) tracking-wide">City</label>
+                  <Select
+                    options={cityOptions}
+                    isLoading={loadingCities}
+                    isDisabled={!form.getFieldValue('state')}
+                    placeholder="Select a City..."
+                    value={cityOptions.find((o) => o.value === field.state.value) ?? null}
+                    onChange={(option) => {
+                      field.handleChange(option?.value ?? '')
+                    }}
+                    onBlur={field.handleBlur}
+                    styles={selectStyles}
+                  />
+                  {field.state.meta.isTouched && field.state.meta.errors[0] && (
+                    <p className="text-xs text-(--color-accent-coral)">
+                      {field.state.meta.errors[0]}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            {/* Success message shown after a valid insert */}
+            {submitStatus === 'success' && (
+              <p className="text-center text-sm font-semibold text-(--color-accent-electric)">
+                🎉 You're on the list! We'll be in touch.
+              </p>
+            )}
+
+            {/* Error message if Supabase rejected the insert */}
+            {submitStatus === 'error' && (
+              <p className="text-center text-sm font-semibold text-(--color-accent-coral)">
+                Something went wrong. Please try again.
+              </p>
+            )}
+
+            <button 
+              type="submit"
+              disabled={submitStatus === 'loading' || submitStatus === 'success'}
+              className="border rounded-full p-2 font-bold hover:bg-accent-electric disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {submitStatus === 'loading' ? 'Submitting...' : 'Join Waitlist'}
             </button>
 
           </form>
