@@ -216,7 +216,7 @@ function Home() {
             <p className="font-bold">Bond makes being with your friends easy and seamless, no matter the situation</p>
 
             <motion.button 
-              className="border-1 hover:border-3 rounded-4xl p-2 bg-accent-electric mt-6"
+              className="border-1 hover:border-3 rounded-4xl p-2 bg-accent-electric mt-16"
               whileHover={{scale: 1.1}}
               whileTap={{scale: 0.95}}
               onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: 'smooth' })}
@@ -227,7 +227,7 @@ function Home() {
         </div>
 
         {/* Video */}
-        <div className="flex justify-center items-center m-6 rounded-3xl py-12 max-w-4xl mx-auto">
+        {/* <div className="flex justify-center items-center m-6 rounded-3xl py-12 max-w-4xl mx-auto">
             <div className="video-float-frame rounded-2xl p-3"                                                                                                
               style={{                                                                                                                                      
                 background: 'rgba(28, 36, 68, 0.6)',                                                                                                        
@@ -241,11 +241,193 @@ function Home() {
                 <source src="../videos/bond_example.webm" type="video/webm" />
               </video>                                                        
             </div>
-        </div>
+        </div> */}
 
       </section>
 
-      {/* Section 2: How does Bond Work? */}
+      {/* Section 2: Core Features? */}
+      <section className="px-8 py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="font-bold text-4xl mb-12 text-center">Core Features</p>
+          <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Add Your People</h3>
+              <p className="text-xl leading-relaxed text-(--color-text-muted)">Add your people, Bond keeps them at the center of every plan</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Get personalized Recommendations for Your Group</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">No more endless group chats going nowhere. Bond suggests places and experiences tailored to your group's vibe, so you spend less time deciding and more time going</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Reserve Your Table</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Book your spot without ever leaving the app. Once you've found the right place, locking it in takes seconds.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Set Checkpoints to Meet Your People</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Pick where everyone meets up before heading out and see how long they need to get there.</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 3: Relevant Statistics? */}
+      <section className="px-8 py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="font-bold text-4xl mb-12">Relevant Statistics</p>
+          <div className="grid grid-cols-3 gap-6">
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Number of Apps needed to Plan an Outing (5)</h3>
+              {/* <p className="text-xl leading-relaxed text-(--color-text-muted)">5</p> */}
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Time spent with friends has dropped 37% between 2014-2023, according to the American Time Use Survey</h3>
+              {/* <p className="text-x1 leading-relaxed text-(--color-text-muted)">Bond takes the guesswork out of planning. It suggests the right spot, time, and vibe based on what your crew is into, no back and forth needed.</p> */}
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Social engagement with friends decreased 20 hours per month</h3>
+              {/* <p className="text-x1 leading-relaxed text-(--color-text-muted)">Once the plan is set, all that's left is showing up. No organizing, no coordinating. Bond handles it so you can focus on the moment.</p> */}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 4: How To? */}
+      <section className="px-8 py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="font-bold text-4xl mb-12 text-center">How To</p>
+          <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">1. Set Your Preferences</h3>
+              <p className="text-xl leading-relaxed text-(--color-text-muted)">Tell Bond what you're into -- your favorite cuisines, the kind of vibe you're after, your budget, and how far you want to go. The more Bond knows, the better it plans.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">2. Party Up with Your People</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Build your group before the planning starts. Add the Bonds you want to bring along so their preferences are factored in from the beginning.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">3. Find the Best Recommendation</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Bond takes everyone's preferences and surfaces the best match for the whole group. One recommendation everyone can get behind, without the back-and-forth.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">Wildcard</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Set up the whole moment, watch it crash and burn because your people love making life hard.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              <h3 className="text-xl font-bold">4. Enjoy Your Time</h3>
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">All the planning is done. The memories are just getting started</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5: Differentiators */}
+      <section className="px-8 py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="font-bold text-4xl mb-12">Key Differentiators</p>
+          <div className="grid grid-cols-3 gap-6">
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              {/* <h3 className="text-xl font-bold">Create or Join your Crew</h3> */}
+              <p className="text-xl leading-relaxed text-(--color-text-muted)">We provide the option to build your whole night. From the thought of the occasion till it becomes memory.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              {/* <h3 className="text-xl font-bold">Bond creates your plan</h3> */}
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">We are not giving you more options. We are giving you a short list of the right options.</p>
+            </motion.div>
+
+            <motion.div
+              className="rounded-2xl p-6 flex flex-col gap-4"
+              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
+              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              {/* <h3 className="text-xl font-bold">Just s</h3> */}
+              <p className="text-x1 leading-relaxed text-(--color-text-muted)">We are not just bringing options. We are bringing a toolkit to summon group leaders.</p>
+            </motion.div>
+          </div>
+        </div>
+      </section> 
+
+      {/* Section 4: How does Bond Work?
       <section className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
           <p className="font-bold text-4xl mb-12">How Bond helps your people</p>
@@ -284,9 +466,9 @@ function Home() {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      {/* Section 3: Mission Statement */}
+      {/* Section 5: Mission Statement */}
       <section className="px-8 py-24">
         <div className="max-w-3xl mx-auto">
           <motion.div
@@ -308,7 +490,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 4: Waitlist */}
+      {/* Section 6: Waitlist */}
       <section id="waitlist" className="px-8 py-24">
         <div className="max-w-md mx-auto">
           <p className="text-2xl font-bold mb-8 text-center">Get Early Access!</p>
