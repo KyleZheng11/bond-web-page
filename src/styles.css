@@ -5,7 +5,7 @@
 @import 'tw-animate-css';
 
 @theme inline {
-  --font-sans:    'Manrope', ui-sans-serif, sans-serif;
+  --font-sans: 'Manrope', ui-sans-serif, sans-serif;
   --font-display: 'Fraunces', ui-serif, serif;
 
   /*
@@ -19,27 +19,27 @@
 */
 
   /* ── Surfaces — the indigo night canvas (most of every screen) ── */
-  --color-surface-indigo: #12172E; /* App background — deepest base, behind everything */
-  --color-surface-card:   #1C2444; /* Default surface — cards, list rows, nav, sheets */
-  --color-surface-slate:  #2C375F; /* Elevated surface — modals, popovers, hover states, dividers */
+  --color-surface-indigo: #12172e; /* App background — deepest base, behind everything */
+  --color-surface-card: #1c2444; /* Default surface — cards, list rows, nav, sheets */
+  --color-surface-slate: #2c375f; /* Elevated surface — modals, popovers, hover states, dividers */
 
   /* ── Accents — strict pecking order, loud to rare ── */
-  --color-accent-tangerine: #FF7A3D; /* PRIMARY action — main CTAs, active tabs, the "press me" color. Dominant warm. */
-  --color-accent-electric:  #3D8BFF; /* COUNTERPOINT — info tags, counts, links, selected states. The cool balance. */
-  --color-accent-amber:     #FFC23D; /* HIGHLIGHT — icons, stars, "filling fast", subtle emphasis. */
-  --color-accent-coral:     #FF3E5B; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Use sparingly. */
-  --color-accent-neon:      #FF4D8D; /* RARE SPARK — streaks, celebrations, delight moments only. Never on profile/1:1 UI. */
+  --color-accent-tangerine: #ff7a3d; /* PRIMARY action — main CTAs, active tabs, the "press me" color. Dominant warm. */
+  --color-accent-electric: #3d8bff; /* COUNTERPOINT — info tags, counts, links, selected states. The cool balance. */
+  --color-accent-amber: #ffc23d; /* HIGHLIGHT — icons, stars, "filling fast", subtle emphasis. */
+  --color-accent-coral: #ff3e5b; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Use sparingly. */
+  --color-accent-neon: #ff4d8d; /* RARE SPARK — streaks, celebrations, delight moments only. Never on profile/1:1 UI. */
 
   /* ── Text & muted ── */
-  --color-text-cream: #F2EEE6; /* Primary text & icons on dark surfaces */
-  --color-text-muted: #9AA3C4; /* Secondary text — captions, metadata, placeholders, labels */
+  --color-text-cream: #f2eee6; /* Primary text & icons on dark surfaces */
+  --color-text-muted: #9aa3c4; /* Secondary text — captions, metadata, placeholders, labels */
 
   /* ── On-accent text — darkest shade of each family, for legible labels ON colored fills ── */
-  --color-on-tangerine: #3A1607; /* Text/icons sitting on a tangerine fill */
-  --color-on-electric:  #0A1730; /* Text/icons sitting on an electric-blue fill */
-  --color-on-amber:     #412402; /* Text/icons sitting on an amber fill */
-  --color-on-coral:     #501320; /* Text/icons sitting on a coral fill */
-  --color-on-neon:      #4B1528; /* Text/icons sitting on a neon fill */
+  --color-on-tangerine: #3a1607; /* Text/icons sitting on a tangerine fill */
+  --color-on-electric: #0a1730; /* Text/icons sitting on an electric-blue fill */
+  --color-on-amber: #412402; /* Text/icons sitting on an amber fill */
+  --color-on-coral: #501320; /* Text/icons sitting on a coral fill */
+  --color-on-neon: #4b1528; /* Text/icons sitting on a neon fill */
 }
 
 body {
@@ -49,7 +49,11 @@ body {
 }
 
 .text-gradient-bond {
-  background: linear-gradient(to right, var(--color-text-cream), var(--color-accent-amber));
+  background: linear-gradient(
+    to right,
+    var(--color-text-cream),
+    var(--color-accent-amber)
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -57,8 +61,13 @@ body {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .video-float-frame {
