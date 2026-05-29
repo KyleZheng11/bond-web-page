@@ -643,57 +643,99 @@ function Home() {
           <SlideUp>
             <p className="font-bold text-4xl mb-12">Key Differentiators</p>
           </SlideUp>
-          <SlideUp delay={0.15}>
-            <div className="grid grid-cols-3 gap-6">
+
+          {/*
+            Each card is staggered independently so they cascade in one by one.
+            The thick top border stripe is the primary accent — each card gets
+            its own Bond color (amber, electric, coral) so they feel distinct.
+            The large faded ordinal in the corner adds texture without cluttering.
+            Hover glow matches each card's own accent color.
+          */}
+          <div className="grid grid-cols-3 gap-6">
+            {/* Card 1 — amber */}
+            <SlideUp delay={0.1}>
               <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
+                className="rounded-2xl p-7 flex flex-col gap-4 relative overflow-hidden h-full"
                 style={{
                   background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
+                  borderTop: '4px solid var(--color-accent-amber)',
+                  borderRight: '1px solid var(--color-surface-slate)',
+                  borderBottom: '1px solid var(--color-surface-slate)',
+                  borderLeft: '1px solid var(--color-surface-slate)',
                 }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+                whileHover={{ y: -8, boxShadow: '0 0 48px #FFC23D2A' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                {/* <h3 className="text-xl font-bold">Create or Join your Crew</h3> */}
-                <p className="text-xl leading-relaxed text-(--color-text-muted)">
+                <span
+                  className="absolute top-3 right-5 text-8xl font-black select-none pointer-events-none leading-none"
+                  style={{ color: 'var(--color-accent-amber)', opacity: 0.1 }}
+                >
+                  01
+                </span>
+                <p className="text-xl leading-relaxed text-(--color-text-muted) mt-6">
                   We provide the option to build your whole night. From the
                   thought of the occasion till it becomes memory.
                 </p>
               </motion.div>
+            </SlideUp>
 
+            {/* Card 2 — electric */}
+            <SlideUp delay={0.2}>
               <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
+                className="rounded-2xl p-7 flex flex-col gap-4 relative overflow-hidden h-full"
                 style={{
                   background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
+                  borderTop: '4px solid var(--color-accent-electric)',
+                  borderRight: '1px solid var(--color-surface-slate)',
+                  borderBottom: '1px solid var(--color-surface-slate)',
+                  borderLeft: '1px solid var(--color-surface-slate)',
                 }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+                whileHover={{ y: -8, boxShadow: '0 0 48px #3D8BFF2A' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                {/* <h3 className="text-xl font-bold">Bond creates your plan</h3> */}
-                <p className="text-x1 leading-relaxed text-(--color-text-muted)">
+                <span
+                  className="absolute top-3 right-5 text-8xl font-black select-none pointer-events-none leading-none"
+                  style={{
+                    color: 'var(--color-accent-electric)',
+                    opacity: 0.1,
+                  }}
+                >
+                  02
+                </span>
+                <p className="text-xl leading-relaxed text-(--color-text-muted) mt-6">
                   We are not giving you more options. We are giving you a short
                   list of the right options.
                 </p>
               </motion.div>
+            </SlideUp>
 
+            {/* Card 3 — coral */}
+            <SlideUp delay={0.3}>
               <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
+                className="rounded-2xl p-7 flex flex-col gap-4 relative overflow-hidden h-full"
                 style={{
                   background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
+                  borderTop: '4px solid var(--color-accent-coral)',
+                  borderRight: '1px solid var(--color-surface-slate)',
+                  borderBottom: '1px solid var(--color-surface-slate)',
+                  borderLeft: '1px solid var(--color-surface-slate)',
                 }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
+                whileHover={{ y: -8, boxShadow: '0 0 48px #FF3E5B2A' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
-                {/* <h3 className="text-xl font-bold">Just s</h3> */}
-                <p className="text-x1 leading-relaxed text-(--color-text-muted)">
+                <span
+                  className="absolute top-3 right-5 text-8xl font-black select-none pointer-events-none leading-none"
+                  style={{ color: 'var(--color-accent-coral)', opacity: 0.1 }}
+                >
+                  03
+                </span>
+                <p className="text-xl leading-relaxed text-(--color-text-muted) mt-6">
                   We are not just bringing options. We are bringing a toolkit to
                   summon group leaders.
                 </p>
               </motion.div>
-            </div>
-          </SlideUp>
+            </SlideUp>
+          </div>
         </div>
       </section>
 
