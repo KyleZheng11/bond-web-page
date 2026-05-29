@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { motion } from 'motion/react'
+import { motion, useInView } from 'motion/react'
 import { useForm } from '@tanstack/react-form'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../utils/supabase'
 import Select from 'react-select'
 
@@ -27,6 +27,41 @@ function SlideUp({
     >
       {children}
     </motion.div>
+  )
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ─── CountUp ───────────────────────────────────────────────────────────────
+// Animates a number from 0 to `to` using an ease-out curve when scrolled into
+// view. `once: true` means the animation only runs the first time.
+function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const duration = 1800
+    const totalFrames = (duration / 1000) * 60
+    let frame = 0
+    const timer = setInterval(() => {
+      frame++
+      // cubic ease-out: fast start, slow finish
+      const progress = 1 - Math.pow(1 - frame / totalFrames, 3)
+      setCount(Math.floor(to * progress))
+      if (frame >= totalFrames) {
+        setCount(to)
+        clearInterval(timer)
+      }
+    }, 1000 / 60)
+    return () => clearInterval(timer)
+  }, [inView, to])
+
+  return (
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
   )
 }
 // ───────────────────────────────────────────────────────────────────────────
@@ -374,59 +409,61 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 3: Relevant Statistics? */}
-      <section className="px-8 py-20">
-        <div className="max-w-6xl mx-auto">
+      {/* Section 3: Bond in Numbers */}
+      <section className="px-8 py-24">
+        <div className="max-w-5xl mx-auto">
           <SlideUp>
-            <p className="font-bold text-4xl mb-12">Relevant Statistics</p>
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-4 text-(--color-accent-coral)">
+              The Disconnect is Real
+            </p>
+            <p className="font-bold text-4xl mb-16">Bond in Numbers</p>
           </SlideUp>
-          <SlideUp delay={0.15}>
-            <div className="grid grid-cols-3 gap-6">
-              <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
-                style={{
-                  background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
-                }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                <h3 className="text-xl font-bold">
-                  Number of Apps needed to Plan an Outing (5)
-                </h3>
-                {/* <p className="text-xl leading-relaxed text-(--color-text-muted)">5</p> */}
-              </motion.div>
 
-              <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
-                style={{
-                  background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
-                }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
-                <h3 className="text-xl font-bold">
-                  Time spent with friends has dropped 37% between 2014-2023,
-                  according to the American Time Use Survey
-                </h3>
-                {/* <p className="text-x1 leading-relaxed text-(--color-text-muted)">Bond takes the guesswork out of planning. It suggests the right spot, time, and vibe based on what your crew is into, no back and forth needed.</p> */}
-              </motion.div>
+          {/*
+            Three stats in a horizontal row separated by thin vertical dividers.
+            This is the "Lovable in numbers" pattern: big impact number on top,
+            short label below — no card backgrounds, just open space.
+          */}
+          <SlideUp delay={0.2}>
+            <div className="grid grid-cols-3">
+              {/* Stat 1 */}
+              <div className="pr-12 flex flex-col gap-3">
+                <p className="text-7xl font-black text-gradient-bond leading-none">
+                  <CountUp to={5} suffix="+" />
+                </p>
+                <p className="text-(--color-text-muted) leading-relaxed">
+                  Apps the average person juggles just to plan one night out
+                </p>
+              </div>
 
-              <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-4"
-                style={{
-                  background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-surface-slate)',
-                }}
-                whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              {/* Stat 2 — left border acts as divider */}
+              <div
+                className="px-12 flex flex-col gap-3"
+                style={{ borderLeft: '1px solid var(--color-surface-slate)' }}
               >
-                <h3 className="text-xl font-bold">
-                  Social engagement with friends decreased 20 hours per month
-                </h3>
-                {/* <p className="text-x1 leading-relaxed text-(--color-text-muted)">Once the plan is set, all that's left is showing up. No organizing, no coordinating. Bond handles it so you can focus on the moment.</p> */}
-              </motion.div>
+                <p className="text-7xl font-black text-gradient-bond leading-none">
+                  <CountUp to={37} suffix="%" />
+                </p>
+                <p className="text-(--color-text-muted) leading-relaxed">
+                  Drop in time spent with friends between 2014–2023
+                </p>
+                <p className="text-xs text-(--color-text-muted) opacity-50 mt-1">
+                  American Time Use Survey
+                </p>
+              </div>
+
+              {/* Stat 3 — left border acts as divider */}
+              <div
+                className="pl-12 flex flex-col gap-3"
+                style={{ borderLeft: '1px solid var(--color-surface-slate)' }}
+              >
+                <p className="text-7xl font-black text-gradient-bond leading-none">
+                  <CountUp to={20} suffix="hrs" />
+                </p>
+                <p className="text-(--color-text-muted) leading-relaxed">
+                  Less social engagement with friends every single month
+                </p>
+              </div>
             </div>
           </SlideUp>
         </div>
