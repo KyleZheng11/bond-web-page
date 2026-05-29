@@ -7,6 +7,24 @@ import Select from 'react-select'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+// ─── SlideUp ───────────────────────────────────────────────────────────────
+// Wraps any content in a scroll-triggered slide-up reveal.
+// `once: true` means it fires only the first time the element enters the viewport.
+// `margin: '-80px'` starts the animation just before the element is fully visible.
+function SlideUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 48 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.6, ease: 'easeOut', delay }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 // ─── react-select custom styles ────────────────────────────────────────────
 // react-select doesn't use regular CSS classes — it has its own CSS-in-JS
 // "styles" prop where each sub-component slot is a function:
@@ -209,21 +227,23 @@ function Home() {
 
         {/* Action/Body Statement */}
         <div className="flex justify-center items-center">
-          <div className="text-center mt-4 text-lg">
-            <div className="text-6xl font-bold mb-6">
-              <p className="text-gradient-bond">Find Your Bonding Language</p>
-            </div>
-            <p className="font-bold">Bond makes being with your friends easy and seamless, no matter the situation</p>
+          <SlideUp>
+            <div className="text-center mt-4 text-lg">
+              <div className="text-6xl font-bold mb-6">
+                <p className="text-gradient-bond">Find Your Bonding Language</p>
+              </div>
+              <p className="font-bold">Bond makes being with your friends easy and seamless, no matter the situation</p>
 
-            <motion.button 
-              className="border-1 hover:border-3 rounded-4xl p-2 bg-accent-electric mt-16"
-              whileHover={{scale: 1.1}}
-              whileTap={{scale: 0.95}}
-              onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Start Going Out
-            </motion.button>
-          </div>
+              <motion.button
+                className="border-1 hover:border-3 rounded-4xl p-2 bg-accent-electric mt-16"
+                whileHover={{scale: 1.1}}
+                whileTap={{scale: 0.95}}
+                onClick={() => document.getElementById("waitlist")?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Start Going Out
+              </motion.button>
+            </div>
+          </SlideUp>
         </div>
 
         {/* Video */}
@@ -248,7 +268,10 @@ function Home() {
       {/* Section 2: Core Features? */}
       <section className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
-          <p className="font-bold text-4xl mb-12 text-center">Core Features</p>
+          <SlideUp>
+            <p className="font-bold text-4xl mb-12 text-center">Core Features</p>
+          </SlideUp>
+          <SlideUp delay={0.15}>
           <div className="flex flex-col gap-6 max-w-2xl mx-auto">
             <motion.div
               className="rounded-2xl p-6 flex flex-col gap-4"
@@ -290,13 +313,17 @@ function Home() {
               <p className="text-x1 leading-relaxed text-(--color-text-muted)">Pick where everyone meets up before heading out and see how long they need to get there.</p>
             </motion.div>
           </div>
+          </SlideUp>
         </div>
       </section>
 
       {/* Section 3: Relevant Statistics? */}
       <section className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
-          <p className="font-bold text-4xl mb-12">Relevant Statistics</p>
+          <SlideUp>
+            <p className="font-bold text-4xl mb-12">Relevant Statistics</p>
+          </SlideUp>
+          <SlideUp delay={0.15}>
           <div className="grid grid-cols-3 gap-6">
             <motion.div
               className="rounded-2xl p-6 flex flex-col gap-4"
@@ -328,13 +355,17 @@ function Home() {
               {/* <p className="text-x1 leading-relaxed text-(--color-text-muted)">Once the plan is set, all that's left is showing up. No organizing, no coordinating. Bond handles it so you can focus on the moment.</p> */}
             </motion.div>
           </div>
+          </SlideUp>
         </div>
       </section>
 
       {/* Section 4: How To? */}
       <section className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
-          <p className="font-bold text-4xl mb-12 text-center">How To</p>
+          <SlideUp>
+            <p className="font-bold text-4xl mb-12 text-center">How To</p>
+          </SlideUp>
+          <SlideUp delay={0.15}>
           <div className="flex flex-col gap-6 max-w-2xl mx-auto">
             <motion.div
               className="rounded-2xl p-6 flex flex-col gap-4"
@@ -386,13 +417,17 @@ function Home() {
               <p className="text-x1 leading-relaxed text-(--color-text-muted)">All the planning is done. The memories are just getting started</p>
             </motion.div>
           </div>
+          </SlideUp>
         </div>
       </section>
 
       {/* Section 5: Differentiators */}
       <section className="px-8 py-20">
         <div className="max-w-6xl mx-auto">
-          <p className="font-bold text-4xl mb-12">Key Differentiators</p>
+          <SlideUp>
+            <p className="font-bold text-4xl mb-12">Key Differentiators</p>
+          </SlideUp>
+          <SlideUp delay={0.15}>
           <div className="grid grid-cols-3 gap-6">
             <motion.div
               className="rounded-2xl p-6 flex flex-col gap-4"
@@ -424,8 +459,9 @@ function Home() {
               <p className="text-x1 leading-relaxed text-(--color-text-muted)">We are not just bringing options. We are bringing a toolkit to summon group leaders.</p>
             </motion.div>
           </div>
+          </SlideUp>
         </div>
-      </section> 
+      </section>
 
       {/* Section 4: How does Bond Work?
       <section className="px-8 py-20">
@@ -471,29 +507,27 @@ function Home() {
       {/* Section 5: Mission Statement */}
       <section className="px-8 py-24">
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
-          >
+          <SlideUp>
             <p className="text-xs font-bold tracking-[0.2em] uppercase mb-6 text-(--color-accent-tangerine)">
               Our Mission
             </p>
 
             <p className="text-2xl leading-relaxed text-(--color-text-cream)">
-              We created Bond with belief that people are at their best when surrounded by good company. 
+              We created Bond with belief that people are at their best when surrounded by good company.
               We want to make going out with your friends easy and fulfilling.
               <span className="text-(--color-accent-amber)"> No fuss, no long planning</span>, just living in the moment. That's what Bond is all about.
             </p>
-          </motion.div>
+          </SlideUp>
         </div>
       </section>
 
       {/* Section 6: Waitlist */}
       <section id="waitlist" className="px-8 py-24">
         <div className="max-w-md mx-auto">
-          <p className="text-2xl font-bold mb-8 text-center">Get Early Access!</p>
+          <SlideUp>
+            <p className="text-2xl font-bold mb-8 text-center">Get Early Access!</p>
+          </SlideUp>
+          <SlideUp delay={0.15}>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -739,6 +773,7 @@ function Home() {
             </button>
 
           </form>
+          </SlideUp>
         </div>
       </section>
       
