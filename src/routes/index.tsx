@@ -359,65 +359,108 @@ function Home() {
         </div>
       </section>
 
-      {/* Section 4: How To? */}
+      {/* Section 4: How To */}
       <section className="px-8 py-20">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <SlideUp>
-            <p className="font-bold text-4xl mb-12 text-center">How To</p>
+            <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3 text-(--color-accent-electric)">How It Works</p>
+            <p className="font-bold text-4xl mb-16">From idea to memory,<br />in minutes.</p>
           </SlideUp>
-          <SlideUp delay={0.15}>
-          <div className="flex flex-col gap-6 max-w-2xl mx-auto">
-            <motion.div
-              className="rounded-2xl p-6 flex flex-col gap-4"
-              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
-              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <h3 className="text-xl font-bold">1. Set Your Preferences</h3>
-              <p className="text-xl leading-relaxed text-(--color-text-muted)">Tell Bond what you're into -- your favorite cuisines, the kind of vibe you're after, your budget, and how far you want to go. The more Bond knows, the better it plans.</p>
-            </motion.div>
 
-            <motion.div
-              className="rounded-2xl p-6 flex flex-col gap-4"
-              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
-              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <h3 className="text-xl font-bold">2. Party Up with Your People</h3>
-              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Build your group before the planning starts. Add the Bonds you want to bring along so their preferences are factored in from the beginning.</p>
-            </motion.div>
+          <div className="relative">
+            {/* Gradient vertical line connecting all steps */}
+            <div
+              className="absolute top-5 bottom-5 w-px left-5"
+              style={{
+                background: 'linear-gradient(to bottom, var(--color-accent-amber), var(--color-accent-tangerine), var(--color-accent-coral), var(--color-accent-electric))',
+              }}
+            />
 
-            <motion.div
-              className="rounded-2xl p-6 flex flex-col gap-4"
-              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
-              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <h3 className="text-xl font-bold">3. Find the Best Recommendation</h3>
-              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Bond takes everyone's preferences and surfaces the best match for the whole group. One recommendation everyone can get behind, without the back-and-forth.</p>
-            </motion.div>
+            {/* Step 1 */}
+            <SlideUp delay={0.1}>
+              <div className="relative flex gap-8 pb-14">
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  style={{ background: 'var(--color-accent-amber)', color: 'var(--color-on-amber)', boxShadow: '0 0 16px #FFC23D55' }}
+                >
+                  1
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase text-(--color-accent-amber) mb-1">Step 1</p>
+                  <h3 className="text-xl font-bold mb-2">Set Your Preferences</h3>
+                  <p className="leading-relaxed text-(--color-text-muted)">Tell Bond what you're into — your favorite cuisines, the vibe you're after, your budget, and how far you want to go. The more Bond knows, the better it plans.</p>
+                </div>
+              </div>
+            </SlideUp>
 
-            <motion.div
-              className="rounded-2xl p-6 flex flex-col gap-4"
-              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
-              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <h3 className="text-xl font-bold">Wildcard</h3>
-              <p className="text-x1 leading-relaxed text-(--color-text-muted)">Set up the whole moment, watch it crash and burn because your people love making life hard.</p>
-            </motion.div>
+            {/* Step 2 */}
+            <SlideUp delay={0.2}>
+              <div className="relative flex gap-8 pb-14">
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  style={{ background: 'var(--color-accent-tangerine)', color: 'var(--color-on-tangerine)', boxShadow: '0 0 16px #FF7A3D55' }}
+                >
+                  2
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase text-(--color-accent-tangerine) mb-1">Step 2</p>
+                  <h3 className="text-xl font-bold mb-2">Party Up with Your People</h3>
+                  <p className="leading-relaxed text-(--color-text-muted)">Build your group before the planning starts. Add the Bonds you want to bring along so their preferences are factored in from the beginning.</p>
+                </div>
+              </div>
+            </SlideUp>
 
-            <motion.div
-              className="rounded-2xl p-6 flex flex-col gap-4"
-              style={{ background: 'var(--color-surface-card)', border: '1px solid var(--color-surface-slate)' }}
-              whileHover={{ y: -6, boxShadow: '0 0 32px #FFC23D22' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-              <h3 className="text-xl font-bold">4. Enjoy Your Time</h3>
-              <p className="text-x1 leading-relaxed text-(--color-text-muted)">All the planning is done. The memories are just getting started</p>
-            </motion.div>
+            {/* Step 3 */}
+            <SlideUp delay={0.3}>
+              <div className="relative flex gap-8 pb-14">
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  style={{ background: 'var(--color-accent-electric)', color: 'var(--color-on-electric)', boxShadow: '0 0 16px #3D8BFF55' }}
+                >
+                  3
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase text-(--color-accent-electric) mb-1">Step 3</p>
+                  <h3 className="text-xl font-bold mb-2">Find the Best Recommendation</h3>
+                  <p className="leading-relaxed text-(--color-text-muted)">Bond takes everyone's preferences and surfaces the best match for the whole group — one recommendation everyone can get behind, without the back-and-forth.</p>
+                </div>
+              </div>
+            </SlideUp>
+
+            {/* Wildcard */}
+            <SlideUp delay={0.4}>
+              <div className="relative flex gap-8 pb-14">
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  style={{ background: 'var(--color-accent-coral)', color: 'var(--color-on-coral)', boxShadow: '0 0 16px #FF3E5B55' }}
+                >
+                  ?
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase text-(--color-accent-coral) mb-1">Wildcard</p>
+                  <h3 className="text-xl font-bold mb-2">Your People Do What They Do</h3>
+                  <p className="leading-relaxed text-(--color-text-muted)">Set up the whole moment, watch it crash and burn because your people love making life hard.</p>
+                </div>
+              </div>
+            </SlideUp>
+
+            {/* Step 4 */}
+            <SlideUp delay={0.5}>
+              <div className="relative flex gap-8">
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  style={{ background: 'var(--color-surface-slate)', border: '2px solid var(--color-accent-electric)', color: 'var(--color-text-cream)' }}
+                >
+                  4
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase text-(--color-text-muted) mb-1">Step 4</p>
+                  <h3 className="text-xl font-bold mb-2">Enjoy Your Time</h3>
+                  <p className="leading-relaxed text-(--color-text-muted)">All the planning is done. The memories are just getting started.</p>
+                </div>
+              </div>
+            </SlideUp>
           </div>
-          </SlideUp>
         </div>
       </section>
 
