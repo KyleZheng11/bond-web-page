@@ -151,97 +151,97 @@ const selectStyles = {
 // ───────────────────────────────────────────────────────────────────────────
 
 function Home() {
-  const [stateOptions, setStateOptions] = useState<
-    { label: string; value: string }[]
-  >([])
-  const [cityOptions, setCityOptions] = useState<
-    { label: string; value: string }[]
-  >([])
-  const [loadingStates, setLoadingStates] = useState(false)
-  const [loadingCities, setLoadingCities] = useState(false)
-  // Track whether the external location API failed so we can show a fallback message
-  const [locationError, setLocationError] = useState(false)
-  // 'duplicate' is its own state so we can show a specific message when
-  // Supabase rejects the insert because that email already exists (error code 23505).
-  const [submitStatus, setSubmitStatus] = useState<
-    'idle' | 'loading' | 'success' | 'error' | 'duplicate'
-  >('idle')
+  // const [stateOptions, setStateOptions] = useState<
+  //   { label: string; value: string }[]
+  // >([])
+  // const [cityOptions, setCityOptions] = useState<
+  //   { label: string; value: string }[]
+  // >([])
+  // const [loadingStates, setLoadingStates] = useState(false)
+  // const [loadingCities, setLoadingCities] = useState(false)
+  // // Track whether the external location API failed so we can show a fallback message
+  // const [locationError, setLocationError] = useState(false)
+  // // 'duplicate' is its own state so we can show a specific message when
+  // // Supabase rejects the insert because that email already exists (error code 23505).
+  // const [submitStatus, setSubmitStatus] = useState<
+  //   'idle' | 'loading' | 'success' | 'error' | 'duplicate'
+  // >('idle')
 
-  useEffect(() => {
-    setLoadingStates(true)
-    fetch('https://countriesnow.space/api/v0.1/countries/states', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country: 'United States' }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const options = data.data.states.map(
-          (s: { name: string; state_code: string }) => ({
-            label: s.name,
-            value: s.name,
-          }),
-        )
-        setStateOptions(options)
-      })
-      // If the API is down or returns a bad response, we surface a friendly error
-      // instead of leaving the user staring at an endless spinner.
-      .catch(() => setLocationError(true))
-      .finally(() => setLoadingStates(false))
-  }, [])
+  // useEffect(() => {
+  //   setLoadingStates(true)
+  //   fetch('https://countriesnow.space/api/v0.1/countries/states', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ country: 'United States' }),
+  //   })
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       const options = data.data.states.map(
+  //         (s: { name: string; state_code: string }) => ({
+  //           label: s.name,
+  //           value: s.name,
+  //         }),
+  //       )
+  //       setStateOptions(options)
+  //     })
+  //     // If the API is down or returns a bad response, we surface a friendly error
+  //     // instead of leaving the user staring at an endless spinner.
+  //     .catch(() => setLocationError(true))
+  //     .finally(() => setLoadingStates(false))
+  // }, [])
 
-  function fetchCities(stateName: string) {
-    setCityOptions([])
-    setLoadingCities(true)
-    fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ country: 'United States', state: stateName }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const options = data.data.map((city: string) => ({
-          label: city,
-          value: city,
-        }))
-        setCityOptions(options)
-      })
-      .catch(() => setLocationError(true))
-      .finally(() => setLoadingCities(false))
-  }
+  // function fetchCities(stateName: string) {
+  //   setCityOptions([])
+  //   setLoadingCities(true)
+  //   fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ country: 'United States', state: stateName }),
+  //   })
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       const options = data.data.map((city: string) => ({
+  //         label: city,
+  //         value: city,
+  //       }))
+  //       setCityOptions(options)
+  //     })
+  //     .catch(() => setLocationError(true))
+  //     .finally(() => setLoadingCities(false))
+  // }
 
-  const form = useForm({
-    defaultValues: {
-      first_name: '',
-      last_name: '',
-      email: '',
-      profession: '',
-      city: '',
-      state: '',
-    },
-    onSubmit: async ({ value }) => {
-      setSubmitStatus('loading')
-      const { error } = await supabase.from('waitlist').insert({
-        first_name: value.first_name,
-        last_name: value.last_name,
-        email: value.email,
-        profession: value.profession,
-        city: value.city,
-        state: value.state,
-      })
-      if (error) {
-        console.error('Failed to add user to supabase waitlist', error)
-        // Postgres unique-violation code — means this email is already on the list
-        if (error.code === '23505') {
-          setSubmitStatus('duplicate')
-        } else {
-          setSubmitStatus('error')
-        }
-      } else {
-        setSubmitStatus('success')
-      }
-    },
-  })
+  // const form = useForm({
+  //   defaultValues: {
+  //     first_name: '',
+  //     last_name: '',
+  //     email: '',
+  //     profession: '',
+  //     city: '',
+  //     state: '',
+  //   },
+  //   onSubmit: async ({ value }) => {
+  //     setSubmitStatus('loading')
+  //     const { error } = await supabase.from('waitlist').insert({
+  //       first_name: value.first_name,
+  //       last_name: value.last_name,
+  //       email: value.email,
+  //       profession: value.profession,
+  //       city: value.city,
+  //       state: value.state,
+  //     })
+  //     if (error) {
+  //       console.error('Failed to add user to supabase waitlist', error)
+  //       // Postgres unique-violation code — means this email is already on the list
+  //       if (error.code === '23505') {
+  //         setSubmitStatus('duplicate')
+  //       } else {
+  //         setSubmitStatus('error')
+  //       }
+  //     } else {
+  //       setSubmitStatus('success')
+  //     }
+  //   },
+  // })
 
   return (
     <div>
@@ -803,7 +803,7 @@ function Home() {
       </section>
 
       {/* Section 6: Waitlist */}
-      <section id="waitlist" className="px-8 py-24">
+      {/* <section id="waitlist" className="px-8 py-24">
         <div className="max-w-md mx-auto">
           <SlideUp>
             <p className="text-2xl font-bold mb-8 text-center">
@@ -815,7 +815,7 @@ function Home() {
               onSubmit={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                form.handleSubmit() // calls our onSubmit
+                form.handleSubmit() 
               }}
               className="flex flex-col gap-4"
             >
@@ -892,11 +892,6 @@ function Home() {
               <form.Field
                 name="email"
                 validators={{
-                  // We check two things in sequence:
-                  // 1. The field isn't empty
-                  // 2. It matches a basic email pattern (local@domain.tld)
-                  // This runs client-side on every keystroke, giving instant feedback.
-                  // The DB unique constraint (step 3) is the server-side safety net.
                   onChange: ({ value }) => {
                     if (!value) return 'Email is required'
                     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
@@ -969,7 +964,6 @@ function Home() {
                 )}
               </form.Field>
 
-              {/* If the location API is unreachable, tell the user rather than showing a broken dropdown */}
               {locationError && (
                 <p className="text-sm text-(--color-accent-coral)">
                   ⚠️ Could not load locations. Please type your city and state
@@ -1000,7 +994,7 @@ function Home() {
                       }
                       onChange={(option) => {
                         field.handleChange(option?.value ?? '')
-                        form.setFieldValue('city', '') // reset city when state changes
+                        form.setFieldValue('city', '') 
                         if (option?.value) fetchCities(option.value)
                       }}
                       onBlur={field.handleBlur}
@@ -1086,7 +1080,7 @@ function Home() {
             </form>
           </SlideUp>
         </div>
-      </section>
+      </section> */}
     </div>
   )
 }
