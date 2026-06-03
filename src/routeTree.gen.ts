@@ -9,38 +9,177 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
+import { Route as AuthHomeRouteImport } from './routes/_auth/home'
+import { Route as AuthPartyNewRouteImport } from './routes/_auth/party/new'
+import { Route as AuthPartyPartyIdResultsRouteImport } from './routes/_auth/party/$partyId/results'
+import { Route as AuthPartyPartyIdLobbyRouteImport } from './routes/_auth/party/$partyId/lobby'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRouteRoute = AuthRouteRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthProfileRoute = AuthProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthHomeRoute = AuthHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthPartyNewRoute = AuthPartyNewRouteImport.update({
+  id: '/party/new',
+  path: '/party/new',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthPartyPartyIdResultsRoute = AuthPartyPartyIdResultsRouteImport.update({
+  id: '/party/$partyId/results',
+  path: '/party/$partyId/results',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthPartyPartyIdLobbyRoute = AuthPartyPartyIdLobbyRouteImport.update({
+  id: '/party/$partyId/lobby',
+  path: '/party/$partyId/lobby',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/home': typeof AuthHomeRoute
+  '/profile': typeof AuthProfileRoute
+  '/party/new': typeof AuthPartyNewRoute
+  '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/home': typeof AuthHomeRoute
+  '/profile': typeof AuthProfileRoute
+  '/party/new': typeof AuthPartyNewRoute
+  '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/welcome': typeof WelcomeRoute
+  '/_auth/home': typeof AuthHomeRoute
+  '/_auth/profile': typeof AuthProfileRoute
+  '/_auth/party/new': typeof AuthPartyNewRoute
+  '/_auth/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/_auth/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/welcome'
+    | '/home'
+    | '/profile'
+    | '/party/new'
+    | '/party/$partyId/lobby'
+    | '/party/$partyId/results'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/welcome'
+    | '/home'
+    | '/profile'
+    | '/party/new'
+    | '/party/$partyId/lobby'
+    | '/party/$partyId/results'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/login'
+    | '/signup'
+    | '/welcome'
+    | '/_auth/home'
+    | '/_auth/profile'
+    | '/_auth/party/new'
+    | '/_auth/party/$partyId/lobby'
+    | '/_auth/party/$partyId/results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
+  WelcomeRoute: typeof WelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +187,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/profile': {
+      id: '/_auth/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthProfileRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/home': {
+      id: '/_auth/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthHomeRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/party/new': {
+      id: '/_auth/party/new'
+      path: '/party/new'
+      fullPath: '/party/new'
+      preLoaderRoute: typeof AuthPartyNewRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/party/$partyId/results': {
+      id: '/_auth/party/$partyId/results'
+      path: '/party/$partyId/results'
+      fullPath: '/party/$partyId/results'
+      preLoaderRoute: typeof AuthPartyPartyIdResultsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/party/$partyId/lobby': {
+      id: '/_auth/party/$partyId/lobby'
+      path: '/party/$partyId/lobby'
+      fullPath: '/party/$partyId/lobby'
+      preLoaderRoute: typeof AuthPartyPartyIdLobbyRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
+interface AuthRouteRouteChildren {
+  AuthHomeRoute: typeof AuthHomeRoute
+  AuthProfileRoute: typeof AuthProfileRoute
+  AuthPartyNewRoute: typeof AuthPartyNewRoute
+  AuthPartyPartyIdLobbyRoute: typeof AuthPartyPartyIdLobbyRoute
+  AuthPartyPartyIdResultsRoute: typeof AuthPartyPartyIdResultsRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthHomeRoute: AuthHomeRoute,
+  AuthProfileRoute: AuthProfileRoute,
+  AuthPartyNewRoute: AuthPartyNewRoute,
+  AuthPartyPartyIdLobbyRoute: AuthPartyPartyIdLobbyRoute,
+  AuthPartyPartyIdResultsRoute: AuthPartyPartyIdResultsRoute,
+}
+
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
+  WelcomeRoute: WelcomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

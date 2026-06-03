@@ -8,43 +8,44 @@
   --font-sans: 'Manrope', ui-sans-serif, sans-serif;
   --font-display: 'Fraunces', ui-serif, serif;
 
-  /*
-  RULES OF THUMB
-  • One dominant accent per screen — tangerine leads, everything else supports.
-  • Never place coral or neon directly against tangerine (orange + hot-pink edges vibrate).
-    Keep a surface color or whitespace between them.
-  • Coral = "live/now", neon = "spark/reward". If a screen starts feeling like a
-    dating app, pull the neon first.
-  • On any colored fill, use the matching --color-on-* token for text, never plain white/black.
-*/
+  /* ── Surfaces — the petrol night (most of every screen) ── */
+  --color-surface-deep: #0b1f2d; /* App background — deepest petrol-near-black, behind everything */
+  --color-surface-petrol: #133d5c; /* Default surface — cards, list rows, nav bars, sheets */
+  --color-surface-twilight: #1f567a; /* Elevated surface — modals, popovers, hover states, dividers */
 
-  /* ── Surfaces — the indigo night canvas (most of every screen) ── */
-  --color-surface-indigo: #12172e; /* App background — deepest base, behind everything */
-  --color-surface-card: #1c2444; /* Default surface — cards, list rows, nav, sheets */
-  --color-surface-slate: #2c375f; /* Elevated surface — modals, popovers, hover states, dividers */
+  /* ── Accents — the fire, in strict pecking order ── */
+  --color-accent-ember: #d45a1f; /* PRIMARY action — main CTAs, active tabs, the "press me" warmth. Dominant. */
+  --color-accent-brick: #b82e1c; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Sparingly. */
+  --color-accent-gold: #e8a93c; /* HIGHLIGHT — stars, "filling fast", icons, subtle emphasis. */
+  --color-accent-aurora: #3dd4e8; /* RARE SPARK — streaks, celebrations, delight moments only. Never the default anything. */
 
-  /* ── Accents — strict pecking order, loud to rare ── */
-  --color-accent-tangerine: #ff7a3d; /* PRIMARY action — main CTAs, active tabs, the "press me" color. Dominant warm. */
-  --color-accent-electric: #3d8bff; /* COUNTERPOINT — info tags, counts, links, selected states. The cool balance. */
-  --color-accent-amber: #ffc23d; /* HIGHLIGHT — icons, stars, "filling fast", subtle emphasis. */
-  --color-accent-coral: #ff3e5b; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Use sparingly. */
-  --color-accent-neon: #ff4d8d; /* RARE SPARK — streaks, celebrations, delight moments only. Never on profile/1:1 UI. */
+  /* ── Text ── */
+  --color-text-cream: #f0e4cc; /* Primary text & icons on dark surfaces */
+  --color-text-mist: #8fa8b5; /* Secondary — captions, metadata, placeholders, muted labels */
 
-  /* ── Text & muted ── */
-  --color-text-cream: #f2eee6; /* Primary text & icons on dark surfaces */
-  --color-text-muted: #9aa3c4; /* Secondary text — captions, metadata, placeholders, labels */
-
-  /* ── On-accent text — darkest shade of each family, for legible labels ON colored fills ── */
-  --color-on-tangerine: #3a1607; /* Text/icons sitting on a tangerine fill */
-  --color-on-electric: #0a1730; /* Text/icons sitting on an electric-blue fill */
-  --color-on-amber: #412402; /* Text/icons sitting on an amber fill */
-  --color-on-coral: #501320; /* Text/icons sitting on a coral fill */
-  --color-on-neon: #4b1528; /* Text/icons sitting on a neon fill */
+  /* ── On-accent text — legible labels on colored fills, stays on-brand ── */
+  --color-on-ember: #3a1607; /* Text/icons on an ember fill */
+  --color-on-brick: #f0d9c0; /* Text/icons on a brick fill (brick is dark — use cream tone) */
+  --color-on-gold: #3a2402; /* Text/icons on a gold fill */
+  --color-on-aurora: #062d34; /* Text/icons on an aurora fill */
 }
+
+/*
+  RULES OF THUMB
+  • One dominant accent per screen — ember leads, everything else supports.
+  • Ember and brick are close in hue — don't use them side-by-side as if they're
+    different colors. They read as the same family. Pick one per component.
+  • Never place aurora (cyan) directly against ember (orange) — they're
+    complementary and the edges will vibrate. Keep surface or whitespace between.
+  • Gold and aurora are sparkle colors. If they appear on every screen, they
+    stop sparkling. Aim for one moment of each per flow, max.
+  • On any colored fill, use the matching --color-on-* token for text, never
+    plain white or black — that's how the palette stays cohesive.
+*/
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-surface-indigo);
+  background-color: var(--color-surface-deep);
   color: var(--color-text-cream);
 }
 
@@ -52,7 +53,7 @@ body {
   background: linear-gradient(
     to right,
     var(--color-text-cream),
-    var(--color-accent-amber)
+    var(--color-accent-gold)
   );
   background-clip: text;
   -webkit-background-clip: text;

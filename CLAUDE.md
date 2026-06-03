@@ -15,7 +15,11 @@ pnpm run deploy - deploy website with new build
 
 ## Documentation
 
-For Tanstack Start documentaiton, look here: https://tanstack.com/start/latest
+For Tanstack Start documentation, look here: https://tanstack.com/start/latest
+
+For Supabase documentation, look here: https://supabase.com/docs
+
+For Tailwind CSS documentation, look here: https://tailwindcss.com/docs/installation/using-vite
 
 ## Guiding Principles
 
@@ -42,7 +46,7 @@ You are a senior software engineer proficient in building web applications using
 
 Build intentionally and keep things as simple as possible. Do not over-engineer unless the task calls for it. Have a teaching mindset — explain why you are building the way you are. Work in small, focused steps so another developer can follow your reasoning at every stage.
 
-Always allow the developer to preview edits before they are written in.
+Always allow the developer to preview edits before they are written in. Explain each preview edit and why it's being built.
 
 ---
 
@@ -134,7 +138,7 @@ Build in this order. Each screen is a discrete step integrated into the existing
 | #   | Screen               | Description                                                                                                                                                                                                                                                                          |
 | --- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | **Welcome**          | Cold unauthenticated entry point. Bond wordmark, one-line value prop, "Create a party" CTA, "Log in" link. Nothing else.                                                                                                                                                             |
-| 2   | **Sign Up**          | Google and Apple social login as primary options, email/password as fallback. Social login must be above the fold and visually dominant.                                                                                                                                             |
+| 2   | **Sign Up**          | Google social login as primary options, email/password as fallback. Social login must be above the fold and visually dominant.                                                                                                                                                       |
 | 3   | **Log In**           | Standard returning user login.                                                                                                                                                                                                                                                       |
 | 4   | **Invite Landing**   | Entry point for Guest Joiners arriving via SMS link. Shows the Leader's name, member count, and a single CTA: "Add your preferences." No login prompt. If the token is expired or invalid, show a clear human-readable error.                                                        |
 | 5   | **Home**             | Authenticated home screen. "Start a new party" CTA and a list of past parties with status (open / searching / resolved). Empty state must be warm and instructional — not a blank void.                                                                                              |
@@ -259,6 +263,61 @@ Use Tailwind CSS throughout. Keep the visual language warm, decisive, and social
 
 ---
 
+## Color Palette
+
+The Bond palette is called **Lanternlight**. The metaphor is warm light against cool night — lit windows in a sleeping town, a fire under a wide sky, friends gathered after dark. Petrol-teal surfaces hold the night; ember, brick, and gold are the fire; aurora is the rare spark of delight. The pairing of cool petrol surfaces with warm earthy accents is the classic cinematic teal/orange complement — it reads as emotional and human, not digital. This is load-bearing for the brand.
+
+Canonical tokens live in the global stylesheet's `@theme inline` block. **Always reference colors via Tailwind tokens** (e.g. `bg-surface-petrol`, `text-cream`) — never with raw hex values in components. A hex literal in a component is a signal the design is drifting from the system.
+
+### Surfaces — the petrol night
+
+| Token              | Hex       | Use for                                                     |
+| ------------------ | --------- | ----------------------------------------------------------- |
+| `surface-deep`     | `#0B1F2D` | App background, behind everything                           |
+| `surface-petrol`   | `#133D5C` | Default surface — cards, list rows, nav bars, sheets        |
+| `surface-twilight` | `#1F567A` | Elevated surface — modals, popovers, hover states, dividers |
+
+### Accents — the fire (strict pecking order, loud to rare)
+
+| Token           | Hex       | Role        | Use for                                                                     |
+| --------------- | --------- | ----------- | --------------------------------------------------------------------------- |
+| `accent-ember`  | `#D45A1F` | Primary     | Main CTAs, active tabs, the "press me" warmth. One dominant use per screen. |
+| `accent-brick`  | `#B82E1C` | Live signal | "Happening now," urgency dots, time-sensitive flags. Sparingly.             |
+| `accent-gold`   | `#E8A93C` | Highlight   | Stars, "filling fast," icons, subtle emphasis.                              |
+| `accent-aurora` | `#3DD4E8` | Rare spark  | Streaks, celebrations, delight moments only. Never a default anything.      |
+
+### Text
+
+| Token        | Hex       | Use for                                                    |
+| ------------ | --------- | ---------------------------------------------------------- |
+| `text-cream` | `#F0E4CC` | Primary text and icons on dark surfaces                    |
+| `text-mist`  | `#8FA8B5` | Secondary — captions, metadata, placeholders, muted labels |
+
+### On-accent text
+
+For text or icons sitting on a colored fill, use the matching `on-*` token — never plain white or black. This keeps the palette cohesive across components.
+
+| Token       | Hex       | Use for                                                        |
+| ----------- | --------- | -------------------------------------------------------------- |
+| `on-ember`  | `#3A1607` | Text/icons on an ember fill                                    |
+| `on-brick`  | `#F0D9C0` | Text/icons on a brick fill (brick is dark — light tone needed) |
+| `on-gold`   | `#3A2402` | Text/icons on a gold fill                                      |
+| `on-aurora` | `#062D34` | Text/icons on an aurora fill                                   |
+
+### Rules of thumb
+
+- **One dominant accent per screen.** Ember leads. Everything else supports.
+- **Ember and brick are close in hue** — don't use them side-by-side as if they were different colors. They read as the same family. Pick one per component.
+- **Never place aurora directly against ember.** They're complementary (cyan/orange) and the edges will vibrate at high saturation. Keep a surface color or whitespace between them.
+- **Sparkle colors must stay rare.** Gold and aurora should appear in roughly one moment per flow — not on every screen. If they're everywhere, they stop sparkling.
+- **No pink, no magenta, no pure white, no pure black.** These break the cinematic warmth and push Bond toward either dating-app or generic SaaS territory.
+- **On any colored fill, use the matching `on-*` token for text.** Plain white/black on accents looks off-brand even when it's technically legible.
+
+### Typography (paired with the palette)
+
+- `font-sans` — **Manrope.** Default UI face, applied to `body`. Used for body copy, labels, controls.
+- `font-display` — **Fraunces.** Warm serif for headings, hero copy, and personality moments. Its character echoes the lantern-glow vibe — reach for it on the Welcome screen, empty states, the Results headline, and the Profile dietary-restrictions note.
+
 ## What Not to Build (MVP)
 
 Do not build any of the following at MVP:
@@ -269,3 +328,7 @@ Do not build any of the following at MVP:
 - In-app messaging between group members
 - Activity or travel verticals — restaurants only
 - A "suggest a place" feature where members propose alternatives to the group
+
+## File Structure
+
+Build this project file structure to be simple, clean, and scalable. It should be easier to traverse and find your while around the app.
