@@ -1054,21 +1054,18 @@ function Home() {
                 )}
               </form.Field>
 
-              {/* Success message shown after a valid insert */}
               {submitStatus === 'success' && (
                 <p className="text-center text-sm font-semibold text-(--color-accent-electric)">
                   🎉 You're on the list! We'll be in touch.
                 </p>
               )}
 
-              {/* Duplicate email — friendly nudge instead of a generic error */}
               {submitStatus === 'duplicate' && (
                 <p className="text-center text-sm font-semibold text-(--color-accent-amber)">
                   Looks like you're already on the list! We'll be in touch. 👀
                 </p>
               )}
 
-              {/* Generic error if Supabase rejected the insert for any other reason */}
               {submitStatus === 'error' && (
                 <p className="text-center text-sm font-semibold text-(--color-accent-coral)">
                   Something went wrong. Please try again.
