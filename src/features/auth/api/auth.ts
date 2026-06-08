@@ -1,6 +1,6 @@
 import { supabase } from '#/lib/supabase'
 
-const REDIRECT_URL = `${window.location.origin}/home`
+const REDIRECT_URL = `${window.location.origin}/auth/callback`
 
 export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({

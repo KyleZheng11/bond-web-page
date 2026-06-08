@@ -1,7 +1,14 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { motion } from 'motion/react'
+import { supabase } from '#/lib/supabase'
 
-export const Route = createFileRoute('/welcome')({ component: Welcome })
+export const Route = createFileRoute('/welcome')({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession()
+    if (data.session) throw redirect({ to: '/home' })
+  },
+  component: Welcome,
+})
 
 function Welcome() {
   return (

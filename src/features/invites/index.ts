@@ -1,1 +1,2 @@
-// Public API for the invites feature — only import from here in routes
+export { resolveInvite } from './api/resolveInvite'
+export { submitGuestPreferences } from './api/submitGuestPreferences'

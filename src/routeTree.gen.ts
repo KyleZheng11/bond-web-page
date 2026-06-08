@@ -14,10 +14,15 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthHomeRouteImport } from './routes/_auth/home'
+import { Route as InviteTokenIndexRouteImport } from './routes/invite/$token/index'
+import { Route as InviteTokenWaitingRouteImport } from './routes/invite/$token/waiting'
+import { Route as InviteTokenPreferencesRouteImport } from './routes/invite/$token/preferences'
 import { Route as AuthPartyNewRouteImport } from './routes/_auth/party/new'
 import { Route as AuthPartyPartyIdResultsRouteImport } from './routes/_auth/party/$partyId/results'
+import { Route as AuthPartyPartyIdPreferencesRouteImport } from './routes/_auth/party/$partyId/preferences'
 import { Route as AuthPartyPartyIdLobbyRouteImport } from './routes/_auth/party/$partyId/lobby'
 
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -44,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthProfileRoute = AuthProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -53,6 +63,21 @@ const AuthHomeRoute = AuthHomeRouteImport.update({
   id: '/home',
   path: '/home',
   getParentRoute: () => AuthRouteRoute,
+} as any)
+const InviteTokenIndexRoute = InviteTokenIndexRouteImport.update({
+  id: '/invite/$token/',
+  path: '/invite/$token/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenWaitingRoute = InviteTokenWaitingRouteImport.update({
+  id: '/invite/$token/waiting',
+  path: '/invite/$token/waiting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenPreferencesRoute = InviteTokenPreferencesRouteImport.update({
+  id: '/invite/$token/preferences',
+  path: '/invite/$token/preferences',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthPartyNewRoute = AuthPartyNewRouteImport.update({
   id: '/party/new',
@@ -64,6 +89,12 @@ const AuthPartyPartyIdResultsRoute = AuthPartyPartyIdResultsRouteImport.update({
   path: '/party/$partyId/results',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthPartyPartyIdPreferencesRoute =
+  AuthPartyPartyIdPreferencesRouteImport.update({
+    id: '/party/$partyId/preferences',
+    path: '/party/$partyId/preferences',
+    getParentRoute: () => AuthRouteRoute,
+  } as any)
 const AuthPartyPartyIdLobbyRoute = AuthPartyPartyIdLobbyRouteImport.update({
   id: '/party/$partyId/lobby',
   path: '/party/$partyId/lobby',
@@ -77,8 +108,13 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/home': typeof AuthHomeRoute
   '/profile': typeof AuthProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
+  '/invite/$token/waiting': typeof InviteTokenWaitingRoute
+  '/invite/$token/': typeof InviteTokenIndexRoute
   '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRoutesByTo {
@@ -88,8 +124,13 @@ export interface FileRoutesByTo {
   '/welcome': typeof WelcomeRoute
   '/home': typeof AuthHomeRoute
   '/profile': typeof AuthProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
+  '/invite/$token/waiting': typeof InviteTokenWaitingRoute
+  '/invite/$token': typeof InviteTokenIndexRoute
   '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRoutesById {
@@ -101,8 +142,13 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/_auth/home': typeof AuthHomeRoute
   '/_auth/profile': typeof AuthProfileRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/_auth/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
+  '/invite/$token/waiting': typeof InviteTokenWaitingRoute
+  '/invite/$token/': typeof InviteTokenIndexRoute
   '/_auth/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
+  '/_auth/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/_auth/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
 }
 export interface FileRouteTypes {
@@ -114,8 +160,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/home'
     | '/profile'
+    | '/auth/callback'
     | '/party/new'
+    | '/invite/$token/preferences'
+    | '/invite/$token/waiting'
+    | '/invite/$token/'
     | '/party/$partyId/lobby'
+    | '/party/$partyId/preferences'
     | '/party/$partyId/results'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -125,8 +176,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/home'
     | '/profile'
+    | '/auth/callback'
     | '/party/new'
+    | '/invite/$token/preferences'
+    | '/invite/$token/waiting'
+    | '/invite/$token'
     | '/party/$partyId/lobby'
+    | '/party/$partyId/preferences'
     | '/party/$partyId/results'
   id:
     | '__root__'
@@ -137,8 +193,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/_auth/home'
     | '/_auth/profile'
+    | '/auth/callback'
     | '/_auth/party/new'
+    | '/invite/$token/preferences'
+    | '/invite/$token/waiting'
+    | '/invite/$token/'
     | '/_auth/party/$partyId/lobby'
+    | '/_auth/party/$partyId/preferences'
     | '/_auth/party/$partyId/results'
   fileRoutesById: FileRoutesById
 }
@@ -148,6 +209,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   WelcomeRoute: typeof WelcomeRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  InviteTokenPreferencesRoute: typeof InviteTokenPreferencesRoute
+  InviteTokenWaitingRoute: typeof InviteTokenWaitingRoute
+  InviteTokenIndexRoute: typeof InviteTokenIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -187,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/profile': {
       id: '/_auth/profile'
       path: '/profile'
@@ -201,6 +273,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthHomeRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/invite/$token/': {
+      id: '/invite/$token/'
+      path: '/invite/$token'
+      fullPath: '/invite/$token/'
+      preLoaderRoute: typeof InviteTokenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token/waiting': {
+      id: '/invite/$token/waiting'
+      path: '/invite/$token/waiting'
+      fullPath: '/invite/$token/waiting'
+      preLoaderRoute: typeof InviteTokenWaitingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token/preferences': {
+      id: '/invite/$token/preferences'
+      path: '/invite/$token/preferences'
+      fullPath: '/invite/$token/preferences'
+      preLoaderRoute: typeof InviteTokenPreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/party/new': {
       id: '/_auth/party/new'
       path: '/party/new'
@@ -213,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/party/$partyId/results'
       fullPath: '/party/$partyId/results'
       preLoaderRoute: typeof AuthPartyPartyIdResultsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/party/$partyId/preferences': {
+      id: '/_auth/party/$partyId/preferences'
+      path: '/party/$partyId/preferences'
+      fullPath: '/party/$partyId/preferences'
+      preLoaderRoute: typeof AuthPartyPartyIdPreferencesRouteImport
       parentRoute: typeof AuthRouteRoute
     }
     '/_auth/party/$partyId/lobby': {
@@ -230,6 +330,7 @@ interface AuthRouteRouteChildren {
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPartyNewRoute: typeof AuthPartyNewRoute
   AuthPartyPartyIdLobbyRoute: typeof AuthPartyPartyIdLobbyRoute
+  AuthPartyPartyIdPreferencesRoute: typeof AuthPartyPartyIdPreferencesRoute
   AuthPartyPartyIdResultsRoute: typeof AuthPartyPartyIdResultsRoute
 }
 
@@ -238,6 +339,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthProfileRoute: AuthProfileRoute,
   AuthPartyNewRoute: AuthPartyNewRoute,
   AuthPartyPartyIdLobbyRoute: AuthPartyPartyIdLobbyRoute,
+  AuthPartyPartyIdPreferencesRoute: AuthPartyPartyIdPreferencesRoute,
   AuthPartyPartyIdResultsRoute: AuthPartyPartyIdResultsRoute,
 }
 
@@ -251,6 +353,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   WelcomeRoute: WelcomeRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  InviteTokenPreferencesRoute: InviteTokenPreferencesRoute,
+  InviteTokenWaitingRoute: InviteTokenWaitingRoute,
+  InviteTokenIndexRoute: InviteTokenIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

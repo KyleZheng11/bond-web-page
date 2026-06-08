@@ -10,13 +10,13 @@ function greeting() {
   if (h < 12) return 'Good morning.'
   if (h < 17) return 'Good afternoon.'
   if (h < 21) return 'Good evening.'
-  return 'Late night plans?'
+  return 'Got Plans?'
 }
 
 function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { parties, loading } = useParties(user?.id)
+  const { parties, loading, error } = useParties(user?.id)
 
   return (
     <div
@@ -92,8 +92,12 @@ function Home() {
           </div>
         )}
 
+        {error && (
+          <p className="text-sm" style={{ color: 'var(--color-accent-brick)' }}>{error}</p>
+        )}
+
         {/* Empty state — warm, not a blank void */}
-        {!loading && parties.length === 0 && (
+        {!loading && !error && parties.length === 0 && (
           <div className="py-16 text-center flex flex-col gap-2">
             <p
               className="font-display text-2xl font-bold"

@@ -55,6 +55,7 @@ export type Database = {
       party_members: {
         Row: {
           expires_at: string | null
+          guest_name: string | null
           guest_token: string | null
           id: string
           joined_at: string | null
@@ -65,6 +66,7 @@ export type Database = {
         }
         Insert: {
           expires_at?: string | null
+          guest_name?: string | null
           guest_token?: string | null
           id?: string
           joined_at?: string | null
@@ -75,6 +77,7 @@ export type Database = {
         }
         Update: {
           expires_at?: string | null
+          guest_name?: string | null
           guest_token?: string | null
           id?: string
           joined_at?: string | null

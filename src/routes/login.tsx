@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import {
@@ -7,8 +7,15 @@ import {
   signInWithGoogle,
   signInWithEmail,
 } from '#/features/auth'
+import { supabase } from '#/lib/supabase'
 
-export const Route = createFileRoute('/login')({ component: LogIn })
+export const Route = createFileRoute('/login')({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession()
+    if (data.session) throw redirect({ to: '/home' })
+  },
+  component: LogIn,
+})
 
 function LogIn() {
   const navigate = useNavigate()
