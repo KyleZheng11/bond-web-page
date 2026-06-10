@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useAuth } from '#/features/auth'
 import { useParties, PartyCard } from '#/features/parties'
@@ -25,12 +25,13 @@ function Home() {
     >
       {/* Header */}
       <header className="flex items-center justify-between">
-        <span
-          className="text-xl font-black"
+        <Link
+          to="/"
+          className="text-xl font-black transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-accent-gold)' }}
         >
           Bond
-        </span>
+        </Link>
         <button
           onClick={() => navigate({ to: '/profile' })}
           className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-80"

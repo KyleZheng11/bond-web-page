@@ -254,6 +254,8 @@ Keep messages short. Link first. Minimum copy.
 
 Use Tailwind CSS throughout. Keep the visual language warm, decisive, and social — Bond is used in high-energy group contexts (group chats, pre-night-out planning). It should not feel like a utility app.
 
+Build website to be formatted for computers and phones.
+
 - Avoid pure white backgrounds and pure black text — use warm off-whites and near-blacks.
 - Minimum 44×44pt tap targets on all interactive elements.
 - One primary action per screen — the user should never wonder what to do next.

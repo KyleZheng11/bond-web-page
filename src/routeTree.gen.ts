@@ -24,6 +24,7 @@ import { Route as AuthPartyNewRouteImport } from './routes/_auth/party/new'
 import { Route as AuthPartyPartyIdResultsRouteImport } from './routes/_auth/party/$partyId/results'
 import { Route as AuthPartyPartyIdPreferencesRouteImport } from './routes/_auth/party/$partyId/preferences'
 import { Route as AuthPartyPartyIdLobbyRouteImport } from './routes/_auth/party/$partyId/lobby'
+import { Route as AuthPartyPartyIdExploreRouteImport } from './routes/_auth/party/$partyId/explore'
 
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
@@ -100,6 +101,11 @@ const AuthPartyPartyIdLobbyRoute = AuthPartyPartyIdLobbyRouteImport.update({
   path: '/party/$partyId/lobby',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthPartyPartyIdExploreRoute = AuthPartyPartyIdExploreRouteImport.update({
+  id: '/party/$partyId/explore',
+  path: '/party/$partyId/explore',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
   '/invite/$token/': typeof InviteTokenIndexRoute
+  '/party/$partyId/explore': typeof AuthPartyPartyIdExploreRoute
   '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
   '/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
   '/invite/$token': typeof InviteTokenIndexRoute
+  '/party/$partyId/explore': typeof AuthPartyPartyIdExploreRoute
   '/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
   '/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
   '/invite/$token/': typeof InviteTokenIndexRoute
+  '/_auth/party/$partyId/explore': typeof AuthPartyPartyIdExploreRoute
   '/_auth/party/$partyId/lobby': typeof AuthPartyPartyIdLobbyRoute
   '/_auth/party/$partyId/preferences': typeof AuthPartyPartyIdPreferencesRoute
   '/_auth/party/$partyId/results': typeof AuthPartyPartyIdResultsRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/invite/$token/preferences'
     | '/invite/$token/waiting'
     | '/invite/$token/'
+    | '/party/$partyId/explore'
     | '/party/$partyId/lobby'
     | '/party/$partyId/preferences'
     | '/party/$partyId/results'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/invite/$token/preferences'
     | '/invite/$token/waiting'
     | '/invite/$token'
+    | '/party/$partyId/explore'
     | '/party/$partyId/lobby'
     | '/party/$partyId/preferences'
     | '/party/$partyId/results'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/invite/$token/preferences'
     | '/invite/$token/waiting'
     | '/invite/$token/'
+    | '/_auth/party/$partyId/explore'
     | '/_auth/party/$partyId/lobby'
     | '/_auth/party/$partyId/preferences'
     | '/_auth/party/$partyId/results'
@@ -322,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthPartyPartyIdLobbyRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/party/$partyId/explore': {
+      id: '/_auth/party/$partyId/explore'
+      path: '/party/$partyId/explore'
+      fullPath: '/party/$partyId/explore'
+      preLoaderRoute: typeof AuthPartyPartyIdExploreRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
@@ -329,6 +348,7 @@ interface AuthRouteRouteChildren {
   AuthHomeRoute: typeof AuthHomeRoute
   AuthProfileRoute: typeof AuthProfileRoute
   AuthPartyNewRoute: typeof AuthPartyNewRoute
+  AuthPartyPartyIdExploreRoute: typeof AuthPartyPartyIdExploreRoute
   AuthPartyPartyIdLobbyRoute: typeof AuthPartyPartyIdLobbyRoute
   AuthPartyPartyIdPreferencesRoute: typeof AuthPartyPartyIdPreferencesRoute
   AuthPartyPartyIdResultsRoute: typeof AuthPartyPartyIdResultsRoute
@@ -338,6 +358,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthHomeRoute: AuthHomeRoute,
   AuthProfileRoute: AuthProfileRoute,
   AuthPartyNewRoute: AuthPartyNewRoute,
+  AuthPartyPartyIdExploreRoute: AuthPartyPartyIdExploreRoute,
   AuthPartyPartyIdLobbyRoute: AuthPartyPartyIdLobbyRoute,
   AuthPartyPartyIdPreferencesRoute: AuthPartyPartyIdPreferencesRoute,
   AuthPartyPartyIdResultsRoute: AuthPartyPartyIdResultsRoute,

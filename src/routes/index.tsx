@@ -1,6 +1,9 @@
+import { supabase } from '#/lib/supabase'
+import { useForm } from '@tanstack/react-form'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { motion, useInView } from 'motion/react'
 import { useState, useEffect, useRef } from 'react'
+import Select from 'react-select'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -63,112 +66,148 @@ function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
 }
 // ───────────────────────────────────────────────────────────────────────────
 
+const selectStyles = {
+  control: (base: object, state: { isFocused: boolean }) => ({
+    ...base,
+    background: 'var(--color-surface-petrol)',
+    border: `1px solid ${state.isFocused ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)'}`,
+    borderRadius: '0.75rem',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--color-accent-ember)' : 'none',
+    padding: '2px 4px',
+  }),
+  menu: (base: object) => ({
+    ...base,
+    background: 'var(--color-surface-petrol)',
+    border: '1px solid var(--color-surface-twilight)',
+    borderRadius: '0.75rem',
+    overflow: 'hidden',
+  }),
+  option: (base: object, state: { isFocused: boolean }) => ({
+    ...base,
+    background: state.isFocused
+      ? 'var(--color-surface-twilight)'
+      : 'transparent',
+    color: 'var(--color-text-cream)',
+    cursor: 'pointer',
+  }),
+  singleValue: (base: object) => ({
+    ...base,
+    color: 'var(--color-text-cream)',
+  }),
+  placeholder: (base: object) => ({ ...base, color: 'var(--color-text-mist)' }),
+  input: (base: object) => ({ ...base, color: 'var(--color-text-cream)' }),
+  loadingIndicator: (base: object) => ({
+    ...base,
+    color: 'var(--color-accent-ember)',
+  }),
+}
 
 function Home() {
   const navigate = useNavigate()
-  // const [stateOptions, setStateOptions] = useState<
-  //   { label: string; value: string }[]
-  // >([])
-  // const [cityOptions, setCityOptions] = useState<
-  //   { label: string; value: string }[]
-  // >([])
-  // const [loadingStates, setLoadingStates] = useState(false)
-  // const [loadingCities, setLoadingCities] = useState(false)
-  // // Track whether the external location API failed so we can show a fallback message
-  // const [locationError, setLocationError] = useState(false)
-  // // 'duplicate' is its own state so we can show a specific message when
-  // // Supabase rejects the insert because that email already exists (error code 23505).
-  // const [submitStatus, setSubmitStatus] = useState<
-  //   'idle' | 'loading' | 'success' | 'error' | 'duplicate'
-  // >('idle')
+  const [stateOptions, setStateOptions] = useState<
+    { label: string; value: string }[]
+  >([])
+  const [cityOptions, setCityOptions] = useState<
+    { label: string; value: string }[]
+  >([])
+  const [loadingStates, setLoadingStates] = useState(false)
+  const [loadingCities, setLoadingCities] = useState(false)
+  // Track whether the external location API failed so we can show a fallback message
+  const [locationError, setLocationError] = useState(false)
+  // 'duplicate' is its own state so we can show a specific message when
+  // Supabase rejects the insert because that email already exists (error code 23505).
+  const [submitStatus, setSubmitStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error' | 'duplicate'
+  >('idle')
 
-  // useEffect(() => {
-  //   setLoadingStates(true)
-  //   fetch('https://countriesnow.space/api/v0.1/countries/states', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ country: 'United States' }),
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       const options = data.data.states.map(
-  //         (s: { name: string; state_code: string }) => ({
-  //           label: s.name,
-  //           value: s.name,
-  //         }),
-  //       )
-  //       setStateOptions(options)
-  //     })
-  //     // If the API is down or returns a bad response, we surface a friendly error
-  //     // instead of leaving the user staring at an endless spinner.
-  //     .catch(() => setLocationError(true))
-  //     .finally(() => setLoadingStates(false))
-  // }, [])
+  useEffect(() => {
+    setLoadingStates(true)
+    fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: 'United States' }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const options = data.data.states.map(
+          (s: { name: string; state_code: string }) => ({
+            label: s.name,
+            value: s.name,
+          }),
+        )
+        setStateOptions(options)
+      })
+      // If the API is down or returns a bad response, we surface a friendly error
+      // instead of leaving the user staring at an endless spinner.
+      .catch(() => setLocationError(true))
+      .finally(() => setLoadingStates(false))
+  }, [])
 
-  // function fetchCities(stateName: string) {
-  //   setCityOptions([])
-  //   setLoadingCities(true)
-  //   fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ country: 'United States', state: stateName }),
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       const options = data.data.map((city: string) => ({
-  //         label: city,
-  //         value: city,
-  //       }))
-  //       setCityOptions(options)
-  //     })
-  //     .catch(() => setLocationError(true))
-  //     .finally(() => setLoadingCities(false))
-  // }
+  function fetchCities(stateName: string) {
+    setCityOptions([])
+    setLoadingCities(true)
+    fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: 'United States', state: stateName }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const options = data.data.map((city: string) => ({
+          label: city,
+          value: city,
+        }))
+        setCityOptions(options)
+      })
+      .catch(() => setLocationError(true))
+      .finally(() => setLoadingCities(false))
+  }
 
-  // const form = useForm({
-  //   defaultValues: {
-  //     first_name: '',
-  //     last_name: '',
-  //     email: '',
-  //     profession: '',
-  //     city: '',
-  //     state: '',
-  //   },
-  //   onSubmit: async ({ value }) => {
-  //     setSubmitStatus('loading')
-  //     const { error } = await supabase.from('waitlist').insert({
-  //       first_name: value.first_name,
-  //       last_name: value.last_name,
-  //       email: value.email,
-  //       profession: value.profession,
-  //       city: value.city,
-  //       state: value.state,
-  //     })
-  //     if (error) {
-  //       console.error('Failed to add user to supabase waitlist', error)
-  //       // Postgres unique-violation code — means this email is already on the list
-  //       if (error.code === '23505') {
-  //         setSubmitStatus('duplicate')
-  //       } else {
-  //         setSubmitStatus('error')
-  //       }
-  //     } else {
-  //       setSubmitStatus('success')
-  //     }
-  //   },
-  // })
+  const form = useForm({
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      email: '',
+      profession: '',
+      city: '',
+      state: '',
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitStatus('loading')
+      const { error } = await supabase.from('waitlist').insert({
+        first_name: value.first_name,
+        last_name: value.last_name,
+        email: value.email,
+        profession: value.profession,
+        city: value.city,
+        state: value.state,
+      })
+      if (error) {
+        console.error('Failed to add user to supabase waitlist', error)
+        // Postgres unique-violation code — means this email is already on the list
+        if (error.code === '23505') {
+          setSubmitStatus('duplicate')
+        } else {
+          setSubmitStatus('error')
+        }
+      } else {
+        setSubmitStatus('success')
+      }
+    },
+  })
 
   return (
     <div>
       {/* Section 1: Header */}
       <section>
-        <div className="p-8">
+        <div className="p-5 sm:p-8">
           <header className="pb-4 mb-6">
             <h1 className="flex items-center gap-4 text-2xl font-bold text-center">
               <motion.button
                 className="text-accent-gold"
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.85 }}
+                onClick={() => navigate({ to: '/' })}
               >
                 Bond
               </motion.button>
@@ -200,7 +239,7 @@ function Home() {
         <div className="flex justify-center items-center">
           <SlideUp>
             <div className="text-center mt-4 text-lg">
-              <div className="text-6xl font-bold mb-6">
+              <div className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6">
                 <p className="text-gradient-bond">Find Your Bonding Language</p>
               </div>
               <p className="font-bold">
@@ -209,7 +248,7 @@ function Home() {
               </p>
 
               <motion.button
-                className="border-1 hover:border-3 rounded-4xl px-6 py-3 bg-accent-ember mt-16 font-semibold"
+                className="border-1 hover:border-3 rounded-4xl px-6 py-3 bg-accent-ember mt-8 md:mt-16 font-semibold"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate({ to: '/welcome' })}
@@ -239,10 +278,10 @@ function Home() {
       </section>
 
       {/* Section 2: Core Features? */}
-      <section className="px-8 py-20">
+      <section className="px-5 py-12 md:px-8 md:py-20">
         <div className="max-w-6xl mx-auto">
           <SlideUp>
-            <p className="font-bold text-4xl mb-12 text-center">
+            <p className="font-bold text-2xl md:text-4xl mb-8 md:mb-12 text-center">
               Core Features
             </p>
           </SlideUp>
@@ -321,25 +360,22 @@ function Home() {
       </section>
 
       {/* Section 3: Bond in Numbers */}
-      <section className="px-8 py-24">
+      <section className="px-5 py-12 md:px-8 md:py-24">
         <div className="max-w-5xl mx-auto">
           <SlideUp>
             <p className="text-xs font-bold tracking-[0.2em] uppercase mb-4 text-(--color-accent-brick)">
               The Disconnect is Real
             </p>
-            <p className="font-bold text-4xl mb-16">Bond in Numbers</p>
+            <p className="font-bold text-2xl md:text-4xl mb-8 md:mb-16">
+              Bond in Numbers
+            </p>
           </SlideUp>
 
-          {/*
-            Three stats in a horizontal row separated by thin vertical dividers.
-            This is the "Lovable in numbers" pattern: big impact number on top,
-            short label below — no card backgrounds, just open space.
-          */}
           <SlideUp delay={0.2}>
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-3">
               {/* Stat 1 */}
-              <div className="pr-12 flex flex-col gap-3">
-                <p className="text-7xl font-black text-gradient-bond leading-none">
+              <div className="md:pr-12 flex flex-col gap-3 pb-8 md:pb-0">
+                <p className="text-5xl md:text-7xl font-black text-gradient-bond leading-none">
                   <CountUp to={5} suffix="+" />
                 </p>
                 <p className="text-(--color-text-mist) leading-relaxed">
@@ -347,14 +383,12 @@ function Home() {
                 </p>
               </div>
 
-              {/* Stat 2 — left border acts as divider */}
+              {/* Stat 2 */}
               <div
-                className="px-12 flex flex-col gap-3"
-                style={{
-                  borderLeft: '1px solid var(--color-surface-twilight)',
-                }}
+                className="md:px-12 flex flex-col gap-3 py-8 md:py-0 border-t border-b md:border-t-0 md:border-b-0 md:border-l"
+                style={{ borderColor: 'var(--color-surface-twilight)' }}
               >
-                <p className="text-7xl font-black text-gradient-bond leading-none">
+                <p className="text-5xl md:text-7xl font-black text-gradient-bond leading-none">
                   <CountUp to={37} suffix="%" />
                 </p>
                 <p className="text-(--color-text-mist) leading-relaxed">
@@ -365,14 +399,12 @@ function Home() {
                 </p>
               </div>
 
-              {/* Stat 3 — left border acts as divider */}
+              {/* Stat 3 */}
               <div
-                className="pl-12 flex flex-col gap-3"
-                style={{
-                  borderLeft: '1px solid var(--color-surface-twilight)',
-                }}
+                className="md:pl-12 flex flex-col gap-3 pt-8 md:pt-0 md:border-l"
+                style={{ borderColor: 'var(--color-surface-twilight)' }}
               >
-                <p className="text-7xl font-black text-gradient-bond leading-none">
+                <p className="text-5xl md:text-7xl font-black text-gradient-bond leading-none">
                   <CountUp to={20} suffix="hrs" />
                 </p>
                 <p className="text-(--color-text-mist) leading-relaxed">
@@ -385,13 +417,13 @@ function Home() {
       </section>
 
       {/* Section 4: How To */}
-      <section className="px-8 py-20">
+      <section className="px-5 py-12 md:px-8 md:py-20">
         <div className="max-w-3xl mx-auto">
           <SlideUp>
             <p className="text-xs font-bold tracking-[0.2em] uppercase mb-3 text-(--color-accent-aurora)">
               How It Works
             </p>
-            <p className="font-bold text-4xl mb-16">
+            <p className="font-bold text-2xl md:text-4xl mb-10 md:mb-16">
               From idea to memory,
               <br />
               in minutes.
@@ -407,7 +439,7 @@ function Home() {
 
             {/* Step 1 */}
             <SlideUp delay={0.1}>
-              <div className="relative flex gap-8 pb-14">
+              <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
@@ -436,7 +468,7 @@ function Home() {
 
             {/* Step 2 */}
             <SlideUp delay={0.2}>
-              <div className="relative flex gap-8 pb-14">
+              <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
@@ -465,7 +497,7 @@ function Home() {
 
             {/* Step 3 */}
             <SlideUp delay={0.3}>
-              <div className="relative flex gap-8 pb-14">
+              <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
@@ -495,7 +527,7 @@ function Home() {
 
             {/* Wildcard */}
             <SlideUp delay={0.4}>
-              <div className="relative flex gap-8 pb-14">
+              <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
@@ -523,7 +555,7 @@ function Home() {
 
             {/* Step 4 */}
             <SlideUp delay={0.5}>
-              <div className="relative flex gap-8">
+              <div className="relative flex gap-5 md:gap-8">
                 <div
                   className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
@@ -551,10 +583,12 @@ function Home() {
       </section>
 
       {/* Section 5: Differentiators */}
-      <section className="px-8 py-20">
+      <section className="px-5 py-12 md:px-8 md:py-20">
         <div className="max-w-6xl mx-auto">
           <SlideUp>
-            <p className="font-bold text-4xl mb-12">Key Differentiators</p>
+            <p className="font-bold text-2xl md:text-4xl mb-8 md:mb-12">
+              Key Differentiators
+            </p>
           </SlideUp>
 
           {/*
@@ -564,7 +598,7 @@ function Home() {
             The large faded ordinal in the corner adds texture without cluttering.
             Hover glow matches each card's own accent color.
           */}
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 1 — amber */}
             <SlideUp delay={0.1}>
               <motion.div
@@ -716,7 +750,7 @@ function Home() {
       </section>
 
       {/* Section 6: Waitlist */}
-      {/* <section id="waitlist" className="px-8 py-24">
+      <section id="waitlist" className="px-8 py-24">
         <div className="max-w-md mx-auto">
           <SlideUp>
             <p className="text-2xl font-bold mb-8 text-center">
@@ -728,7 +762,7 @@ function Home() {
               onSubmit={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                form.handleSubmit() 
+                form.handleSubmit()
               }}
               className="flex flex-col gap-4"
             >
@@ -907,7 +941,7 @@ function Home() {
                       }
                       onChange={(option) => {
                         field.handleChange(option?.value ?? '')
-                        form.setFieldValue('city', '') 
+                        form.setFieldValue('city', '')
                         if (option?.value) fetchCities(option.value)
                       }}
                       onBlur={field.handleBlur}
@@ -962,7 +996,7 @@ function Home() {
               </form.Field>
 
               {submitStatus === 'success' && (
-                <p className="text-center text-sm font-semibold text-(--color-accent-ember)">
+                <p className="text-center text-sm font-semibold text-(--color-accent-aurora)">
                   🎉 You're on the list! We'll be in touch.
                 </p>
               )}
@@ -993,7 +1027,7 @@ function Home() {
             </form>
           </SlideUp>
         </div>
-      </section> */}
+      </section>
     </div>
   )
 }

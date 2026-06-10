@@ -47,8 +47,8 @@ function SignUp() {
       {/* Back to welcome */}
       <Link
         to="/welcome"
-        className="absolute top-6 left-6 text-sm font-semibold transition-opacity hover:opacity-70"
-        style={{ color: 'var(--color-text-mist)' }}
+        className="absolute left-6 text-sm font-semibold transition-opacity hover:opacity-70"
+        style={{ color: 'var(--color-text-mist)', top: 'max(1.5rem, env(safe-area-inset-top))' }}
       >
         ← Back
       </Link>

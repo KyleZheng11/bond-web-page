@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/features/auth'
 import { getPartyLobby } from '#/features/parties'
+import { findRestaurant } from '#/features/recommendations'
 import { supabase } from '#/lib/supabase'
 import type { Tables } from '#/types/database'
 
@@ -21,6 +22,8 @@ function Lobby() {
   const [data, setData] = useState<LobbyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [finding, setFinding] = useState(false)
+  const [findError, setFindError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!user) return
@@ -61,6 +64,19 @@ function Lobby() {
 
     return () => { supabase.removeChannel(channel) }
   }, [partyId, user, load])
+
+  async function handleFindRestaurant() {
+    if (!canFindRestaurant || !user || finding) return
+    setFinding(true)
+    setFindError(null)
+    try {
+      await findRestaurant({ data: { partyId, siteUrl: window.location.origin } })
+      navigate({ to: '/party/$partyId/results', params: { partyId } })
+    } catch (err) {
+      setFindError(err instanceof Error ? err.message : 'Something went wrong, try again.')
+      setFinding(false)
+    }
+  }
 
   async function copyLink() {
     if (!data?.party.invite_token) return
@@ -176,25 +192,48 @@ function Lobby() {
             <div className="flex flex-col gap-2">
               {members.map((member) => {
                 const ready = !!member.preferences_submitted_at
+                const leaderName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'Your friend'
+                const inviteMessage = `${leaderName} is using Bond to pick a restaurant. Submit your preferences here: ${window.location.origin}/invite/${member.guest_token}`
+                const smsHref = `sms:${member.phone_number}&body=${encodeURIComponent(inviteMessage)}`
+
                 return (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between px-4 py-3 rounded-2xl"
+                    className="flex items-center justify-between px-4 py-3 rounded-2xl gap-3"
                     style={{ background: 'var(--color-surface-petrol)' }}
                   >
-                    <span className="text-sm font-medium" style={{ color: 'var(--color-text-cream)' }}>
+                    <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
                       {member.guest_name ?? member.phone_number ?? '—'}
                     </span>
-                    <span
-                      className="flex items-center gap-1.5 text-xs font-semibold"
-                      style={{ color: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)' }}
-                    >
+
+                    {ready ? (
                       <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)', opacity: ready ? 1 : 0.4 }}
-                      />
-                      {ready ? 'Ready' : 'Waiting'}
-                    </span>
+                        className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                        style={{ color: 'var(--color-accent-gold)' }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent-gold)' }} />
+                        Ready
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className="flex items-center gap-1.5 text-xs font-semibold"
+                          style={{ color: 'var(--color-text-mist)' }}
+                        >
+                          <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-text-mist)', opacity: 0.4 }} />
+                          Waiting
+                        </span>
+                        {member.phone_number && (
+                          <a
+                            href={smsHref}
+                            className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-opacity hover:opacity-80"
+                            style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
+                          >
+                            Send invite
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -245,25 +284,28 @@ function Lobby() {
 
         {/* Find a restaurant CTA */}
         <button
-          disabled={!canFindRestaurant}
+          disabled={!canFindRestaurant || finding}
+          onClick={handleFindRestaurant}
           className="w-full py-4 rounded-2xl font-semibold text-base transition-opacity"
           style={{
             background: canFindRestaurant ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
             color: canFindRestaurant ? 'var(--color-on-ember)' : 'var(--color-text-mist)',
-            opacity: canFindRestaurant ? 1 : 0.6,
-            cursor: canFindRestaurant ? 'pointer' : 'not-allowed',
-          }}
-          onClick={() => {
-            if (!canFindRestaurant) return
-            // TODO: trigger recommendation engine (Screen 10)
+            opacity: canFindRestaurant && !finding ? 1 : 0.6,
+            cursor: canFindRestaurant && !finding ? 'pointer' : 'not-allowed',
           }}
         >
-          Find a restaurant
+          {finding ? 'Finding your spot…' : 'Find a restaurant'}
         </button>
 
-        {!canFindRestaurant && (
+        {!canFindRestaurant && !finding && (
           <p className="text-xs text-center -mt-4" style={{ color: 'var(--color-text-mist)' }}>
             Add your preferences above to unlock this.
+          </p>
+        )}
+
+        {findError && (
+          <p className="text-xs text-center -mt-4" style={{ color: 'var(--color-accent-brick)' }}>
+            {findError}
           </p>
         )}
       </main>
