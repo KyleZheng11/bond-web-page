@@ -114,15 +114,28 @@ function Results() {
         </span>
       </header>
 
-      {/* Photo placeholder — warm lantern gradient until photo proxy is wired up */}
-      <div
-        className="w-full h-52 flex items-end px-6 pb-5"
-        style={{
-          background: 'linear-gradient(135deg, var(--color-surface-twilight) 0%, #1a3a2a 50%, var(--color-surface-petrol) 100%)',
-        }}
-      >
+      {/* Restaurant photo */}
+      <div className="w-full h-52 relative overflow-hidden flex items-end px-6 pb-5">
+        {place.photoUrl ? (
+          <>
+            <img
+              src={place.photoUrl}
+              alt={rec.restaurant_name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(to top, rgba(11,31,45,0.85) 0%, transparent 50%)' }}
+            />
+          </>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(135deg, var(--color-surface-twilight) 0%, #1a3a2a 50%, var(--color-surface-petrol) 100%)' }}
+          />
+        )}
         <span
-          className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+          className="relative text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
           style={{ background: 'rgba(11,31,45,0.6)', color: 'var(--color-text-mist)' }}
         >
           Bond's pick

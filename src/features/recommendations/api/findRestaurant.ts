@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { supabaseServer } from '#/lib/supabase.server'
 import { aggregatePreferences } from '../lib/aggregatePreferences'
-import { geocodeLocation, searchNearbyRestaurants } from '../lib/googlePlaces'
+import { geocodeLocation, searchNearbyRestaurants, resolvePhotoUrl } from '../lib/googlePlaces'
 import { sendSms } from '#/lib/twilio'
 import type { Place } from '../lib/googlePlaces'
 import type { AggregatedSignal } from '../lib/aggregatePreferences'
@@ -88,7 +88,10 @@ export const findRestaurant = createServerFn()
     }
 
     const ranked = [...filtered].sort((a, b) => scorePlace(b) - scorePlace(a))
-    const winner = ranked[0]
+    const winner = { ...ranked[0] }
+    if (winner.photoName) {
+      winner.photoUrl = await resolvePhotoUrl(winner.photoName)
+    }
 
     const alternatives = ranked.slice(1, 4).map((p, i) => ({
       restaurant_id: p.id,
@@ -114,7 +117,7 @@ export const findRestaurant = createServerFn()
       .single()
     if (recError) throw new Error(recError.message)
 
-    await supabaseServer.from('parties').update({ status: 'resolved' }).eq('id', partyId)
+    await supabaseServer.from('parties').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', partyId)
 
     // Fetch leader name and guest phone numbers, then send result SMS
     // Both are non-fatal — a failed SMS should never block a resolved party

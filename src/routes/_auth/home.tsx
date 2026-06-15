@@ -32,16 +32,25 @@ function Home() {
         >
           Bond
         </Link>
-        <button
-          onClick={() => navigate({ to: '/profile' })}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-80"
-          style={{
-            background: 'var(--color-surface-petrol)',
-            color: 'var(--color-text-cream)',
-          }}
-        >
-          {user?.email?.[0].toUpperCase() ?? '?'}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/friends"
+            className="text-sm font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
+            style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+          >
+            Friends
+          </Link>
+          <button
+            onClick={() => navigate({ to: '/profile' })}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-80"
+            style={{
+              background: 'var(--color-surface-petrol)',
+              color: 'var(--color-text-cream)',
+            }}
+          >
+            {user?.email?.[0].toUpperCase() ?? '?'}
+          </button>
+        </div>
       </header>
 
       {/* Greeting + CTA */}

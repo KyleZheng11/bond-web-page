@@ -11,6 +11,7 @@ export interface Place {
   types: string[]
   address: string
   photoName: string | null
+  photoUrl: string | null
 }
 
 export const CUISINE_TO_GOOGLE_TYPE: Record<string, string> = {
@@ -122,5 +123,16 @@ export async function searchNearbyRestaurants(params: {
     types: p.types ?? [],
     address: p.shortFormattedAddress ?? '',
     photoName: p.photos?.[0]?.name ?? null,
+    photoUrl: null,
   }))
+}
+
+export async function resolvePhotoUrl(photoName: string): Promise<string | null> {
+  try {
+    const url = `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=800&maxWidthPx=1200&key=${API_KEY}`
+    const res = await fetch(url, { redirect: 'manual' })
+    return res.headers.get('location')
+  } catch {
+    return null
+  }
 }

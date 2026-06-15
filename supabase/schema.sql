@@ -204,3 +204,83 @@ ALTER TABLE party_members REPLICA IDENTITY FULL;
 
 ALTER PUBLICATION supabase_realtime ADD TABLE parties;
 ALTER PUBLICATION supabase_realtime ADD TABLE party_members;
+
+
+-- ─── GUEST DATA CLEANUP ───────────────────────────────────────────────────────
+-- Adds resolved_at to parties so we know exactly when a party was resolved.
+-- A pg_cron job runs hourly and deletes guest preferences rows for parties
+-- that resolved more than 24 hours ago, honouring the grace period for guests
+-- who open the results link late.
+-- party_members rows are intentionally kept (leader sees party history).
+
+ALTER TABLE parties ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
+
+-- guest_name was added to party_members after initial schema creation
+ALTER TABLE party_members ADD COLUMN IF NOT EXISTS guest_name TEXT;
+
+CREATE OR REPLACE FUNCTION cleanup_guest_preferences()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  DELETE FROM preferences
+  WHERE guest_token IS NOT NULL
+    AND party_id IN (
+      SELECT id FROM parties
+      WHERE status = 'resolved'
+        AND resolved_at IS NOT NULL
+        AND resolved_at < now() - interval '24 hours'
+    );
+END;
+$$;
+
+-- Requires pg_cron extension (enabled by default on Supabase).
+-- Run this once in the SQL editor; it persists as a scheduled job.
+SELECT cron.schedule(
+  'cleanup-guest-prefs',
+  '0 * * * *',
+  'SELECT cleanup_guest_preferences()'
+);
+
+
+-- ─── FRIENDS ──────────────────────────────────────────────────────────────────
+
+CREATE TABLE friendships (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  addressee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL DEFAULT 'pending'
+                 CHECK (status IN ('pending', 'accepted', 'declined')),
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (requester_id, addressee_id)
+);
+
+-- Invite links for connecting with new users via SMS
+CREATE TABLE friend_invites (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  inviter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token      UUID UNIQUE DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ DEFAULT NOW() + interval '7 days'
+);
+
+ALTER TABLE friendships    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE friend_invites ENABLE ROW LEVEL SECURITY;
+
+-- friendships
+CREATE POLICY "friendships: read own"
+  ON friendships FOR SELECT USING (
+    auth.uid() = requester_id OR auth.uid() = addressee_id
+  );
+
+CREATE POLICY "friendships: insert as requester"
+  ON friendships FOR INSERT WITH CHECK (auth.uid() = requester_id);
+
+CREATE POLICY "friendships: addressee can update status"
+  ON friendships FOR UPDATE USING (auth.uid() = addressee_id);
+
+-- friend_invites
+CREATE POLICY "friend_invites: manage own"
+  ON friend_invites USING (auth.uid() = inviter_id);
