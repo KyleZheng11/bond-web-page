@@ -248,7 +248,7 @@ function Home() {
               </p>
 
               <motion.button
-                className="border-1 hover:border-3 rounded-4xl px-6 py-3 bg-accent-ember mt-8 md:mt-16 font-semibold"
+                className="border hover:border-3 rounded-4xl px-6 py-3 bg-accent-ember mt-8 md:mt-16 font-semibold"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate({ to: '/welcome' })}
@@ -441,7 +441,7 @@ function Home() {
             <SlideUp delay={0.1}>
               <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
                     background: 'var(--color-accent-ember)',
                     color: 'var(--color-on-ember)',
@@ -470,7 +470,7 @@ function Home() {
             <SlideUp delay={0.2}>
               <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
                     background: 'var(--color-accent-ember)',
                     color: 'var(--color-on-ember)',
@@ -499,7 +499,7 @@ function Home() {
             <SlideUp delay={0.3}>
               <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
                     background: 'var(--color-accent-ember)',
                     color: 'var(--color-on-ember)',
@@ -529,7 +529,7 @@ function Home() {
             <SlideUp delay={0.4}>
               <div className="relative flex gap-5 md:gap-8 pb-10 md:pb-14">
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
                     background: 'var(--color-accent-brick)',
                     color: 'var(--color-on-brick)',
@@ -557,7 +557,7 @@ function Home() {
             <SlideUp delay={0.5}>
               <div className="relative flex gap-5 md:gap-8">
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
+                  className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold z-10"
                   style={{
                     background: 'var(--color-accent-ember)',
                     color: 'var(--color-on-ember)',

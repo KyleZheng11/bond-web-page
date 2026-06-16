@@ -1,7 +1,15 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   public: {
+    Views: Record<string, never>
+    Functions: Record<string, never>
     Tables: {
       users: {
         Row: {
@@ -31,6 +39,7 @@ export type Database = {
           push_token?: string | null
           created_at?: string | null
         }
+        Relationships: []
       }
       parties: {
         Row: {
@@ -63,6 +72,7 @@ export type Database = {
           created_at?: string | null
           resolved_at?: string | null
         }
+        Relationships: []
       }
       party_members: {
         Row: {
@@ -98,6 +108,7 @@ export type Database = {
           preferences_submitted_at?: string | null
           expires_at?: string | null
         }
+        Relationships: []
       }
       preferences: {
         Row: {
@@ -133,6 +144,7 @@ export type Database = {
           dietary_restrictions?: string[] | null
           created_at?: string | null
         }
+        Relationships: []
       }
       recommendations: {
         Row: {
@@ -165,6 +177,7 @@ export type Database = {
           ranked_alternatives?: Json
           created_at?: string | null
         }
+        Relationships: []
       }
       friendships: {
         Row: {
@@ -188,6 +201,7 @@ export type Database = {
           status?: 'pending' | 'accepted' | 'declined'
           created_at?: string | null
         }
+        Relationships: []
       }
       friend_invites: {
         Row: {
@@ -211,6 +225,40 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
         }
+        Relationships: []
+      }
+      waitlist: {
+        Row: {
+          id: string
+          first_name: string
+          last_name: string
+          email: string
+          profession: string
+          city: string
+          state: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          first_name: string
+          last_name: string
+          email: string
+          profession: string
+          city: string
+          state: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          first_name?: string
+          last_name?: string
+          email?: string
+          profession?: string
+          city?: string
+          state?: string
+          created_at?: string | null
+        }
+        Relationships: []
       }
       ratings: {
         Row: {
@@ -240,6 +288,7 @@ export type Database = {
           visited?: boolean | null
           created_at?: string | null
         }
+        Relationships: []
       }
     }
   }
