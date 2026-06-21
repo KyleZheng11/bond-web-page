@@ -46,7 +46,7 @@ export type Database = {
           id: string
           creator_id: string
           name: string | null
-          status: 'open' | 'searching' | 'resolved'
+          status: 'open' | 'searching' | 'voting' | 'resolved'
           invite_token: string | null
           location: string | null
           created_at: string | null
@@ -56,7 +56,7 @@ export type Database = {
           id?: string
           creator_id: string
           name?: string | null
-          status?: 'open' | 'searching' | 'resolved'
+          status?: 'open' | 'searching' | 'voting' | 'resolved'
           invite_token?: string | null
           location?: string | null
           created_at?: string | null
@@ -66,7 +66,7 @@ export type Database = {
           id?: string
           creator_id?: string
           name?: string | null
-          status?: 'open' | 'searching' | 'resolved'
+          status?: 'open' | 'searching' | 'voting' | 'resolved'
           invite_token?: string | null
           location?: string | null
           created_at?: string | null
@@ -256,6 +256,30 @@ export type Database = {
           profession?: string
           city?: string
           state?: string
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          id: string
+          party_id: string
+          voter_id: string
+          restaurant_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          party_id: string
+          voter_id: string
+          restaurant_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          party_id?: string
+          voter_id?: string
+          restaurant_id?: string
           created_at?: string | null
         }
         Relationships: []

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { resolveInvite } from '#/features/invites'
+import { supabase } from '#/lib/supabase'
 
 export const Route = createFileRoute('/invite/$token/waiting')({ component: WaitingScreen })
 
@@ -16,14 +17,34 @@ function WaitingScreen() {
       .then((result) => {
         setLeaderName(result.leaderName)
         setPartyId(result.party.id)
-        if (result.party.status === 'resolved') {
+        if (result.party.status === 'voting') {
+          navigate({ to: '/invite/$token/vote', params: { token } })
+        } else if (result.party.status === 'resolved') {
           navigate({ to: '/party/$partyId/results', params: { partyId: result.party.id } })
         }
       })
-      .catch(() => {
-        // Token may be invalid after submit — show generic message
-      })
+      .catch(() => {})
   }, [token, navigate])
+
+  // Watch for the party moving to voting or resolved
+  useEffect(() => {
+    if (!partyId) return
+    const channel = supabase
+      .channel(`waiting:${partyId}`)
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'parties' },
+        (payload) => {
+          const updated = payload.new as { id?: string; status?: string }
+          if (updated.id !== partyId) return
+          if (updated.status === 'voting') {
+            navigate({ to: '/invite/$token/vote', params: { token } })
+          } else if (updated.status === 'resolved') {
+            navigate({ to: '/party/$partyId/results', params: { partyId } })
+          }
+        })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [partyId, token, navigate])
 
   return (
     <div
@@ -36,7 +57,6 @@ function WaitingScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
-        {/* Aurora checkmark — a delight moment */}
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
           style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-accent-aurora)' }}
@@ -53,8 +73,8 @@ function WaitingScreen() {
           </h1>
           <p className="text-base" style={{ color: 'var(--color-text-mist)' }}>
             {leaderName
-              ? `We'll text you when ${leaderName} picks a spot.`
-              : "We'll text you when the group picks a spot."}
+              ? `Waiting for ${leaderName} to find restaurant options.`
+              : 'Waiting for the group to find restaurant options.'}
           </p>
         </div>
 

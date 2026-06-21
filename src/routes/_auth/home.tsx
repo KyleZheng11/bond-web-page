@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useAuth } from '#/features/auth'
-import { useParties, PartyCard } from '#/features/parties'
+import { useParties, PartyCard, deleteParty } from '#/features/parties'
 
 export const Route = createFileRoute('/_auth/home')({ component: Home })
 
@@ -16,7 +16,7 @@ function greeting() {
 function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { parties, loading, error } = useParties(user?.id)
+  const { parties, loading, error, refresh } = useParties(user?.id)
 
   return (
     <div
@@ -135,6 +135,14 @@ function Home() {
                       : '/party/$partyId/lobby',
                   params: { partyId: party.id },
                 })
+              }
+              onDelete={
+                party.creator_id === user?.id
+                  ? async () => {
+                      await deleteParty({ data: { partyId: party.id, userId: user.id } })
+                      refresh()
+                    }
+                  : undefined
               }
             />
           ))}

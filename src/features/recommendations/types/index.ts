@@ -1,11 +1,10 @@
-import type { Tables, Json } from '#/types/database'
+import type { Tables } from '#/types/database'
+import type { Place } from '../lib/googlePlaces'
 
 export type Recommendation = Tables<'recommendations'>
 
-export interface RankedAlternative {
-  restaurant_id: string
-  restaurant_name: string
-  restaurant_data: Json
-  reason: string
-  category: 'different_budget' | 'different_cuisine' | 'different_vibe'
+export interface Candidate {
+  slot: 1 | 2 | 3 | 4
+  slotLabel: string  // "Top pick" | "Runner up" | "For everyone" | "Dietary pick" | "Splurge" | "Alternative"
+  place: Place
 }

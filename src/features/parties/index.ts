@@ -1,4 +1,5 @@
 export { getMyParties } from './api/parties'
+export { deleteParty } from './api/deleteParty'
 export { getPartyCreator } from './api/getPartyCreator'
 export { createParty } from './api/createParty'
 export { inviteFriends } from './api/inviteFriends'

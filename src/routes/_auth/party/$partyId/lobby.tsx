@@ -52,12 +52,18 @@ function Lobby() {
       .channel(`lobby:${partyId}`)
       // Broadcast from guest browser after they submit preferences
       .on('broadcast', { event: 'member_updated' }, () => load())
-      // postgres_changes for party status (resolved → navigate to results)
+      // Navigate on status changes
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
         (payload) => {
-          if ((payload.new as { id?: string }).id === partyId) load()
+          const updated = payload.new as { id?: string; status?: string }
+          if (updated.id !== partyId) return
+          if (updated.status === 'voting') {
+            navigate({ to: '/party/$partyId/vote', params: { partyId } })
+          } else {
+            load()
+          }
         },
       )
       .subscribe()
@@ -71,7 +77,7 @@ function Lobby() {
     setFindError(null)
     try {
       await findRestaurant({ data: { partyId } })
-      navigate({ to: '/party/$partyId/results', params: { partyId } })
+      navigate({ to: '/party/$partyId/vote', params: { partyId } })
     } catch (err) {
       setFindError(err instanceof Error ? err.message : 'Something went wrong, try again.')
       setFinding(false)

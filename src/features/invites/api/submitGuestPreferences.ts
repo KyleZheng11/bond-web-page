@@ -5,13 +5,12 @@ export const submitGuestPreferences = createServerFn()
   .inputValidator((d: {
     token: string
     guestName: string
-    cuisineVetoes: string[]
+    cuisineWants: string[]
     budgetTier: number
-    vibe: string | null
     dietaryRestrictions: string[]
   }) => d)
   .handler(async ({ data }) => {
-    // Try per-member SMS token
+    // Try per-member guest token first
     const { data: member } = await supabaseServer
       .from('party_members')
       .select('id, party_id, preferences_submitted_at, expires_at')
@@ -29,9 +28,9 @@ export const submitGuestPreferences = createServerFn()
         .insert({
           party_id: member.party_id,
           guest_token: data.token,
-          cuisine_preferences: data.cuisineVetoes,
+          cuisine_preferences: data.cuisineWants,
           budget_tier: data.budgetTier,
-          vibe: data.vibe,
+          vibe: null,
           dietary_restrictions: data.dietaryRestrictions,
         })
       if (prefError) throw new Error(prefError.message)
@@ -72,12 +71,12 @@ export const submitGuestPreferences = createServerFn()
       .insert({
         party_id: party.id,
         guest_token: guestToken,
-        cuisine_preferences: data.cuisineVetoes,
+        cuisine_preferences: data.cuisineWants,
         budget_tier: data.budgetTier,
-        vibe: data.vibe,
+        vibe: null,
         dietary_restrictions: data.dietaryRestrictions,
       })
     if (prefError) throw new Error(prefError.message)
 
-    return { ok: true, partyId: party.id }
+    return { ok: true, partyId: party.id, guestToken }
   })

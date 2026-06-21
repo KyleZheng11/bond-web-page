@@ -14,26 +14,18 @@ export const BUDGETS = [
   { tier: 4, symbol: '$$$$', label: '$60+', sub: 'per person' },
 ]
 
-export const VIBES = [
-  { value: 'casual', label: 'Casual', sub: 'Easy and low-key' },
-  { value: 'lively', label: 'Lively', sub: 'Buzzy and energetic' },
-  { value: 'intimate', label: 'Intimate', sub: 'Quiet and cozy' },
-  { value: 'special', label: 'Special', sub: 'Celebratory — go all out' },
-]
-
 export const DIETARY = [
   'Vegetarian', 'Vegan', 'Gluten-free',
   'Halal', 'Kosher', 'Dairy-free',
-  'Nut-free', 'Shellfish-free',
 ]
 
 // ── Step components ───────────────────────────────────────────────────────────
 
 export function StepCuisine({
-  vetoes,
+  wants,
   onToggle,
 }: {
-  vetoes: string[]
+  wants: string[]
   onToggle: (c: string) => void
 }) {
   return (
@@ -43,27 +35,27 @@ export function StepCuisine({
           className="font-display text-3xl font-semibold leading-tight"
           style={{ color: 'var(--color-text-cream)' }}
         >
-          Anything you're not feeling tonight?
+          What are you in the mood for?
         </h1>
         <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          Tap to veto. Nothing selected means you're open to everything.
+          Pick as many as you like. Nothing selected means you're open to anything.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
         {CUISINES.map((c) => {
-          const vetoed = vetoes.includes(c)
+          const selected = wants.includes(c)
           return (
             <button
               key={c}
               onClick={() => onToggle(c)}
               className="px-4 py-2 rounded-full text-sm font-medium transition-all"
               style={{
-                background: vetoed ? 'var(--color-accent-brick)' : 'var(--color-surface-petrol)',
-                color: vetoed ? 'var(--color-on-brick)' : 'var(--color-text-cream)',
-                border: `1px solid ${vetoed ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
+                background: selected ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
+                color: selected ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
+                border: `1px solid ${selected ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
               }}
             >
-              {vetoed ? `✕ ${c}` : c}
+              {c}
             </button>
           )
         })}
@@ -107,52 +99,6 @@ export function StepBudget({
               }}
             >
               <span className="font-display text-xl font-bold w-14 shrink-0">{symbol}</span>
-              <div>
-                <p className="font-semibold text-sm">{label}</p>
-                <p className="text-xs opacity-70">{sub}</p>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-export function StepVibe({
-  selected,
-  onSelect,
-}: {
-  selected: string | null
-  onSelect: (v: string | null) => void
-}) {
-  return (
-    <div className="flex flex-col gap-6 py-4">
-      <div>
-        <h1
-          className="font-display text-3xl font-semibold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
-        >
-          What's the vibe?
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          Optional — skip if you don't have a preference.
-        </p>
-      </div>
-      <div className="flex flex-col gap-3">
-        {VIBES.map(({ value, label, sub }) => {
-          const active = selected === value
-          return (
-            <button
-              key={value}
-              onClick={() => onSelect(active ? null : value)}
-              className="flex items-center gap-4 px-5 py-4 rounded-2xl text-left transition-all"
-              style={{
-                background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
-                color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                border: `1px solid ${active ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
-              }}
-            >
               <div>
                 <p className="font-semibold text-sm">{label}</p>
                 <p className="text-xs opacity-70">{sub}</p>

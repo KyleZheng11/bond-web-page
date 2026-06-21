@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { submitGuestPreferences } from '#/features/invites'
-import { StepCuisine, StepBudget, StepVibe, StepDietary } from '#/features/preferences/components/PreferenceSteps'
+import { StepCuisine, StepBudget, StepDietary } from '#/features/preferences/components/PreferenceSteps'
 import { supabase } from '#/lib/supabase'
 
 export const Route = createFileRoute('/invite/$token/preferences')({
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/invite/$token/preferences')({
   component: GuestPreferences,
 })
 
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 3
 
 function GuestPreferences() {
   const { token } = Route.useParams()
@@ -24,14 +24,13 @@ function GuestPreferences() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const [cuisineVetoes, setCuisineVetoes] = useState<string[]>([])
+  const [cuisineWants, setCuisineWants] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
-  const [vibe, setVibe] = useState<string | null>(null)
   const [dietary, setDietary] = useState<string[]>([])
 
   function goBack() {
     if (step === 1) {
-      navigate({ to: '/invite/$token/', params: { token } })
+      navigate({ to: '/invite/$token', params: { token } })
       return
     }
     setDirection(-1)
@@ -44,9 +43,9 @@ function GuestPreferences() {
     setError('')
     try {
       const result = await submitGuestPreferences({
-        data: { token, guestName: name, cuisineVetoes, budgetTier: budget, vibe, dietaryRestrictions: dietary },
+        data: { token, guestName: name, cuisineWants, budgetTier: budget, dietaryRestrictions: dietary },
       })
-      // Broadcast so the leader's lobby updates in real-time without a refresh
+      // Broadcast so the leader's lobby updates in real-time
       const ch = supabase.channel(`lobby:${result.partyId}`)
       await ch.send({ type: 'broadcast', event: 'member_updated', payload: {} })
       supabase.removeChannel(ch)
@@ -67,7 +66,7 @@ function GuestPreferences() {
   }
 
   function toggleCuisine(c: string) {
-    setCuisineVetoes((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
+    setCuisineWants((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
   }
 
   function toggleDietary(d: string) {
@@ -123,10 +122,9 @@ function GuestPreferences() {
             exit={{ x: direction * -40, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
           >
-            {step === 1 && <StepCuisine vetoes={cuisineVetoes} onToggle={toggleCuisine} />}
+            {step === 1 && <StepCuisine wants={cuisineWants} onToggle={toggleCuisine} />}
             {step === 2 && <StepBudget selected={budget} onSelect={setBudget} />}
-            {step === 3 && <StepVibe selected={vibe} onSelect={setVibe} />}
-            {step === 4 && <StepDietary selected={dietary} onToggle={toggleDietary} />}
+            {step === 3 && <StepDietary selected={dietary} onToggle={toggleDietary} />}
           </motion.div>
         </AnimatePresence>
 

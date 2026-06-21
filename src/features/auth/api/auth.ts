@@ -1,20 +1,21 @@
 import { supabase } from '#/lib/supabase'
 
-const REDIRECT_URL = `${window.location.origin}/auth/callback`
+function redirectUrl() {
+  return `${window.location.origin}/auth/callback`
+}
 
 export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: REDIRECT_URL },
+    options: { redirectTo: redirectUrl() },
   })
 }
-
 
 export async function signUpWithEmail(email: string, password: string) {
   return supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: REDIRECT_URL },
+    options: { emailRedirectTo: redirectUrl() },
   })
 }
 

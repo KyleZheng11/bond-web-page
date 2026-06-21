@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '#/features/auth'
 import { getLeaderPrefsContext, submitPreferences } from '#/features/preferences'
-import { StepCuisine, StepBudget, StepVibe, StepDietary } from '#/features/preferences/components/PreferenceSteps'
+import { StepCuisine, StepBudget, StepDietary } from '#/features/preferences/components/PreferenceSteps'
 
 export const Route = createFileRoute('/_auth/party/$partyId/preferences')({ component: Preferences })
 
@@ -17,14 +17,13 @@ function Preferences() {
   const [error, setError] = useState('')
 
   const [showDietaryStep, setShowDietaryStep] = useState(true)
-  const totalSteps = showDietaryStep ? 4 : 3
+  const totalSteps = showDietaryStep ? 3 : 2
 
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
 
-  const [cuisineVetoes, setCuisineVetoes] = useState<string[]>([])
+  const [cuisineWants, setCuisineWants] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
-  const [vibe, setVibe] = useState<string | null>(null)
   const [dietary, setDietary] = useState<string[]>([])
 
   useEffect(() => {
@@ -45,18 +44,13 @@ function Preferences() {
     setStep((s) => s - 1)
   }
 
-  function goNext() {
-    setDirection(1)
-    setStep((s) => s + 1)
-  }
-
   async function handleSubmit() {
     if (!user || budget === null) return
     setSubmitting(true)
     setError('')
     try {
       await submitPreferences({
-        data: { partyId, userId: user.id, cuisineVetoes, budgetTier: budget, vibe, dietaryRestrictions: dietary },
+        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: dietary },
       })
       navigate({ to: '/party/$partyId/lobby', params: { partyId } })
     } catch {
@@ -66,23 +60,23 @@ function Preferences() {
   }
 
   function handleContinue() {
-    if (step < totalSteps) goNext()
-    else handleSubmit()
+    if (step < totalSteps) {
+      setDirection(1)
+      setStep((s) => s + 1)
+    } else {
+      handleSubmit()
+    }
   }
 
   function toggleCuisine(c: string) {
-    setCuisineVetoes((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
+    setCuisineWants((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
   }
 
   function toggleDietary(d: string) {
     setDietary((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d])
   }
 
-  const canContinue =
-    step === 1 ? true :
-    step === 2 ? budget !== null :
-    true
-
+  const canContinue = step === 2 ? budget !== null : true
   const continueLabel = step === totalSteps
     ? submitting ? 'Saving…' : 'Done'
     : 'Continue'
@@ -142,10 +136,9 @@ function Preferences() {
             exit={{ x: direction * -40, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
           >
-            {step === 1 && <StepCuisine vetoes={cuisineVetoes} onToggle={toggleCuisine} />}
+            {step === 1 && <StepCuisine wants={cuisineWants} onToggle={toggleCuisine} />}
             {step === 2 && <StepBudget selected={budget} onSelect={setBudget} />}
-            {step === 3 && <StepVibe selected={vibe} onSelect={setVibe} />}
-            {step === 4 && showDietaryStep && <StepDietary selected={dietary} onToggle={toggleDietary} />}
+            {step === 3 && showDietaryStep && <StepDietary selected={dietary} onToggle={toggleDietary} />}
           </motion.div>
         </AnimatePresence>
 
