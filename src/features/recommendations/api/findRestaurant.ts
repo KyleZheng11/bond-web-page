@@ -6,8 +6,28 @@ import type { Place } from '../lib/googlePlaces'
 import type { Candidate } from '../types'
 import type { Json } from '#/types/database'
 
+// Cap the review-count benefit at 800 so high-volume chains don't automatically
+// outrank well-rated local restaurants with fewer reviews.
 function scorePlace(place: Place): number {
-  return place.rating * Math.log(place.reviewCount + 1)
+  return place.rating * Math.log(Math.min(place.reviewCount, 800) + 1)
+}
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function normalizeRestaurantName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 async function findSlotCandidate(
@@ -79,17 +99,25 @@ export const findRestaurant = createServerFn()
       usedIds.add(slot3Place.id)
     }
 
-    // Slot 4 — flex: dietary pick > splurge > alternative cuisine
+    // Slot 4 — flex: dietary pick (best across all friendly cuisines) > splurge > alternative
     let slot4Place: Place | null = null
     let slot4Label = 'Alternative'
 
-    if (signal.dietaryCuisine) {
-      slot4Place = await findSlotCandidate(coords, signal.dietaryCuisine, signal.commonPriceLevels, usedIds)
-      slot4Label = 'Dietary pick'
+    if (signal.dietaryCuisines.length > 0) {
+      // Search all dietary-friendly cuisines in parallel and pick the highest-scoring
+      // result across all of them. This prevents the slot from always landing on the
+      // same cuisine/restaurant regardless of what's actually nearby.
+      const dietaryResults = await Promise.all(
+        signal.dietaryCuisines.map((c) => findSlotCandidate(coords, c, signal.commonPriceLevels, usedIds))
+      )
+      slot4Place = dietaryResults
+        .filter((p): p is Place => p !== null)
+        .sort((a, b) => scorePlace(b) - scorePlace(a))[0] ?? null
+      if (slot4Place) slot4Label = 'Dietary pick'
     }
     if (!slot4Place && signal.hasHigherBudget) {
       slot4Place = await findSlotCandidate(coords, slot1Cuisine, signal.maxPriceLevels, usedIds)
-      slot4Label = 'Splurge'
+      if (slot4Place) slot4Label = 'Splurge'
     }
     if (!slot4Place) {
       const slot4Cuisine = signal.rankedCuisines[2] ?? slot1Cuisine
@@ -104,30 +132,55 @@ export const findRestaurant = createServerFn()
       throw new Error('No restaurants found nearby. Try a different location.')
     }
 
-    // Dedup guard: if the same place appears in two slots (can happen when
-    // multiple cuisine labels map to the same Google type), drop the duplicate
-    // and replace it with a broad fallback so we always present distinct options.
-    const seenIds = new Set<string>(rawCandidates.map((c) => c.place.id))
-    const dedupedCandidates = rawCandidates.filter((c, i) => {
-      const firstIdx = rawCandidates.findIndex((x) => x.place.id === c.place.id)
-      return firstIdx === i
+    // Dedup by place ID first, then by normalized name.
+    // For same-name restaurants at different locations, keep the closest one.
+    const targetLat = coords.lat
+    const targetLng = coords.lng
+
+    function distKm(place: Place): number {
+      if (place.lat == null || place.lng == null) return Infinity
+      return haversineKm(targetLat, targetLng, place.lat, place.lng)
+    }
+
+    // Step 1: ID dedup
+    const seenIds = new Set<string>()
+    const idDeduped = rawCandidates.filter((c) => {
+      if (seenIds.has(c.place.id)) return false
+      seenIds.add(c.place.id)
+      return true
     })
 
+    // Step 2: name dedup — keep the closer location of any same-named restaurant
+    const byName = new Map<string, typeof idDeduped[0]>()
+    for (const c of idDeduped) {
+      const key = normalizeRestaurantName(c.place.name)
+      const existing = byName.get(key)
+      if (!existing || distKm(c.place) < distKm(existing.place)) {
+        byName.set(key, c)
+      }
+    }
+    const dedupedCandidates = [...byName.values()].sort((a, b) => a.slot - b.slot)
+
+    // Fill any gaps left by dedup with a broad fallback search
     if (dedupedCandidates.length < rawCandidates.length) {
+      const allUsedIds = new Set(dedupedCandidates.map((c) => c.place.id))
+      const allUsedNames = new Set(dedupedCandidates.map((c) => normalizeRestaurantName(c.place.name)))
+
       const broadPool = await searchNearbyRestaurants({
         ...coords,
         priceLevels: signal.commonPriceLevels,
         includedTypes: ['restaurant'],
       })
       const spares = broadPool
-        .filter((p) => !seenIds.has(p.id) && p.rating > 0)
+        .filter((p) => !allUsedIds.has(p.id) && !allUsedNames.has(normalizeRestaurantName(p.name)) && p.rating > 0)
         .sort((a, b) => scorePlace(b) - scorePlace(a))
 
       for (const spare of spares) {
         if (dedupedCandidates.length >= rawCandidates.length) break
         const slot = (dedupedCandidates.length + 1) as 1 | 2 | 3 | 4
         dedupedCandidates.push({ place: spare, slot, slotLabel: 'Alternative' })
-        seenIds.add(spare.id)
+        allUsedIds.add(spare.id)
+        allUsedNames.add(normalizeRestaurantName(spare.name))
       }
     }
 

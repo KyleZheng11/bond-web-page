@@ -12,11 +12,14 @@ export interface Place {
   address: string
   photoName: string | null
   photoUrl: string | null
+  lat: number | null
+  lng: number | null
 }
 
 export const CUISINE_TO_GOOGLE_TYPE: Record<string, string> = {
   'American': 'american_restaurant',
   'BBQ': 'barbecue_restaurant',
+  'Breakfast & Brunch': 'breakfast_restaurant',
   'Burgers': 'hamburger_restaurant',
   'Chinese': 'chinese_restaurant',
   'French': 'french_restaurant',
@@ -89,6 +92,7 @@ export async function searchNearbyRestaurants(params: {
         'places.types',
         'places.shortFormattedAddress',
         'places.photos',
+        'places.location',
       ].join(','),
     },
     body: JSON.stringify({
@@ -111,6 +115,7 @@ export async function searchNearbyRestaurants(params: {
       types?: string[]
       shortFormattedAddress?: string
       photos?: Array<{ name: string }>
+      location?: { latitude: number; longitude: number }
     }>
   }
 
@@ -124,6 +129,8 @@ export async function searchNearbyRestaurants(params: {
     address: p.shortFormattedAddress ?? '',
     photoName: p.photos?.[0]?.name ?? null,
     photoUrl: null,
+    lat: p.location?.latitude ?? null,
+    lng: p.location?.longitude ?? null,
   }))
 }
 

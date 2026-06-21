@@ -1,5 +1,5 @@
 export const CUISINES = [
-  'American', 'BBQ', 'Burgers', 'Caribbean', 'Cajun & Southern',
+  'American', 'BBQ', 'Breakfast & Brunch', 'Burgers', 'Caribbean', 'Cajun & Southern',
   'Chinese', 'Ethiopian', 'French', 'Greek', 'Indian',
   'Italian', 'Japanese', 'Korean', 'Latin American', 'Lebanese',
   'Mediterranean', 'Mexican', 'Middle Eastern', 'Peruvian', 'Pizza',

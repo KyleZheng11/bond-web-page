@@ -3,15 +3,10 @@ import { useState, useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { useAuth, signOut, getUserProfile, updateDietaryRestrictions } from '#/features/auth'
 import { getMyParties, PartyCard } from '#/features/parties'
+import { DIETARY } from '#/features/preferences'
 import type { Party } from '#/features/parties'
 
 export const Route = createFileRoute('/_auth/profile')({ component: Profile })
-
-const DIETARY = [
-  'Vegetarian', 'Vegan', 'Gluten-free',
-  'Halal', 'Kosher', 'Dairy-free',
-  'Nut-free', 'Shellfish-free',
-]
 
 function Profile() {
   const navigate = useNavigate()

@@ -9,7 +9,9 @@ import type { Tables } from '#/types/database'
 type LobbyData = {
   party: Tables<'parties'>
   members: Tables<'party_members'>[]
+  isCreator: boolean
   leaderHasSubmitted: boolean
+  memberHasSubmitted: boolean
 }
 
 export const Route = createFileRoute('/_auth/party/$partyId/lobby')({ component: Lobby })
@@ -116,32 +118,127 @@ function Lobby() {
     )
   }
 
-  const { party, members, leaderHasSubmitted } = data
+  const { party, members, isCreator, leaderHasSubmitted, memberHasSubmitted } = data
   const inviteLink = party.invite_token
     ? `${window.location.origin}/invite/${party.invite_token}`
     : null
   const readyCount = members.filter((m) => m.preferences_submitted_at).length
   const canFindRestaurant = leaderHasSubmitted
 
-  // ── UI ────────────────────────────────────────────────────────────────────
+  const header = (
+    <header className="flex items-center gap-4 px-6 py-5">
+      <Link
+        to="/home"
+        className="text-sm font-semibold transition-opacity hover:opacity-70"
+        style={{ color: 'var(--color-text-mist)' }}
+      >
+        ← Back
+      </Link>
+      <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+        Bond
+      </span>
+    </header>
+  )
+
+  // ── Member view (invited friend, not the creator) ─────────────────────────
+  if (!isCreator) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}>
+        {header}
+        <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-8">
+          <div className="flex items-start justify-between gap-4 pt-2">
+            <h1 className="font-display text-3xl font-semibold leading-tight" style={{ color: 'var(--color-text-cream)' }}>
+              {party.name ?? 'Party'}
+            </h1>
+            <span
+              className="mt-1 shrink-0 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+              style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-mist)' }}
+            >
+              {party.status}
+            </span>
+          </div>
+
+          {/* Their preferences */}
+          <section
+            className="flex flex-col gap-3 px-4 py-4 rounded-2xl"
+            style={{ background: 'var(--color-surface-petrol)', border: '1px solid rgba(240,228,204,0.08)' }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
+                Your preferences
+              </p>
+              {memberHasSubmitted && (
+                <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+                  <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent-gold)' }} />
+                  Ready
+                </span>
+              )}
+            </div>
+            {memberHasSubmitted ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+                You're all set. Waiting for the group leader to find options.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+                  You haven't added your preferences yet.
+                </p>
+                <Link
+                  to="/party/$partyId/preferences"
+                  params={{ partyId }}
+                  className="mt-1 py-3 rounded-xl font-semibold text-sm text-center transition-opacity hover:opacity-90"
+                  style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  Add your preferences →
+                </Link>
+              </>
+            )}
+          </section>
+
+          {/* Who else is in the party */}
+          <section className="flex flex-col gap-3">
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
+              The crew · {readyCount} of {members.length} ready
+            </p>
+            <div className="flex flex-col gap-2">
+              {members.map((member) => {
+                const ready = !!member.preferences_submitted_at
+                return (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between px-4 py-3 rounded-2xl gap-3"
+                    style={{ background: 'var(--color-surface-petrol)' }}
+                  >
+                    <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
+                      {member.guest_name ?? '—'}
+                    </span>
+                    <span
+                      className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                      style={{ color: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)' }}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)', opacity: ready ? 1 : 0.4 }}
+                      />
+                      {ready ? 'Ready' : 'Waiting'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        </main>
+      </div>
+    )
+  }
+
+  // ── Creator view ──────────────────────────────────────────────────────────
   return (
     <div
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
-      {/* Header */}
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/home"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Back
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
-          Bond
-        </span>
-      </header>
+      {header}
 
       <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-8">
         {/* Party title + status */}
@@ -214,20 +311,13 @@ function Lobby() {
                     <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
                       {member.guest_name ?? '—'}
                     </span>
-
                     {ready ? (
-                      <span
-                        className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
-                        style={{ color: 'var(--color-accent-gold)' }}
-                      >
+                      <span className="flex items-center gap-1.5 text-xs font-semibold shrink-0" style={{ color: 'var(--color-accent-gold)' }}>
                         <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent-gold)' }} />
                         Ready
                       </span>
                     ) : (
-                      <span
-                        className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
-                        style={{ color: 'var(--color-text-mist)' }}
-                      >
+                      <span className="flex items-center gap-1.5 text-xs font-semibold shrink-0" style={{ color: 'var(--color-text-mist)' }}>
                         <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-text-mist)', opacity: 0.4 }} />
                         Waiting
                       </span>
@@ -249,10 +339,7 @@ function Lobby() {
               Your preferences
             </p>
             {leaderHasSubmitted && (
-              <span
-                className="flex items-center gap-1.5 text-xs font-semibold"
-                style={{ color: 'var(--color-accent-gold)' }}
-              >
+              <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
                 <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent-gold)' }} />
                 Ready
               </span>

@@ -11,7 +11,8 @@ export const getPartyLobby = createServerFn()
       .single()
 
     if (partyError || !party) throw new Error('Party not found')
-    if (party.creator_id !== data.userId) throw new Error('Unauthorized')
+
+    const isCreator = party.creator_id === data.userId
 
     const { data: members } = await supabaseServer
       .from('party_members')
@@ -19,7 +20,8 @@ export const getPartyLobby = createServerFn()
       .eq('party_id', data.partyId)
       .order('joined_at', { ascending: true })
 
-    const { data: leaderPref } = await supabaseServer
+    // Check whether the requesting user has submitted preferences
+    const { data: userPref } = await supabaseServer
       .from('preferences')
       .select('id')
       .eq('party_id', data.partyId)
@@ -29,6 +31,8 @@ export const getPartyLobby = createServerFn()
     return {
       party,
       members: members ?? [],
-      leaderHasSubmitted: !!leaderPref,
+      isCreator,
+      leaderHasSubmitted: isCreator ? !!userPref : false,
+      memberHasSubmitted: !!userPref,
     }
   })

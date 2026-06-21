@@ -1,10 +1,10 @@
 import type { Preference } from '#/features/preferences'
-import { CUISINE_TO_GOOGLE_TYPE, tiersToGooglePriceLevels } from './googlePlaces'
+import { tiersToGooglePriceLevels } from './googlePlaces'
 
 export interface AggregatedSignal {
   rankedCuisines: string[]       // cuisine labels sorted by vote frequency (most wanted first)
   minorityCuisine: string | null // least-requested unique cuisine for the "for everyone" slot
-  dietaryCuisine: string | null  // cuisine that accommodates group dietary needs (flex slot)
+  dietaryCuisines: string[]      // cuisines that accommodate group dietary needs, best options first
   commonBudget: number           // lowest tier — affordable for everyone
   maxBudget: number              // highest tier — for the splurge slot
   commonPriceLevels: string[]    // google price levels up to commonBudget
@@ -61,25 +61,32 @@ export function aggregatePreferences(preferences: Preference[]): AggregatedSigna
   const needsVegan = dietaryRestrictions.some((r) => r.toLowerCase() === 'vegan')
   const needsVegetarian = !needsVegan && dietaryRestrictions.some((r) => r.toLowerCase() === 'vegetarian')
 
-  // Find a dietary-friendly cuisine that isn't already in the top 3 slots
-  // so the flex slot adds genuine variety
-  let dietaryCuisine: string | null = null
+  // Collect all dietary-friendly cuisines across all restrictions.
+  // Novel options (not already in the top 3) come first so findRestaurant
+  // searches them first and naturally finds variety based on what's nearby.
   const topThree = new Set(rankedCuisines.slice(0, 3))
+  const dietaryCuisines: string[] = []
 
   if (dietaryRestrictions.length > 0) {
+    const seen = new Set<string>()
+    // Novel cuisines first
     for (const restriction of dietaryRestrictions) {
-      const candidates = DIETARY_FRIENDLY[restriction] ?? []
-      const novel = candidates.find((c) => !topThree.has(c))
-      if (novel) { dietaryCuisine = novel; break }
-      // Fallback: use the first friendly cuisine even if it overlaps
-      if (candidates[0]) { dietaryCuisine = candidates[0]; break }
+      for (const c of DIETARY_FRIENDLY[restriction] ?? []) {
+        if (!seen.has(c) && !topThree.has(c)) { seen.add(c); dietaryCuisines.push(c) }
+      }
+    }
+    // Fallback: add overlapping cuisines so there's always something to try
+    for (const restriction of dietaryRestrictions) {
+      for (const c of DIETARY_FRIENDLY[restriction] ?? []) {
+        if (!seen.has(c)) { seen.add(c); dietaryCuisines.push(c) }
+      }
     }
   }
 
   return {
     rankedCuisines,
     minorityCuisine,
-    dietaryCuisine,
+    dietaryCuisines,
     commonBudget,
     maxBudget,
     commonPriceLevels: tiersToGooglePriceLevels(commonBudget),
