@@ -32,7 +32,11 @@ function LogIn() {
     setEmailError(null)
     const { error } = await signInWithEmail(email, password)
     if (error) {
-      setEmailError('Incorrect email or password.')
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        setEmailError('Please confirm your email first — check your inbox for the link we sent.')
+      } else {
+        setEmailError('Incorrect email or password.')
+      }
     } else {
       navigate({ to: '/home' })
     }

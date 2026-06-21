@@ -57,7 +57,6 @@ Always allow the developer to preview edits before they are written in. Explain 
 | **TanStack Start** | Full-stack web framework (routing, SSR, API routes)          |
 | **Supabase**       | PostgreSQL database, authentication, real-time subscriptions |
 | **Tailwind CSS**   | Utility-first styling                                        |
-| **Twilio**         | SMS delivery for invite links and result notifications       |
 | **Zod**            | Schema validation on all form inputs and API boundaries      |
 
 ---

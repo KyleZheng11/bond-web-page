@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth } from '#/features/auth'
-import { createParty, sendInvites, inviteFriends, PhoneInput, LocationInput } from '#/features/parties'
+import { createParty, inviteFriends, LocationInput } from '#/features/parties'
 import { getFriends } from '#/features/friends'
 import type { Friend } from '#/features/friends'
 
@@ -13,7 +13,6 @@ function NewParty() {
 
   const [name, setName] = useState('')
   const [location, setLocation] = useState('')
-  const [phones, setPhones] = useState<string[]>([])
   const [selectedFriendIds, setSelectedFriendIds] = useState<Set<string>>(new Set())
   const [friends, setFriends] = useState<Friend[]>([])
   const [loading, setLoading] = useState(false)
@@ -52,14 +51,9 @@ function NewParty() {
         },
       })
 
-      await Promise.all([
-        phones.length > 0
-          ? sendInvites({ data: { partyId: party.id, phoneNumbers: phones } })
-          : Promise.resolve(),
-        selectedFriendIds.size > 0
-          ? inviteFriends({ data: { partyId: party.id, friendUserIds: [...selectedFriendIds] } })
-          : Promise.resolve(),
-      ])
+      if (selectedFriendIds.size > 0) {
+        await inviteFriends({ data: { partyId: party.id, friendUserIds: [...selectedFriendIds] } })
+      }
 
       navigate({ to: '/party/$partyId/lobby', params: { partyId: party.id } })
     } catch {
@@ -68,8 +62,6 @@ function NewParty() {
       setLoading(false)
     }
   }
-
-  const totalInvited = phones.length + selectedFriendIds.size
 
   return (
     <div
@@ -171,14 +163,6 @@ function NewParty() {
             </div>
           )}
 
-          {/* Phone numbers */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-mist)' }}>
-              Invite by phone
-            </label>
-            <PhoneInput phones={phones} onChange={setPhones} />
-          </div>
-
           {error && (
             <p className="text-sm" style={{ color: 'var(--color-accent-brick)' }}>
               {error}
@@ -191,7 +175,7 @@ function NewParty() {
             className="mt-2 py-4 rounded-2xl font-semibold text-base transition-opacity disabled:opacity-50 hover:opacity-90"
             style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
           >
-            {loading ? 'Creating…' : totalInvited > 0 ? `Send invites (${totalInvited})` : 'Create party'}
+            {loading ? 'Creating…' : selectedFriendIds.size > 0 ? `Invite friends (${selectedFriendIds.size})` : 'Create party'}
           </button>
         </form>
       </main>

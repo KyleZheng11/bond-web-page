@@ -70,7 +70,7 @@ function Lobby() {
     setFinding(true)
     setFindError(null)
     try {
-      await findRestaurant({ data: { partyId, siteUrl: window.location.origin } })
+      await findRestaurant({ data: { partyId } })
       navigate({ to: '/party/$partyId/results', params: { partyId } })
     } catch (err) {
       setFindError(err instanceof Error ? err.message : 'Something went wrong, try again.')
@@ -175,6 +175,13 @@ function Lobby() {
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
+            <a
+              href={`sms:&body=${encodeURIComponent(`Join my Bond party! Add your preferences here: ${inviteLink}`)}`}
+              className="py-3 rounded-2xl text-sm font-semibold text-center transition-opacity hover:opacity-80"
+              style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)', border: '1px solid rgba(240,228,204,0.08)' }}
+            >
+              Send via SMS
+            </a>
           </section>
         )}
 
@@ -192,10 +199,6 @@ function Lobby() {
             <div className="flex flex-col gap-2">
               {members.map((member) => {
                 const ready = !!member.preferences_submitted_at
-                const leaderName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'Your friend'
-                const inviteMessage = `${leaderName} is using Bond to pick a restaurant. Submit your preferences here: ${window.location.origin}/invite/${member.guest_token}`
-                const smsHref = `sms:${member.phone_number}&body=${encodeURIComponent(inviteMessage)}`
-
                 return (
                   <div
                     key={member.id}
@@ -203,7 +206,7 @@ function Lobby() {
                     style={{ background: 'var(--color-surface-petrol)' }}
                   >
                     <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {member.guest_name ?? member.phone_number ?? '—'}
+                      {member.guest_name ?? '—'}
                     </span>
 
                     {ready ? (
@@ -215,24 +218,13 @@ function Lobby() {
                         Ready
                       </span>
                     ) : (
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span
-                          className="flex items-center gap-1.5 text-xs font-semibold"
-                          style={{ color: 'var(--color-text-mist)' }}
-                        >
-                          <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-text-mist)', opacity: 0.4 }} />
-                          Waiting
-                        </span>
-                        {member.phone_number && (
-                          <a
-                            href={smsHref}
-                            className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-opacity hover:opacity-80"
-                            style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
-                          >
-                            Send invite
-                          </a>
-                        )}
-                      </div>
+                      <span
+                        className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                        style={{ color: 'var(--color-text-mist)' }}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: 'var(--color-text-mist)', opacity: 0.4 }} />
+                        Waiting
+                      </span>
                     )}
                   </div>
                 )

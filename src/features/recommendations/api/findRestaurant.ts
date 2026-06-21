@@ -2,7 +2,6 @@ import { createServerFn } from '@tanstack/react-start'
 import { supabaseServer } from '#/lib/supabase.server'
 import { aggregatePreferences } from '../lib/aggregatePreferences'
 import { geocodeLocation, searchNearbyRestaurants, resolvePhotoUrl } from '../lib/googlePlaces'
-import { sendSms } from '#/lib/twilio'
 import type { Place } from '../lib/googlePlaces'
 import type { AggregatedSignal } from '../lib/aggregatePreferences'
 import type { Json } from '#/types/database'
@@ -46,9 +45,9 @@ function buildReason(place: Place, signal: AggregatedSignal): string {
 }
 
 export const findRestaurant = createServerFn()
-  .inputValidator((d: { partyId: string; siteUrl: string }) => d)
+  .inputValidator((d: { partyId: string }) => d)
   .handler(async ({ data }) => {
-    const { partyId, siteUrl } = data
+    const { partyId } = data
 
     const { data: party, error: partyError } = await supabaseServer
       .from('parties').select('*').eq('id', partyId).single()
@@ -118,25 +117,6 @@ export const findRestaurant = createServerFn()
     if (recError) throw new Error(recError.message)
 
     await supabaseServer.from('parties').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', partyId)
-
-    // Fetch leader name and guest phone numbers, then send result SMS
-    // Both are non-fatal — a failed SMS should never block a resolved party
-    const [{ data: leader }, { data: guests }] = await Promise.all([
-      supabaseServer.from('users').select('display_name, email').eq('id', party.creator_id).single(),
-      supabaseServer.from('party_members').select('phone_number, guest_token')
-        .eq('party_id', partyId).not('phone_number', 'is', null),
-    ])
-
-    const leaderName = leader?.display_name ?? leader?.email?.split('@')[0] ?? 'Your group'
-
-    await Promise.allSettled(
-      (guests ?? []).map((g) =>
-        sendSms(
-          g.phone_number!,
-          `${leaderName}'s group is going to ${winner.name}. See the details here: ${siteUrl}/invite/${g.guest_token}`,
-        )
-      )
-    )
 
     return rec
   })

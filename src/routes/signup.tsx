@@ -31,9 +31,12 @@ function SignUp() {
 
   async function handleEmail(email: string, password: string) {
     setEmailError(null)
-    const { error } = await signUpWithEmail(email, password)
+    const { data, error } = await signUpWithEmail(email, password)
     if (error) {
       setEmailError(error.message)
+    } else if (!data.session) {
+      // Supabase email confirmation is on — user exists but can't log in yet
+      setEmailError('Check your email and click the confirmation link before logging in.')
     } else {
       navigate({ to: '/home' })
     }
