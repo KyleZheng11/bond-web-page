@@ -107,6 +107,16 @@ function Friends() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  async function shareInviteLink() {
+    if (!inviteLink) return
+    const text = `Add me on Bond! ${inviteLink}`
+    if (navigator.share) {
+      await navigator.share({ title: 'Bond', text, url: inviteLink })
+    } else {
+      window.open(`sms:&body=${encodeURIComponent(text)}`)
+    }
+  }
+
   const friendIds = new Set(friends.map((f) => f.userId))
   const sentToIds = new Set(Object.keys(pendingRequests))
 
@@ -281,13 +291,13 @@ function Friends() {
                       {copied ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
-                  <a
-                    href={`sms:&body=${encodeURIComponent(`Add me on Bond! ${inviteLink}`)}`}
+                  <button
+                    onClick={shareInviteLink}
                     className="py-3 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-80"
                     style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
                   >
-                    Send via SMS
-                  </a>
+                    Share
+                  </button>
                 </div>
               )}
             </div>

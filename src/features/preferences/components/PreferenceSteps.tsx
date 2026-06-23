@@ -24,10 +24,14 @@ export const DIETARY = [
 export function StepCuisine({
   wants,
   onToggle,
+  blacklist = [],
 }: {
   wants: string[]
   onToggle: (c: string) => void
+  blacklist?: string[]
 }) {
+  const available = CUISINES.filter((c) => !blacklist.includes(c))
+
   return (
     <div className="flex flex-col gap-6 py-4">
       <div>
@@ -42,7 +46,7 @@ export function StepCuisine({
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {CUISINES.map((c) => {
+        {available.map((c) => {
           const selected = wants.includes(c)
           return (
             <button

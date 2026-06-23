@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useAuth } from '#/features/auth'
 import { getLeaderPrefsContext, submitPreferences } from '#/features/preferences'
-import { StepCuisine, StepBudget, StepDietary } from '#/features/preferences/components/PreferenceSteps'
+import { StepCuisine, StepBudget } from '#/features/preferences/components/PreferenceSteps'
 
 export const Route = createFileRoute('/_auth/party/$partyId/preferences')({ component: Preferences })
 
@@ -16,21 +16,20 @@ function Preferences() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const [showDietaryStep, setShowDietaryStep] = useState(true)
-  const totalSteps = showDietaryStep ? 3 : 2
+  const totalSteps = 2
 
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
 
+  const [cuisineBlacklist, setCuisineBlacklist] = useState<string[]>([])
   const [cuisineWants, setCuisineWants] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
-  const [dietary, setDietary] = useState<string[]>([])
 
   useEffect(() => {
     if (!user) return
     getLeaderPrefsContext({ data: { userId: user.id } })
-      .then(({ profileDietaryRestrictions }) => {
-        if (profileDietaryRestrictions.length > 0) setShowDietaryStep(false)
+      .then(({ profileCuisineBlacklist }) => {
+        setCuisineBlacklist(profileCuisineBlacklist)
       })
       .finally(() => setInitializing(false))
   }, [user])
@@ -50,7 +49,7 @@ function Preferences() {
     setError('')
     try {
       await submitPreferences({
-        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: dietary },
+        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: [] },
       })
       navigate({ to: '/party/$partyId/lobby', params: { partyId } })
     } catch {
@@ -70,10 +69,6 @@ function Preferences() {
 
   function toggleCuisine(c: string) {
     setCuisineWants((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])
-  }
-
-  function toggleDietary(d: string) {
-    setDietary((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d])
   }
 
   const canContinue = step === 2 ? budget !== null : true
@@ -136,9 +131,8 @@ function Preferences() {
             exit={{ x: direction * -40, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
           >
-            {step === 1 && <StepCuisine wants={cuisineWants} onToggle={toggleCuisine} />}
+            {step === 1 && <StepCuisine wants={cuisineWants} onToggle={toggleCuisine} blacklist={cuisineBlacklist} />}
             {step === 2 && <StepBudget selected={budget} onSelect={setBudget} />}
-            {step === 3 && showDietaryStep && <StepDietary selected={dietary} onToggle={toggleDietary} />}
           </motion.div>
         </AnimatePresence>
 

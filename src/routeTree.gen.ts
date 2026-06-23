@@ -24,6 +24,7 @@ import { Route as FriendInviteTokenIndexRouteImport } from './routes/friend-invi
 import { Route as InviteTokenWaitingRouteImport } from './routes/invite/$token/waiting'
 import { Route as InviteTokenVoteRouteImport } from './routes/invite/$token/vote'
 import { Route as InviteTokenPreferencesRouteImport } from './routes/invite/$token/preferences'
+import { Route as InviteTokenLobbyRouteImport } from './routes/invite/$token/lobby'
 import { Route as AuthPartyNewRouteImport } from './routes/_auth/party/new'
 import { Route as AuthPartyPartyIdVoteRouteImport } from './routes/_auth/party/$partyId/vote'
 import { Route as AuthPartyPartyIdResultsRouteImport } from './routes/_auth/party/$partyId/results'
@@ -105,6 +106,11 @@ const InviteTokenPreferencesRoute = InviteTokenPreferencesRouteImport.update({
   path: '/invite/$token/preferences',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenLobbyRoute = InviteTokenLobbyRouteImport.update({
+  id: '/invite/$token/lobby',
+  path: '/invite/$token/lobby',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthPartyNewRoute = AuthPartyNewRouteImport.update({
   id: '/party/new',
   path: '/party/new',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/lobby': typeof InviteTokenLobbyRoute
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/vote': typeof InviteTokenVoteRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/lobby': typeof InviteTokenLobbyRoute
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/vote': typeof InviteTokenVoteRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_auth/profile': typeof AuthProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_auth/party/new': typeof AuthPartyNewRoute
+  '/invite/$token/lobby': typeof InviteTokenLobbyRoute
   '/invite/$token/preferences': typeof InviteTokenPreferencesRoute
   '/invite/$token/vote': typeof InviteTokenVoteRoute
   '/invite/$token/waiting': typeof InviteTokenWaitingRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/auth/callback'
     | '/party/new'
+    | '/invite/$token/lobby'
     | '/invite/$token/preferences'
     | '/invite/$token/vote'
     | '/invite/$token/waiting'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/auth/callback'
     | '/party/new'
+    | '/invite/$token/lobby'
     | '/invite/$token/preferences'
     | '/invite/$token/vote'
     | '/invite/$token/waiting'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/_auth/profile'
     | '/auth/callback'
     | '/_auth/party/new'
+    | '/invite/$token/lobby'
     | '/invite/$token/preferences'
     | '/invite/$token/vote'
     | '/invite/$token/waiting'
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   WelcomeRoute: typeof WelcomeRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  InviteTokenLobbyRoute: typeof InviteTokenLobbyRoute
   InviteTokenPreferencesRoute: typeof InviteTokenPreferencesRoute
   InviteTokenVoteRoute: typeof InviteTokenVoteRoute
   InviteTokenWaitingRoute: typeof InviteTokenWaitingRoute
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenPreferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token/lobby': {
+      id: '/invite/$token/lobby'
+      path: '/invite/$token/lobby'
+      fullPath: '/invite/$token/lobby'
+      preLoaderRoute: typeof InviteTokenLobbyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/party/new': {
       id: '/_auth/party/new'
       path: '/party/new'
@@ -478,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   WelcomeRoute: WelcomeRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  InviteTokenLobbyRoute: InviteTokenLobbyRoute,
   InviteTokenPreferencesRoute: InviteTokenPreferencesRoute,
   InviteTokenVoteRoute: InviteTokenVoteRoute,
   InviteTokenWaitingRoute: InviteTokenWaitingRoute,

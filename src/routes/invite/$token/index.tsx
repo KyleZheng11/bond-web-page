@@ -69,24 +69,10 @@ function InviteLanding() {
     )
   }
 
-  // ── Already submitted ──────────────────────────────────────────────────────
+  // ── Already submitted — send them to the lobby ────────────────────────────
   if (invite.alreadySubmitted) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center"
-        style={{ background: 'var(--color-surface-deep)' }}
-      >
-        <span className="font-display text-4xl font-bold" style={{ color: 'var(--color-accent-gold)' }}>
-          Bond
-        </span>
-        <h1 className="font-display text-2xl font-semibold mt-4" style={{ color: 'var(--color-text-cream)' }}>
-          You're already in.
-        </h1>
-        <p className="text-sm max-w-xs" style={{ color: 'var(--color-text-mist)' }}>
-          You've already submitted your preferences for this party. You'll get a text when the result is ready.
-        </p>
-      </div>
-    )
+    navigate({ to: '/invite/$token/lobby', params: { token } })
+    return null
   }
 
   const partyName = invite.party.name
