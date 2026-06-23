@@ -17,6 +17,7 @@ export type Database = {
           display_name: string | null
           email: string
           dietary_restrictions: string[] | null
+          cuisine_blacklist: string[] | null
           location: string | null
           push_token: string | null
           created_at: string | null
@@ -26,6 +27,7 @@ export type Database = {
           display_name?: string | null
           email: string
           dietary_restrictions?: string[] | null
+          cuisine_blacklist?: string[] | null
           location?: string | null
           push_token?: string | null
           created_at?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           display_name?: string | null
           email?: string
           dietary_restrictions?: string[] | null
+          cuisine_blacklist?: string[] | null
           location?: string | null
           push_token?: string | null
           created_at?: string | null

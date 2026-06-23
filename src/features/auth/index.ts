@@ -1,6 +1,8 @@
 export { signInWithGoogle, signUpWithEmail, signInWithEmail, signOut } from './api/auth'
 export { getUserProfile } from './api/getUserProfile'
 export { updateDietaryRestrictions } from './api/updateDietaryRestrictions'
+export { updateUserProfile } from './api/updateUserProfile'
+export { updateLocation } from './api/updateLocation'
 export { useAuth } from './hooks/useAuth'
 export { OAuthButton } from './components/OAuthButton'
 export { EmailAuthForm } from './components/EmailAuthForm'

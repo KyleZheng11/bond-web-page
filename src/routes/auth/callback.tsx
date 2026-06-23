@@ -8,9 +8,14 @@ function AuthCallback() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate({ to: '/home' })
+        const { data: profile } = await supabase
+          .from('users')
+          .select('location')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        navigate({ to: profile?.location ? '/home' : '/onboarding' })
       }
     })
     return () => listener.subscription.unsubscribe()

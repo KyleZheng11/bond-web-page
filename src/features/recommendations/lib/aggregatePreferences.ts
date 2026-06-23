@@ -27,8 +27,9 @@ const DIETARY_FRIENDLY: Record<string, string[]> = {
   'Dairy-free':   ['Japanese', 'Vietnamese', 'Thai', 'Ethiopian'],
 }
 
-export function aggregatePreferences(preferences: Preference[]): AggregatedSignal {
+export function aggregatePreferences(preferences: Preference[], cuisineBlacklist: string[] = []): AggregatedSignal {
   if (preferences.length === 0) throw new Error('No preferences to aggregate')
+  const blacklistSet = new Set(cuisineBlacklist)
 
   // Cuisines: count how many members want each cuisine
   const cuisineCounts = new Map<string, number>()
@@ -38,10 +39,11 @@ export function aggregatePreferences(preferences: Preference[]): AggregatedSigna
     }
   }
 
-  // Sort by frequency descending, then alphabetically to keep ordering stable
+  // Sort by frequency descending, then alphabetically; exclude blacklisted cuisines
   const rankedCuisines = [...cuisineCounts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([cuisine]) => cuisine)
+    .filter((c) => !blacklistSet.has(c))
 
   // The minority cuisine is the one requested by the fewest members (last in the ranked list)
   // Only meaningful when there are at least 2 unique cuisines
