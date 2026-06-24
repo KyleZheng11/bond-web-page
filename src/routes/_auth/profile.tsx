@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { useAuth, signOut, getUserProfile, updateDietaryRestrictions } from '#/features/auth'
+import { useAuth, signOut, getUserProfile, updateDietaryRestrictions, updateLocation } from '#/features/auth'
 import { getMyParties, PartyCard } from '#/features/parties'
+import { LocationInput } from '#/features/parties/components/LocationInput'
 import { DIETARY } from '#/features/preferences'
 import type { Party } from '#/features/parties'
 
@@ -12,36 +13,96 @@ function Profile() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
+  // Saved values
   const [restrictions, setRestrictions] = useState<string[]>([])
-  const [savedFlash, setSavedFlash] = useState(false)
-  const [parties, setParties] = useState<Party[]>([])
+  const [location, setLocation] = useState('')
   const [loadingProfile, setLoadingProfile] = useState(true)
-  const [loadingParties, setLoadingParties] = useState(true)
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Dietary edit state
+  const [editingDietary, setEditingDietary] = useState(false)
+  const [draftRestrictions, setDraftRestrictions] = useState<string[]>([])
+  const [savingDietary, setSavingDietary] = useState(false)
+  const [dietaryFlash, setDietaryFlash] = useState(false)
+
+  // Location edit state
+  const [editingLocation, setEditingLocation] = useState(false)
+  const [draftLocation, setDraftLocation] = useState('')
+  const [savingLocation, setSavingLocation] = useState(false)
+  const [locationFlash, setLocationFlash] = useState(false)
+
+  const [parties, setParties] = useState<Party[]>([])
+  const [loadingParties, setLoadingParties] = useState(true)
 
   useEffect(() => {
     if (!user) return
     getUserProfile({ data: { userId: user.id } })
-      .then((p) => setRestrictions(p.dietary_restrictions as string[]))
+      .then((p) => {
+        setRestrictions(p.dietary_restrictions as string[])
+        setLocation(p.location ?? '')
+      })
       .finally(() => setLoadingProfile(false))
     getMyParties({ data: { userId: user.id } })
       .then(setParties)
       .finally(() => setLoadingParties(false))
   }, [user])
 
-  async function toggleRestriction(item: string) {
-    if (!user) return
-    const next = restrictions.includes(item)
-      ? restrictions.filter((r) => r !== item)
-      : [...restrictions, item]
-    setRestrictions(next)
+  // ── Dietary restrictions ──────────────────────────────────────────────────
 
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    await updateDietaryRestrictions({ data: { userId: user.id, restrictions: next } })
-    setSavedFlash(true)
-    saveTimer.current = setTimeout(() => setSavedFlash(false), 2000)
+  function startEditingDietary() {
+    setDraftRestrictions([...restrictions])
+    setEditingDietary(true)
   }
+
+  function cancelDietary() {
+    setEditingDietary(false)
+  }
+
+  function toggleDraft(item: string) {
+    setDraftRestrictions((prev) =>
+      prev.includes(item) ? prev.filter((r) => r !== item) : [...prev, item]
+    )
+  }
+
+  async function saveDietary() {
+    if (!user) return
+    setSavingDietary(true)
+    try {
+      await updateDietaryRestrictions({ data: { userId: user.id, restrictions: draftRestrictions } })
+      setRestrictions(draftRestrictions)
+      setEditingDietary(false)
+      setDietaryFlash(true)
+      setTimeout(() => setDietaryFlash(false), 2000)
+    } finally {
+      setSavingDietary(false)
+    }
+  }
+
+  // ── Location ─────────────────────────────────────────────────────────────
+
+  function startEditingLocation() {
+    setDraftLocation(location)
+    setEditingLocation(true)
+  }
+
+  function cancelLocation() {
+    setEditingLocation(false)
+  }
+
+  async function saveLocationField() {
+    if (!user || !draftLocation.trim()) return
+    setSavingLocation(true)
+    try {
+      await updateLocation({ data: { userId: user.id, location: draftLocation.trim() } })
+      setLocation(draftLocation.trim())
+      setEditingLocation(false)
+      setLocationFlash(true)
+      setTimeout(() => setLocationFlash(false), 2000)
+    } finally {
+      setSavingLocation(false)
+    }
+  }
+
+  // ── Misc ─────────────────────────────────────────────────────────────────
 
   async function handleSignOut() {
     await signOut()
@@ -94,45 +155,71 @@ function Profile() {
         </p>
       </motion.div>
 
-      {/* Dietary restrictions */}
-      <section className="flex flex-col gap-4">
+      {/* ── Dietary restrictions ── */}
+      <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
             Dietary restrictions
           </p>
-          <motion.span
-            className="text-xs font-semibold"
-            style={{ color: 'var(--color-accent-aurora)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: savedFlash ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            Saved
-          </motion.span>
+          <div className="flex items-center gap-2">
+            <motion.span
+              className="text-xs font-semibold"
+              style={{ color: 'var(--color-accent-aurora)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: dietaryFlash ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Saved
+            </motion.span>
+            {!editingDietary ? (
+              <button
+                onClick={startEditingDietary}
+                disabled={loadingProfile}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-30"
+                style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)' }}
+              >
+                Edit
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={cancelDietary}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveDietary}
+                  disabled={savingDietary}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-40"
+                  style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  {savingDietary ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <p className="text-xs font-medium" style={{ color: 'var(--color-text-mist)' }}>
+        <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
           Never shown to other members of your party.
         </p>
 
         {loadingProfile ? (
           <div className="flex flex-wrap gap-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-8 w-24 rounded-full animate-pulse"
-                style={{ background: 'var(--color-surface-petrol)' }}
-              />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-8 w-24 rounded-full animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
             ))}
           </div>
-        ) : (
+        ) : editingDietary ? (
           <div className="flex flex-wrap gap-2">
             {DIETARY.map((item) => {
-              const active = restrictions.includes(item)
+              const active = draftRestrictions.includes(item)
               return (
                 <button
                   key={item}
-                  onClick={() => toggleRestriction(item)}
+                  onClick={() => toggleDraft(item)}
                   className="px-4 py-2 rounded-full text-sm font-medium transition-all"
                   style={{
                     background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
@@ -145,23 +232,92 @@ function Profile() {
               )
             })}
           </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {restrictions.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>None</p>
+            ) : (
+              restrictions.map((item) => (
+                <span
+                  key={item}
+                  className="px-4 py-2 rounded-full text-sm font-medium"
+                  style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  {item}
+                </span>
+              ))
+            )}
+          </div>
         )}
       </section>
 
-      {/* Past parties */}
+      {/* ── Location ── */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
+            Default location
+          </p>
+          <div className="flex items-center gap-2">
+            <motion.span
+              className="text-xs font-semibold"
+              style={{ color: 'var(--color-accent-aurora)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: locationFlash ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Saved
+            </motion.span>
+            {!editingLocation ? (
+              <button
+                onClick={startEditingLocation}
+                disabled={loadingProfile}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-30"
+                style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)' }}
+              >
+                Edit
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={cancelLocation}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveLocationField}
+                  disabled={savingLocation || !draftLocation.trim()}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-40"
+                  style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  {savingLocation ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {loadingProfile ? (
+          <div className="h-10 rounded-xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
+        ) : editingLocation ? (
+          <LocationInput value={draftLocation} onChange={setDraftLocation} />
+        ) : (
+          <p className="text-sm font-medium" style={{ color: location ? 'var(--color-text-cream)' : 'var(--color-text-mist)' }}>
+            {location || 'Not set'}
+          </p>
+        )}
+      </section>
+
+      {/* ── Past parties ── */}
       <section className="flex flex-col gap-3">
         <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
           Past parties
         </p>
-
         {loadingParties ? (
           <div className="flex flex-col gap-2">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-16 rounded-2xl animate-pulse"
-                style={{ background: 'var(--color-surface-petrol)' }}
-              />
+              <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
             ))}
           </div>
         ) : parties.length === 0 ? (
@@ -172,11 +328,7 @@ function Profile() {
             <p className="font-display text-base" style={{ color: 'var(--color-text-cream)' }}>
               No parties yet.
             </p>
-            <Link
-              to="/party/new"
-              className="text-sm font-semibold"
-              style={{ color: 'var(--color-accent-ember)' }}
-            >
+            <Link to="/party/new" className="text-sm font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
               Start one →
             </Link>
           </div>
@@ -196,7 +348,7 @@ function Profile() {
         )}
       </section>
 
-      {/* Log out */}
+      {/* ── Log out ── */}
       <div className="mt-4">
         <button
           onClick={handleSignOut}

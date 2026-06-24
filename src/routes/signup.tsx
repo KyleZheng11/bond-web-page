@@ -38,7 +38,7 @@ function SignUp() {
       // Supabase email confirmation is on — user exists but can't log in yet
       setEmailError('Check your email and click the confirmation link before logging in.')
     } else {
-      navigate({ to: '/home' })
+      navigate({ to: '/onboarding' })
     }
   }
 

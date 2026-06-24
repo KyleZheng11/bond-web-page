@@ -70,7 +70,14 @@ export const findRestaurant = createServerFn()
     if (prefsError) throw new Error(prefsError.message)
     if (!preferences?.length) throw new Error('No preferences submitted yet')
 
-    const signal = aggregatePreferences(preferences)
+    const { data: creatorProfile } = await supabaseServer
+      .from('users')
+      .select('cuisine_blacklist')
+      .eq('id', party.creator_id)
+      .maybeSingle()
+    const cuisineBlacklist = creatorProfile?.cuisine_blacklist ?? []
+
+    const signal = aggregatePreferences(preferences, cuisineBlacklist)
     const coords = await geocodeLocation(party.location)
     const usedIds = new Set<string>()
     const rawCandidates: Array<{ place: Place; slot: 1 | 2 | 3 | 4; slotLabel: string }> = []

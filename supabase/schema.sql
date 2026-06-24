@@ -218,6 +218,9 @@ ALTER TABLE parties ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
 -- guest_name was added to party_members after initial schema creation
 ALTER TABLE party_members ADD COLUMN IF NOT EXISTS guest_name TEXT;
 
+-- cuisine_blacklist stores cuisines the user never wants suggested
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cuisine_blacklist TEXT[] DEFAULT '{}';
+
 CREATE OR REPLACE FUNCTION cleanup_guest_preferences()
 RETURNS void
 LANGUAGE plpgsql

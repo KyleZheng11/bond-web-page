@@ -6,11 +6,12 @@ export const getLeaderPrefsContext = createServerFn()
   .handler(async ({ data }) => {
     const { data: profile } = await supabaseServer
       .from('users')
-      .select('dietary_restrictions')
+      .select('dietary_restrictions, cuisine_blacklist')
       .eq('id', data.userId)
       .maybeSingle()
 
     return {
       profileDietaryRestrictions: profile?.dietary_restrictions ?? [],
+      profileCuisineBlacklist: profile?.cuisine_blacklist ?? [],
     }
   })
