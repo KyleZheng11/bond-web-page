@@ -49,7 +49,7 @@ function GuestPreferences() {
       const ch = supabase.channel(`lobby:${result.partyId}`)
       await ch.send({ type: 'broadcast', event: 'member_updated', payload: {} })
       supabase.removeChannel(ch)
-      navigate({ to: '/invite/$token/waiting', params: { token } })
+      navigate({ to: '/invite/$token/lobby', params: { token } })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setSubmitting(false)

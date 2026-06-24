@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { useAuth } from '#/features/auth'
+import { useAuth, getUserProfile } from '#/features/auth'
 import { createParty, inviteFriends, LocationInput } from '#/features/parties'
 import { getFriends } from '#/features/friends'
 import type { Friend } from '#/features/friends'
@@ -20,6 +20,9 @@ function NewParty() {
 
   useEffect(() => {
     if (!user) return
+    getUserProfile({ data: { userId: user.id } }).then((p) => {
+      if (p.location) setLocation(p.location)
+    })
     getFriends({ data: { userId: user.id } }).then(setFriends)
   }, [user])
 
@@ -55,7 +58,7 @@ function NewParty() {
         await inviteFriends({ data: { partyId: party.id, friendUserIds: [...selectedFriendIds] } })
       }
 
-      navigate({ to: '/party/$partyId/lobby', params: { partyId: party.id } })
+      navigate({ to: '/party/$partyId/preferences', params: { partyId: party.id } })
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {

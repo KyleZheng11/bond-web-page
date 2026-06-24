@@ -18,26 +18,51 @@ export const submitGuestPreferences = createServerFn()
       .maybeSingle()
 
     if (member) {
-      if (member.preferences_submitted_at) throw new Error('Preferences already submitted.')
       if (member.expires_at && new Date(member.expires_at) < new Date()) {
         throw new Error('This invite link has expired.')
       }
 
-      const { error: prefError } = await supabaseServer
+      // Upsert: update if preferences already exist, insert if not
+      const { data: existing } = await supabaseServer
         .from('preferences')
-        .insert({
-          party_id: member.party_id,
-          guest_token: data.token,
-          cuisine_preferences: data.cuisineWants,
-          budget_tier: data.budgetTier,
-          vibe: null,
-          dietary_restrictions: data.dietaryRestrictions,
-        })
-      if (prefError) throw new Error(prefError.message)
+        .select('party_id')
+        .eq('party_id', member.party_id)
+        .eq('guest_token', data.token)
+        .maybeSingle()
+
+      if (existing) {
+        await supabaseServer
+          .from('preferences')
+          .update({
+            cuisine_preferences: data.cuisineWants,
+            budget_tier: data.budgetTier,
+            dietary_restrictions: data.dietaryRestrictions,
+          })
+          .eq('party_id', member.party_id)
+          .eq('guest_token', data.token)
+      } else {
+        const { error: prefError } = await supabaseServer
+          .from('preferences')
+          .insert({
+            party_id: member.party_id,
+            guest_token: data.token,
+            cuisine_preferences: data.cuisineWants,
+            budget_tier: data.budgetTier,
+            vibe: null,
+            dietary_restrictions: data.dietaryRestrictions,
+          })
+        if (prefError) throw new Error(prefError.message)
+      }
+
+      const memberUpdate: Record<string, string> = {
+        preferences_submitted_at: new Date().toISOString(),
+      }
+      // Only overwrite the name if one was provided (editing from lobby skips name entry)
+      if (data.guestName) memberUpdate.guest_name = data.guestName
 
       await supabaseServer
         .from('party_members')
-        .update({ preferences_submitted_at: new Date().toISOString(), guest_name: data.guestName })
+        .update(memberUpdate)
         .eq('guest_token', data.token)
 
       return { ok: true, partyId: member.party_id }

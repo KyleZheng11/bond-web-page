@@ -94,6 +94,17 @@ function Lobby() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  async function shareLink() {
+    if (!data?.party.invite_token) return
+    const link = `${window.location.origin}/invite/${data.party.invite_token}`
+    const text = `Join my Bond party! Add your preferences here: ${link}`
+    if (navigator.share) {
+      await navigator.share({ title: 'Bond', text, url: link })
+    } else {
+      window.open(`sms:&body=${encodeURIComponent(text)}`)
+    }
+  }
+
   // ── Skeleton ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -175,9 +186,19 @@ function Lobby() {
               )}
             </div>
             {memberHasSubmitted ? (
-              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-                You're all set. Waiting for the group leader to find options.
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+                  You're all set. Waiting for the group leader to find options.
+                </p>
+                <Link
+                  to="/party/$partyId/preferences"
+                  params={{ partyId }}
+                  className="shrink-0 text-xs font-semibold transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--color-text-mist)' }}
+                >
+                  Change
+                </Link>
+              </div>
             ) : (
               <>
                 <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
@@ -278,13 +299,13 @@ function Lobby() {
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
-            <a
-              href={`sms:&body=${encodeURIComponent(`Join my Bond party! Add your preferences here: ${inviteLink}`)}`}
+            <button
+              onClick={shareLink}
               className="py-3 rounded-2xl text-sm font-semibold text-center transition-opacity hover:opacity-80"
               style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)', border: '1px solid rgba(240,228,204,0.08)' }}
             >
-              Send via SMS
-            </a>
+              Share
+            </button>
           </section>
         )}
 
@@ -347,9 +368,19 @@ function Lobby() {
           </div>
 
           {leaderHasSubmitted ? (
-            <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-              You're all set. Waiting for the rest of your crew.
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+                You're all set. Waiting for the rest of your crew.
+              </p>
+              <Link
+                to="/party/$partyId/preferences"
+                params={{ partyId }}
+                className="shrink-0 text-xs font-semibold transition-opacity hover:opacity-70"
+                style={{ color: 'var(--color-text-mist)' }}
+              >
+                Change
+              </Link>
+            </div>
           ) : (
             <>
               <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
