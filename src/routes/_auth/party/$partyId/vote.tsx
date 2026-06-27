@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/features/auth'
 import { finalizeVoting } from '#/features/votes'
 import { getCandidates, submitVote } from '#/features/votes'
+import { PartyProgressBar } from '#/features/parties'
 import { supabase } from '#/lib/supabase'
 import type { Candidate } from '#/features/recommendations'
 
@@ -213,18 +214,21 @@ function VoteScreen() {
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/party/$partyId/hub"
-          params={{ partyId }}
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Back
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-          Bond
-        </span>
+      <header className="flex flex-col px-6 pt-5 pb-3">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/party/$partyId/hub"
+            params={{ partyId }}
+            className="text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: 'var(--color-text-mist)' }}
+          >
+            ← Back
+          </Link>
+          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
+            Bond
+          </span>
+        </div>
+        <PartyProgressBar step={3} />
       </header>
 
       <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-5">

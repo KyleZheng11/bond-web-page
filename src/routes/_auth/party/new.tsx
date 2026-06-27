@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useAuth, getUserProfile } from '#/features/auth'
-import { createParty, inviteFriends, LocationInput } from '#/features/parties'
+import { createParty, inviteFriends, LocationInput, PartyProgressBar } from '#/features/parties'
 import { getFriends } from '#/features/friends'
 import type { Friend } from '#/features/friends'
 
@@ -72,17 +72,20 @@ function NewParty() {
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
       {/* Header */}
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/home"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Back
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-          Bond
-        </span>
+      <header className="flex flex-col px-6 pt-5 pb-3">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/home"
+            className="text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: 'var(--color-text-mist)' }}
+          >
+            ← Back
+          </Link>
+          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
+            Bond
+          </span>
+        </div>
+        <PartyProgressBar step={1} />
       </header>
 
       <main className="flex-1 px-5.5 py-4 max-w-lg mx-auto w-full">
