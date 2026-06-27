@@ -14,6 +14,7 @@ export interface Place {
   photoUrl: string | null
   lat: number | null
   lng: number | null
+  servesVegetarianFood?: boolean
 }
 
 export const CUISINE_TO_GOOGLE_TYPE: Record<string, string> = {
@@ -93,8 +94,10 @@ export async function searchNearbyRestaurants(params: {
         'places.shortFormattedAddress',
         'places.photos',
         'places.location',
+        'places.servesVegetarianFood',
       ].join(','),
     },
+    // priceLevels is included as a hint but the API often ignores it; we filter client-side below
     body: JSON.stringify({
       includedTypes,
       maxResultCount: 20,
@@ -116,22 +119,33 @@ export async function searchNearbyRestaurants(params: {
       shortFormattedAddress?: string
       photos?: Array<{ name: string }>
       location?: { latitude: number; longitude: number }
+      servesVegetarianFood?: boolean
     }>
   }
 
-  return (data.places ?? []).map((p) => ({
-    id: p.id,
-    name: p.displayName.text,
-    rating: p.rating ?? 0,
-    reviewCount: p.userRatingCount ?? 0,
-    priceLevel: p.priceLevel ?? 'PRICE_LEVEL_UNSPECIFIED',
-    types: p.types ?? [],
-    address: p.shortFormattedAddress ?? '',
-    photoName: p.photos?.[0]?.name ?? null,
-    photoUrl: null,
-    lat: p.location?.latitude ?? null,
-    lng: p.location?.longitude ?? null,
-  }))
+  const validPriceLevels = new Set(priceLevels)
+
+  return (data.places ?? [])
+    .filter((p) => {
+      const level = p.priceLevel ?? 'PRICE_LEVEL_UNSPECIFIED'
+      // Unknown price = keep (no data to filter on)
+      if (level === 'PRICE_LEVEL_UNSPECIFIED') return true
+      return validPriceLevels.has(level)
+    })
+    .map((p) => ({
+      id: p.id,
+      name: p.displayName.text,
+      rating: p.rating ?? 0,
+      reviewCount: p.userRatingCount ?? 0,
+      priceLevel: p.priceLevel ?? 'PRICE_LEVEL_UNSPECIFIED',
+      types: p.types ?? [],
+      address: p.shortFormattedAddress ?? '',
+      photoName: p.photos?.[0]?.name ?? null,
+      photoUrl: null,
+      lat: p.location?.latitude ?? null,
+      lng: p.location?.longitude ?? null,
+      servesVegetarianFood: p.servesVegetarianFood,
+    }))
 }
 
 export async function resolvePhotoUrl(photoName: string): Promise<string | null> {

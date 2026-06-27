@@ -35,6 +35,7 @@ async function findSlotCandidate(
   cuisineLabel: string | null,
   priceLevels: string[],
   excludeIds: Set<string>,
+  vegetarianOnly = false,
 ): Promise<Place | null> {
   const includedTypes = cuisineLabel && CUISINE_TO_GOOGLE_TYPE[cuisineLabel]
     ? [CUISINE_TO_GOOGLE_TYPE[cuisineLabel]]
@@ -42,11 +43,29 @@ async function findSlotCandidate(
 
   const places = await searchNearbyRestaurants({ ...coords, priceLevels, includedTypes })
 
-  const candidate = places
-    .filter((p) => !excludeIds.has(p.id) && p.rating > 0 && p.reviewCount > 10)
-    .sort((a, b) => scorePlace(b) - scorePlace(a))[0]
+  let pool = places.filter((p) => !excludeIds.has(p.id) && p.rating > 0 && p.reviewCount > 10)
 
-  return candidate ?? null
+  if (vegetarianOnly) {
+    const vegPool = pool.filter((p) => p.servesVegetarianFood === true)
+    // Only apply the hard filter when there are actual results — avoids empty slots
+    if (vegPool.length > 0) pool = vegPool
+  }
+
+  return pool.sort((a, b) => scorePlace(b) - scorePlace(a))[0] ?? null
+}
+
+// Try common budget first; relax to max budget if no result found.
+async function findWithBudgetFallback(
+  coords: { lat: number; lng: number },
+  cuisineLabel: string | null,
+  signal: { commonPriceLevels: string[]; maxPriceLevels: string[]; hasHigherBudget: boolean },
+  excludeIds: Set<string>,
+  vegetarianOnly = false,
+): Promise<Place | null> {
+  const place = await findSlotCandidate(coords, cuisineLabel, signal.commonPriceLevels, excludeIds, vegetarianOnly)
+  if (place) return place
+  if (!signal.hasHigherBudget) return null
+  return findSlotCandidate(coords, cuisineLabel, signal.maxPriceLevels, excludeIds, vegetarianOnly)
 }
 
 async function withPhoto(place: Place): Promise<Place> {
@@ -82,40 +101,41 @@ export const findRestaurant = createServerFn()
     const usedIds = new Set<string>()
     const rawCandidates: Array<{ place: Place; slot: 1 | 2 | 3 | 4; slotLabel: string }> = []
 
-    // Slot 1 — top cuisine at common budget
+    // Apply vegan/vegetarian as a hard filter on slots 1–3 so every option is safe for the group
+    const vegOnly = signal.needsVegan || signal.needsVegetarian
+
+    // Slot 1 — top cuisine, common budget (with progressive relaxation if empty)
     const slot1Cuisine = signal.rankedCuisines[0] ?? null
-    const slot1Place = await findSlotCandidate(coords, slot1Cuisine, signal.commonPriceLevels, usedIds)
+    const slot1Place = await findWithBudgetFallback(coords, slot1Cuisine, signal, usedIds, vegOnly)
     if (slot1Place) {
       rawCandidates.push({ place: slot1Place, slot: 1, slotLabel: 'Top pick' })
       usedIds.add(slot1Place.id)
     }
 
-    // Slot 2 — runner-up cuisine at common budget
+    // Slot 2 — runner-up cuisine, common budget (with progressive relaxation)
     const slot2Cuisine = signal.rankedCuisines[1] ?? slot1Cuisine
-    const slot2Place = await findSlotCandidate(coords, slot2Cuisine, signal.commonPriceLevels, usedIds)
+    const slot2Place = await findWithBudgetFallback(coords, slot2Cuisine, signal, usedIds, vegOnly)
     if (slot2Place) {
       rawCandidates.push({ place: slot2Place, slot: 2, slotLabel: 'Runner up' })
       usedIds.add(slot2Place.id)
     }
 
-    // Slot 3 — minority cuisine ("for everyone") at common budget
+    // Slot 3 — minority cuisine ("for everyone"), common budget (with progressive relaxation)
     const slot3Cuisine = signal.minorityCuisine ?? signal.rankedCuisines[2] ?? slot2Cuisine ?? slot1Cuisine
-    const slot3Place = await findSlotCandidate(coords, slot3Cuisine, signal.commonPriceLevels, usedIds)
+    const slot3Place = await findWithBudgetFallback(coords, slot3Cuisine, signal, usedIds, vegOnly)
     if (slot3Place) {
       rawCandidates.push({ place: slot3Place, slot: 3, slotLabel: 'For everyone' })
       usedIds.add(slot3Place.id)
     }
 
-    // Slot 4 — flex: dietary pick (best across all friendly cuisines) > splurge > alternative
+    // Slot 4 — flex: dietary pick > splurge > alternative
     let slot4Place: Place | null = null
     let slot4Label = 'Alternative'
 
     if (signal.dietaryCuisines.length > 0) {
-      // Search all dietary-friendly cuisines in parallel and pick the highest-scoring
-      // result across all of them. This prevents the slot from always landing on the
-      // same cuisine/restaurant regardless of what's actually nearby.
+      // Search all dietary-friendly cuisines in parallel and pick the highest-scoring result
       const dietaryResults = await Promise.all(
-        signal.dietaryCuisines.map((c) => findSlotCandidate(coords, c, signal.commonPriceLevels, usedIds))
+        signal.dietaryCuisines.map((c) => findWithBudgetFallback(coords, c, signal, usedIds, vegOnly))
       )
       slot4Place = dietaryResults
         .filter((p): p is Place => p !== null)
@@ -128,7 +148,7 @@ export const findRestaurant = createServerFn()
     }
     if (!slot4Place) {
       const slot4Cuisine = signal.rankedCuisines[2] ?? slot1Cuisine
-      slot4Place = await findSlotCandidate(coords, slot4Cuisine, signal.commonPriceLevels, usedIds)
+      slot4Place = await findWithBudgetFallback(coords, slot4Cuisine, signal, usedIds)
     }
     if (slot4Place) {
       rawCandidates.push({ place: slot4Place, slot: 4, slotLabel: slot4Label })

@@ -112,7 +112,7 @@ function PartyHub() {
     )
   }
 
-  const { party, members, leaderHasSubmitted } = lobbyData
+  const { party, members, leaderHasSubmitted, isCreator } = lobbyData
   const inviteLink = party.invite_token
     ? `${window.location.origin}/invite/${party.invite_token}`
     : null
@@ -423,6 +423,36 @@ function PartyHub() {
               <p className="text-[10px] font-black uppercase tracking-[.12em] px-1" style={{ color: 'var(--color-text-mist)' }}>
                 Crew status
               </p>
+              {/* Leader row — always first */}
+              {isCreator && (
+                <div
+                  className="flex items-center justify-between px-4 py-2.5 rounded-xl"
+                  style={{ background: 'var(--color-surface-petrol)' }}
+                >
+                  <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--color-text-cream)' }}>
+                    You
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                    >
+                      host
+                    </span>
+                  </span>
+                  <span
+                    className="flex items-center gap-1.5 text-xs font-semibold"
+                    style={{ color: leaderHasSubmitted ? 'var(--color-accent-gold)' : 'var(--color-text-mist)' }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{
+                        background: leaderHasSubmitted ? 'var(--color-accent-gold)' : 'var(--color-text-mist)',
+                        opacity: leaderHasSubmitted ? 1 : 0.4,
+                      }}
+                    />
+                    {leaderHasSubmitted ? 'Ready' : 'Waiting'}
+                  </span>
+                </div>
+              )}
               {members.map((m) => {
                 const ready = !!m.preferences_submitted_at
                 return (

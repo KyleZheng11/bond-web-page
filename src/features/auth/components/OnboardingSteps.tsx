@@ -1,6 +1,44 @@
 import { LocationInput } from '#/features/parties/components/LocationInput'
 import { CUISINES, DIETARY } from '#/features/preferences/components/PreferenceSteps'
 
+export function StepUsername({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-6 py-4">
+      <div>
+        <h1
+          className="font-display text-3xl font-semibold leading-tight"
+          style={{ color: 'var(--color-text-cream)' }}
+        >
+          What should we call you?
+        </h1>
+        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
+          This is how you'll appear to others in your party.
+        </p>
+      </div>
+      <input
+        type="text"
+        placeholder="Your name"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoFocus
+        maxLength={40}
+        className="px-4 py-3 rounded-xl text-base outline-none w-full"
+        style={{
+          background: 'var(--color-surface-petrol)',
+          border: `1.5px solid ${value.trim() ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.12)'}`,
+          color: 'var(--color-text-cream)',
+        }}
+      />
+    </div>
+  )
+}
+
 export function StepDietaryOnboarding({
   selected,
   onToggle,

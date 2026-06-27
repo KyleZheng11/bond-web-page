@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { resolveInvite, submitGuestPreferences } from '#/features/invites'
@@ -32,6 +32,7 @@ function formatCuisineTag(type: string): string {
 
 function GuestHub() {
   const { token } = Route.useParams()
+  const navigate = useNavigate()
 
   const [loadingInvite, setLoadingInvite] = useState(true)
   const [invite, setInvite] = useState<InviteData | null>(null)
@@ -41,6 +42,10 @@ function GuestHub() {
   const [guestView, setGuestView] = useState<GuestView>('hub')
   const [partyId, setPartyId] = useState<string | null>(null)
   const [leaderName, setLeaderName] = useState<string | null>(null)
+  // personalToken: the per-member guest_token used as voterId.
+  // For SMS invites this equals the URL token. For general-link guests it's
+  // the unique UUID returned by submitGuestPreferences.
+  const [personalToken, setPersonalToken] = useState(token)
 
   // Hub form state
   const [name, setName] = useState('')
@@ -89,7 +94,10 @@ function GuestHub() {
         (payload) => {
           const updated = payload.new as { id?: string; status?: string }
           if (updated.id !== partyId) return
-          if (updated.status === 'resolved') {
+          if (updated.status === 'voting') {
+            // Navigate using personalToken so each guest has a unique voterId
+            navigate({ to: '/invite/$token/vote', params: { token: personalToken } })
+          } else if (updated.status === 'resolved') {
             getRecommendation({ data: { partyId } })
               .then((r) => {
                 setRec(r)
@@ -102,7 +110,7 @@ function GuestHub() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [partyId, guestView])
+  }, [partyId, guestView, personalToken, navigate])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -118,6 +126,9 @@ function GuestHub() {
       await ch.send({ type: 'broadcast', event: 'member_updated', payload: {} })
       supabase.removeChannel(ch)
       setPartyId(result.partyId)
+      // For general-link guests, use the unique guestToken returned as our personal token.
+      // This ensures each guest gets a unique voterId when the party moves to voting.
+      if (result.guestToken) setPersonalToken(result.guestToken)
       setGuestView('waiting')
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')

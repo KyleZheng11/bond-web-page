@@ -33,11 +33,11 @@ function GuestVoteScreen() {
     resolveInvite({ data: { token } })
       .then((result) => {
         if (result.party.status === 'resolved') {
-          navigate({ to: '/party/$partyId/result', params: { partyId: result.party.id } })
+          navigate({ to: '/invite/$token/results', params: { token } })
           return
         }
         setPartyId(result.party.id)
-        // Use token as voterId for guests — it's unique per member
+        // token is the per-member guestToken (unique per guest), safe to use as voterId
         setVoterId(token)
       })
       .catch(() => setError('Invalid or expired invite link.'))
@@ -67,7 +67,7 @@ function GuestVoteScreen() {
         (payload) => {
           if ((payload.new as { id?: string }).id === partyId &&
               (payload.new as { status?: string }).status === 'resolved') {
-            navigate({ to: '/party/$partyId/result', params: { partyId } })
+            navigate({ to: '/invite/$token/results', params: { token } })
           }
         })
       .subscribe()
@@ -132,8 +132,6 @@ function GuestVoteScreen() {
           const { place, slotLabel } = c
           const price = PRICE_SYMBOL[place.priceLevel] ?? ''
           const selected = myVote === place.id
-          const voteCount = voteCounts[place.id] ?? 0
-          const pct = votesCast > 0 ? Math.round((voteCount / votesCast) * 100) : 0
 
           return (
             <div
@@ -184,18 +182,6 @@ function GuestVoteScreen() {
                     <span className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>{place.address}</span>
                   )}
                 </div>
-
-                {myVote && (
-                  <div className="flex flex-col gap-1.5">
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-surface-twilight)' }}>
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${pct}%`, background: 'var(--color-accent-ember)' }} />
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-                      {voteCount} vote{voteCount !== 1 ? 's' : ''} · {pct}%
-                    </p>
-                  </div>
-                )}
 
                 <button
                   onClick={() => handleVote(place.id)}
