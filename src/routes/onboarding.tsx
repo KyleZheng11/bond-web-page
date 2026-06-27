@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { supabase } from '#/lib/supabase'
 import { updateUserProfile } from '#/features/auth'
 import {
+  StepUsername,
   StepDietaryOnboarding,
   StepNeverCuisines,
   StepLocation,
@@ -13,22 +14,23 @@ export const Route = createFileRoute('/onboarding')({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession()
     if (!data.session) throw redirect({ to: '/welcome' })
-    // Skip onboarding if location is already set
+    // Skip onboarding only when both display_name and location are already set
     const { data: profile } = await supabase
       .from('users')
-      .select('location')
+      .select('display_name, location')
       .eq('id', data.session.user.id)
       .maybeSingle()
-    if (profile?.location) throw redirect({ to: '/home' })
+    if (profile?.display_name?.trim() && profile?.location) throw redirect({ to: '/home' })
   },
   component: Onboarding,
 })
 
-const STEPS = 3
+const STEPS = 4
 
 function Onboarding() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
+  const [username, setUsername] = useState('')
   const [dietary, setDietary] = useState<string[]>([])
   const [neverCuisines, setNeverCuisines] = useState<string[]>([])
   const [location, setLocation] = useState('')
@@ -58,6 +60,7 @@ function Onboarding() {
       await updateUserProfile({
         data: {
           userId: session.user.id,
+          display_name: username.trim(),
           location: location.trim(),
           dietary_restrictions: dietary,
           cuisine_blacklist: neverCuisines,
@@ -72,7 +75,11 @@ function Onboarding() {
     if (saved) navigate({ to: '/home' })
   }
 
-  const canProceed = step < STEPS - 1 || location.trim().length > 0
+  const canProceed =
+    (step === 0 && username.trim().length > 0) ||
+    (step === 1) ||
+    (step === 2) ||
+    (step === 3 && location.trim().length > 0)
 
   return (
     <div
@@ -103,12 +110,15 @@ function Onboarding() {
             transition={{ duration: 0.25 }}
           >
             {step === 0 && (
-              <StepDietaryOnboarding selected={dietary} onToggle={toggleDietary} />
+              <StepUsername value={username} onChange={setUsername} />
             )}
             {step === 1 && (
-              <StepNeverCuisines selected={neverCuisines} onToggle={toggleNever} />
+              <StepDietaryOnboarding selected={dietary} onToggle={toggleDietary} />
             )}
             {step === 2 && (
+              <StepNeverCuisines selected={neverCuisines} onToggle={toggleNever} />
+            )}
+            {step === 3 && (
               <StepLocation value={location} onChange={setLocation} />
             )}
           </motion.div>

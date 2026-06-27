@@ -20,20 +20,13 @@ function CandidateCard({
   candidate,
   selected,
   onVote,
-  voteCount,
-  totalVotes,
-  revealed,
 }: {
   candidate: Candidate
   selected: boolean
   onVote: () => void
-  voteCount: number
-  totalVotes: number
-  revealed: boolean
 }) {
   const { place, slotLabel } = candidate
   const price = PRICE_SYMBOL[place.priceLevel] ?? ''
-  const pct = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0
 
   return (
     <div
@@ -95,24 +88,6 @@ function CandidateCard({
           )}
         </div>
 
-        {/* Vote bar — only shown after voting */}
-        {revealed && (
-          <div className="flex flex-col gap-1.5">
-            <div
-              className="h-1.5 rounded-full overflow-hidden"
-              style={{ background: 'var(--color-surface-twilight)' }}
-            >
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, background: 'var(--color-accent-ember)' }}
-              />
-            </div>
-            <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-              {voteCount} vote{voteCount !== 1 ? 's' : ''} · {pct}%
-            </p>
-          </div>
-        )}
-
         <button
           onClick={onVote}
           className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
@@ -134,22 +109,23 @@ function VoteScreen() {
   const navigate = useNavigate()
 
   const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({})
   const [totalVoters, setTotalVoters] = useState(0)
   const [votesCast, setVotesCast] = useState(0)
+  const [creatorId, setCreatorId] = useState<string | null>(null)
   const [myVote, setMyVote] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [finalizing, setFinalizing] = useState(false)
 
   const voterId = user?.id ?? ''
+  const isLeader = !!user && user.id === creatorId
   const allVoted = votesCast >= totalVoters && totalVoters > 0
 
   const load = useCallback(async () => {
     const result = await getCandidates({ data: { partyId } })
     setCandidates(result.candidates)
-    setVoteCounts(result.voteCounts)
     setTotalVoters(result.totalVoters)
     setVotesCast(result.votesCast)
+    setCreatorId(result.creatorId)
   }, [partyId])
 
   useEffect(() => {
@@ -232,14 +208,30 @@ function VoteScreen() {
       </header>
 
       <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <h1 className="font-display text-3xl font-semibold" style={{ color: 'var(--color-text-cream)' }}>
             Vote for your pick.
           </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            {votesCast} of {totalVoters} voted
-            {allVoted ? ' — all votes are in!' : ''}
-          </p>
+          {/* Voting progress bar — visible to the leader only */}
+          {isLeader && totalVoters > 0 && (
+            <div className="flex flex-col gap-1.5 pt-1">
+              <div
+                className="h-1.5 rounded-full overflow-hidden"
+                style={{ background: 'var(--color-surface-petrol)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.round((votesCast / totalVoters) * 100)}%`,
+                    background: allVoted ? 'var(--color-accent-gold)' : 'var(--color-accent-ember)',
+                  }}
+                />
+              </div>
+              <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+                {votesCast} of {totalVoters} voted{allVoted ? ' — all in!' : ''}
+              </p>
+            </div>
+          )}
         </div>
 
         {candidates.map((c) => (
@@ -248,14 +240,11 @@ function VoteScreen() {
             candidate={c}
             selected={myVote === c.place.id}
             onVote={() => handleVote(c.place.id)}
-            voteCount={voteCounts[c.place.id] ?? 0}
-            totalVotes={votesCast}
-            revealed={!!myVote}
           />
         ))}
 
-        {/* Leader finalizes */}
-        {myVote && (
+        {/* Only the party leader can lock in the result */}
+        {isLeader && myVote && (
           <button
             onClick={handleFinalize}
             disabled={finalizing}
@@ -266,10 +255,19 @@ function VoteScreen() {
           </button>
         )}
 
-        {myVote && !allVoted && (
+        {isLeader && myVote && !allVoted && (
           <p className="text-xs text-center -mt-2" style={{ color: 'var(--color-text-mist)' }}>
             Still waiting on {totalVoters - votesCast} vote{totalVoters - votesCast !== 1 ? 's' : ''}. You can lock in early.
           </p>
+        )}
+
+        {!isLeader && myVote && (
+          <div
+            className="px-4 py-4 rounded-2xl text-sm text-center"
+            style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+          >
+            You're locked in. The host will reveal the result.
+          </div>
         )}
       </main>
     </div>
