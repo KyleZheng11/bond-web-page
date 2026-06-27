@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '#/features/auth'
 import { getPartyLobby } from '#/features/parties'
 import { getLeaderPrefsContext, submitPreferences, CUISINES, BUDGETS, DIETARY } from '#/features/preferences'
+import { PartyProgressBar } from '#/features/parties'
 import { findRestaurant } from '#/features/recommendations'
 import { supabase } from '#/lib/supabase'
 import type { Tables } from '#/types/database'
@@ -282,17 +283,20 @@ function PartyHub() {
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
-      <header className="flex items-center gap-4 px-6 py-5 shrink-0">
-        <Link
-          to="/home"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Back
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-          Bond
-        </span>
+      <header className="flex flex-col px-6 pt-5 pb-3 shrink-0">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/home"
+            className="text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: 'var(--color-text-mist)' }}
+          >
+            ← Back
+          </Link>
+          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
+            Bond
+          </span>
+        </div>
+        <PartyProgressBar step={2} />
       </header>
 
       <main className="flex-1 overflow-y-auto px-5.5 max-w-lg mx-auto w-full pb-52 flex flex-col gap-4">

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { getRecommendation } from '#/features/recommendations'
+import { PartyProgressBar } from '#/features/parties'
 import type { Place } from '#/features/recommendations'
 import type { Tables } from '#/types/database'
 
@@ -115,17 +116,20 @@ function Result() {
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/home"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Home
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-          Bond
-        </span>
+      <header className="flex flex-col px-6 pt-5 pb-3">
+        <div className="flex items-center gap-4">
+          <Link
+            to="/home"
+            className="text-sm font-semibold transition-opacity hover:opacity-70"
+            style={{ color: 'var(--color-text-mist)' }}
+          >
+            ← Home
+          </Link>
+          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
+            Bond
+          </span>
+        </div>
+        <PartyProgressBar step={4} />
       </header>
 
       {/* Photo block */}
