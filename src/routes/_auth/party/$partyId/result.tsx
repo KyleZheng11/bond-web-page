@@ -4,7 +4,7 @@ import { getRecommendation } from '#/features/recommendations'
 import type { Place } from '#/features/recommendations'
 import type { Tables } from '#/types/database'
 
-export const Route = createFileRoute('/_auth/party/$partyId/results')({ component: Results })
+export const Route = createFileRoute('/_auth/party/$partyId/result')({ component: Result })
 
 const PRICE_SYMBOL: Record<string, string> = {
   PRICE_LEVEL_INEXPENSIVE: '$',
@@ -22,7 +22,7 @@ function formatCuisineTag(type: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-function Results() {
+function Result() {
   const { partyId } = Route.useParams()
   const [rec, setRec] = useState<Tables<'recommendations'> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,25 +41,40 @@ function Results() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // ── Skeleton ────────────────────────────────────────────────────────────────
+  // ── Searching / loading state ───────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-surface-deep)' }}>
-        <header className="flex items-center gap-4 px-6 py-5">
-          <div className="h-4 w-12 rounded animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        </header>
-        <div className="h-56 animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        <main className="flex-1 px-6 py-6 max-w-lg mx-auto w-full flex flex-col gap-4">
-          <div className="h-10 w-3/4 rounded-xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-          <div className="h-4 w-1/2 rounded animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-          <div className="h-20 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-          <div className="h-12 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        </main>
+      <div
+        className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+        style={{ background: 'var(--color-surface-deep)' }}
+      >
+        <div className="flex flex-col items-center gap-6 max-w-xs">
+          {/* Spinner */}
+          <div
+            className="w-12 h-12 rounded-full"
+            style={{
+              border: '4px solid var(--color-hairline)',
+              borderTopColor: 'var(--color-accent-ember)',
+              animation: 'spin .8s linear infinite',
+            }}
+          />
+          <div className="flex flex-col gap-2">
+            <h1
+              className="font-display text-3xl font-black leading-tight"
+              style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}
+            >
+              Reading the room…
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+              Bond is picking the perfect spot for your crew.
+            </p>
+          </div>
+        </div>
       </div>
     )
   }
 
-  // ── Error state ─────────────────────────────────────────────────────────────
+  // ── Error / no result yet ───────────────────────────────────────────────────
   if (!rec) {
     return (
       <div
@@ -73,12 +88,12 @@ function Results() {
           The recommendation hasn't been generated yet, or something went wrong.
         </p>
         <Link
-          to="/party/$partyId/lobby"
+          to="/party/$partyId/hub"
           params={{ partyId }}
           className="mt-2 text-sm font-semibold"
           style={{ color: 'var(--color-accent-ember)' }}
         >
-          ← Back to lobby
+          ← Back to party
         </Link>
       </div>
     )
@@ -94,13 +109,12 @@ function Results() {
 
   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.id}`
 
-  // ── UI ──────────────────────────────────────────────────────────────────────
+  // ── Resolved view ───────────────────────────────────────────────────────────
   return (
     <div
       className="min-h-screen flex flex-col"
       style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
     >
-      {/* Header */}
       <header className="flex items-center gap-4 px-6 py-5">
         <Link
           to="/home"
@@ -109,13 +123,13 @@ function Results() {
         >
           ← Home
         </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
           Bond
         </span>
       </header>
 
-      {/* Restaurant photo */}
-      <div className="w-full h-52 relative overflow-hidden flex items-end px-6 pb-5">
+      {/* Photo block */}
+      <div className="mx-[22px] mt-2 h-52 relative rounded-[18px] overflow-hidden flex items-start px-4 pt-4">
         {place.photoUrl ? (
           <>
             <img
@@ -125,38 +139,40 @@ function Results() {
             />
             <div
               className="absolute inset-0"
-              style={{ background: 'linear-gradient(to top, rgba(11,31,45,0.85) 0%, transparent 50%)' }}
+              style={{ background: 'linear-gradient(to bottom, rgba(33,27,22,0.50) 0%, transparent 50%)' }}
             />
           </>
         ) : (
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(135deg, var(--color-surface-twilight) 0%, #1a3a2a 50%, var(--color-surface-petrol) 100%)' }}
+            style={{ background: 'var(--color-photo-placeholder)' }}
           />
         )}
         <span
-          className="relative text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-          style={{ background: 'rgba(11,31,45,0.6)', color: 'var(--color-text-mist)' }}
+          className="relative text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+          style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
         >
           Bond's pick
         </span>
       </div>
 
-      <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-6 pt-6">
+      <main className="flex-1 px-[22px] pb-10 max-w-lg mx-auto w-full flex flex-col gap-6 pt-6">
 
-        {/* Restaurant name + cuisine tags */}
+        {/* Name + cuisine tags */}
         <div className="flex flex-col gap-3">
-          <h1 className="font-display text-4xl font-semibold leading-tight" style={{ color: 'var(--color-text-cream)' }}>
+          <h1
+            className="font-display font-black leading-tight"
+            style={{ fontSize: 29, color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}
+          >
             {rec.restaurant_name}
           </h1>
-
           {cuisineTags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {cuisineTags.map((tag) => (
                 <span
                   key={tag}
                   className="text-xs font-semibold px-3 py-1 rounded-full"
-                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)', border: '1px solid var(--color-hairline)' }}
                 >
                   {tag}
                 </span>
@@ -168,11 +184,11 @@ function Results() {
         {/* Stats row */}
         <div
           className="flex items-center gap-4 px-4 py-3 rounded-2xl flex-wrap"
-          style={{ background: 'var(--color-surface-petrol)' }}
+          style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)' }}
         >
           {place.rating > 0 && (
             <div className="flex items-center gap-1.5">
-              <span style={{ color: 'var(--color-accent-gold)' }}>★</span>
+              <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
               <span className="text-sm font-semibold" style={{ color: 'var(--color-text-cream)' }}>
                 {place.rating}
               </span>
@@ -186,7 +202,7 @@ function Results() {
 
           {priceSymbol !== '—' && (
             <>
-              <span style={{ color: 'var(--color-surface-twilight)' }}>·</span>
+              <span style={{ color: 'var(--color-hairline)' }}>·</span>
               <span className="text-sm font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
                 {priceSymbol}
               </span>
@@ -195,7 +211,7 @@ function Results() {
 
           {place.address && (
             <>
-              <span style={{ color: 'var(--color-surface-twilight)' }}>·</span>
+              <span style={{ color: 'var(--color-hairline)' }}>·</span>
               <span className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
                 {place.address}
               </span>
@@ -205,7 +221,7 @@ function Results() {
 
         {/* Why Bond picked this */}
         <section className="flex flex-col gap-2">
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
+          <p className="text-[10px] font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
             Why Bond picked this
           </p>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-cream)' }}>
@@ -228,7 +244,11 @@ function Results() {
           <button
             onClick={shareResult}
             className="w-full py-4 rounded-2xl font-semibold text-sm transition-opacity hover:opacity-80"
-            style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)' }}
+            style={{
+              background: 'var(--color-surface-petrol)',
+              color: 'var(--color-text-cream)',
+              border: '1px solid var(--color-hairline)',
+            }}
           >
             {copied ? 'Link copied!' : 'Share result'}
           </button>

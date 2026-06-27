@@ -20,7 +20,7 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
   return (
     <div
       className="flex flex-col gap-3 px-4 py-4 rounded-2xl"
-      style={{ background: 'var(--color-surface-petrol)', border: '1px solid rgba(240,228,204,0.08)' }}
+      style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
@@ -41,7 +41,7 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
       <div className="flex items-center gap-3 flex-wrap">
         {place.rating > 0 && (
           <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            <span style={{ color: 'var(--color-accent-gold)' }}>★</span>
+            <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
             {place.rating}
             {place.reviewCount > 0 && (
               <span className="text-xs">({place.reviewCount.toLocaleString()})</span>
@@ -60,7 +60,7 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
         target="_blank"
         rel="noopener noreferrer"
         className="self-start text-xs font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-        style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
+        style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)', border: '1px solid var(--color-hairline)' }}
       >
         Get directions →
       </a>
@@ -104,14 +104,14 @@ function Explore() {
     >
       <header className="flex items-center gap-4 px-6 py-5">
         <Link
-          to="/party/$partyId/results"
+          to="/party/$partyId/result"
           params={{ partyId }}
           className="text-sm font-semibold transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-text-mist)' }}
         >
           ← Results
         </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
           Bond
         </span>
       </header>

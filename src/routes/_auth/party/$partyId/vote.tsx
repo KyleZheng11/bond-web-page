@@ -39,7 +39,7 @@ function CandidateCard({
       className="flex flex-col rounded-2xl overflow-hidden transition-all"
       style={{
         background: 'var(--color-surface-petrol)',
-        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.08)'}`,
+        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'var(--color-hairline)'}`,
       }}
     >
       {/* Photo */}
@@ -48,11 +48,11 @@ function CandidateCard({
           <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to top, rgba(19,61,92,0.7) 0%, transparent 60%)' }}
+            style={{ background: 'linear-gradient(to top, rgba(33,27,22,0.55) 0%, transparent 60%)' }}
           />
           <span
             className="absolute bottom-3 left-3 text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(11,31,45,0.6)', color: 'var(--color-text-mist)' }}
+            style={{ background: 'rgba(33,27,22,0.55)', color: '#fff' }}
           >
             {slotLabel}
           </span>
@@ -80,7 +80,7 @@ function CandidateCard({
         <div className="flex items-center gap-3 flex-wrap">
           {place.rating > 0 && (
             <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-              <span style={{ color: 'var(--color-accent-gold)' }}>★</span>
+              <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
               {place.rating}
               {place.reviewCount > 0 && (
                 <span className="text-xs">({place.reviewCount.toLocaleString()})</span>
@@ -165,7 +165,7 @@ function VoteScreen() {
         (payload) => {
           if ((payload.new as { id?: string }).id === partyId &&
               (payload.new as { status?: string }).status === 'resolved') {
-            navigate({ to: '/party/$partyId/results', params: { partyId } })
+            navigate({ to: '/party/$partyId/result', params: { partyId } })
           }
         })
       .subscribe()
@@ -187,7 +187,7 @@ function VoteScreen() {
     setFinalizing(true)
     try {
       await finalizeVoting({ data: { partyId } })
-      navigate({ to: '/party/$partyId/results', params: { partyId } })
+      navigate({ to: '/party/$partyId/result', params: { partyId } })
     } catch {
       setFinalizing(false)
     }
@@ -215,14 +215,14 @@ function VoteScreen() {
     >
       <header className="flex items-center gap-4 px-6 py-5">
         <Link
-          to="/party/$partyId/lobby"
+          to="/party/$partyId/hub"
           params={{ partyId }}
           className="text-sm font-semibold transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-text-mist)' }}
         >
           ← Back
         </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
           Bond
         </span>
       </header>

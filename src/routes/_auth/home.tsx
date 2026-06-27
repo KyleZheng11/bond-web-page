@@ -20,7 +20,7 @@ function Home() {
 
   return (
     <div
-      className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col gap-10"
+      className="min-h-screen px-5.5 py-10 max-w-md mx-auto flex flex-col gap-10"
       style={{ background: 'var(--color-surface-deep)' }}
     >
       {/* Header */}
@@ -28,7 +28,7 @@ function Home() {
         <Link
           to="/"
           className="text-xl font-black transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-accent-gold)' }}
+          style={{ color: 'var(--color-accent-ember)' }}
         >
           Bond
         </Link>
@@ -36,7 +36,11 @@ function Home() {
           <Link
             to="/friends"
             className="text-sm font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-            style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+            style={{
+              background: 'var(--color-surface-petrol)',
+              color: 'var(--color-text-mist)',
+              border: '1px solid var(--color-hairline)',
+            }}
           >
             Friends
           </Link>
@@ -44,8 +48,9 @@ function Home() {
             onClick={() => navigate({ to: '/profile' })}
             className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-opacity hover:opacity-80"
             style={{
-              background: 'var(--color-surface-petrol)',
+              background: 'var(--color-surface-twilight)',
               color: 'var(--color-text-cream)',
+              border: '1px solid var(--color-hairline)',
             }}
           >
             {user?.email?.[0].toUpperCase() ?? '?'}
@@ -61,8 +66,8 @@ function Home() {
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <h1
-          className="font-display text-4xl font-bold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
+          className="font-display text-4xl font-black leading-none tracking-tight"
+          style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}
         >
           {greeting()}
         </h1>
@@ -83,7 +88,7 @@ function Home() {
       {/* Party list */}
       <section className="flex flex-col gap-3">
         <p
-          className="text-xs font-bold tracking-widest uppercase"
+          className="text-xs font-black tracking-[.14em] uppercase"
           style={{ color: 'var(--color-text-mist)' }}
         >
           Your parties
@@ -131,8 +136,8 @@ function Home() {
                 navigate({
                   to:
                     party.status === 'resolved'
-                      ? '/party/$partyId/results'
-                      : '/party/$partyId/lobby',
+                      ? '/party/$partyId/result'
+                      : '/party/$partyId/hub',
                   params: { partyId: party.id },
                 })
               }

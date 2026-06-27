@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import type { Party, PartyStatus } from '#/features/parties'
 
-const STATUS: Record<PartyStatus, { label: string; color: string }> = {
-  open:      { label: 'Waiting for friends', color: 'var(--color-accent-gold)' },
-  searching: { label: 'Finding your spot',   color: 'var(--color-accent-ember)' },
-  voting:    { label: 'Vote now',            color: 'var(--color-accent-ember)' },
-  resolved:  { label: 'All done',            color: 'var(--color-accent-aurora)' },
+const STATUS: Record<PartyStatus, { label: string; meta: string; bg: string; color: string }> = {
+  open:      { label: 'Open',      meta: 'Waiting on the crew',    bg: '#F1ECE2', color: '#8A7F72' },
+  searching: { label: 'Searching', meta: 'Finding your spot',      bg: '#FFE9DF', color: '#FF5B22' },
+  voting:    { label: 'Voting',    meta: 'Voting in progress',     bg: '#FFE9DF', color: '#FF5B22' },
+  resolved:  { label: 'Resolved',  meta: 'All done',               bg: '#E6F5EC', color: '#1FA85C' },
 }
 
 export function PartyCard({
@@ -20,7 +20,7 @@ export function PartyCard({
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  const status = STATUS[party.status as PartyStatus] ?? STATUS.open
+  const status = STATUS[party.status]
   const date = new Date(party.created_at!).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -43,28 +43,37 @@ export function PartyCard({
       className="w-full rounded-2xl overflow-hidden transition-colors"
       style={{
         background: 'var(--color-surface-petrol)',
-        border: `1px solid ${confirming ? 'rgba(180,46,28,0.4)' : 'rgba(240,228,204,0.06)'}`,
+        border: `1px solid ${confirming ? 'rgba(215,55,42,0.4)' : 'var(--color-hairline)'}`,
+        boxShadow: '0 1px 3px rgba(0,0,0,.08)',
       }}
     >
       {/* Main row */}
       <div className="flex items-center">
         <button
           onClick={onClick}
-          className="flex-1 text-left p-5 flex items-center gap-4 hover:brightness-110 transition-all"
+          className="flex-1 text-left px-5 py-4 flex items-center gap-3 hover:brightness-[0.97] transition-all"
         >
-          <div
-            className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{ background: status.color }}
-          />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate" style={{ color: 'var(--color-text-cream)' }}>
-              {party.name ?? `Party · ${date}`}
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-mist)' }}>
-              {status.label}
+            {/* Name + status pill on the same row */}
+            <div className="flex items-start justify-between gap-2">
+              <p
+                className="font-display font-black text-lg leading-tight truncate"
+                style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.01em' }}
+              >
+                {party.name ?? `Party · ${date}`}
+              </p>
+              <span
+                className="shrink-0 text-xs font-semibold px-2.5 py-0.5 rounded-full mt-0.5"
+                style={{ background: status.bg, color: status.color }}
+              >
+                {status.label}
+              </span>
+            </div>
+            {/* Meta line */}
+            <p className="text-xs mt-1" style={{ color: 'var(--color-text-mist)' }}>
+              {status.meta}
             </p>
           </div>
-          <span className="text-sm shrink-0" style={{ color: 'var(--color-text-mist)' }}>→</span>
         </button>
 
         {onDelete && (
@@ -83,7 +92,7 @@ export function PartyCard({
       {confirming && (
         <div
           className="flex items-center justify-between px-5 py-3 gap-4 border-t"
-          style={{ borderColor: 'rgba(180,46,28,0.3)' }}
+          style={{ borderColor: 'rgba(215,55,42,0.3)' }}
         >
           <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
             Delete this party?

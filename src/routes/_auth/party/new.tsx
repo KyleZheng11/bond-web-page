@@ -58,7 +58,7 @@ function NewParty() {
         await inviteFriends({ data: { partyId: party.id, friendUserIds: [...selectedFriendIds] } })
       }
 
-      navigate({ to: '/party/$partyId/preferences', params: { partyId: party.id } })
+      navigate({ to: '/party/$partyId/hub', params: { partyId: party.id } })
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
@@ -80,13 +80,13 @@ function NewParty() {
         >
           ← Back
         </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
+        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
           Bond
         </span>
       </header>
 
-      <main className="flex-1 px-6 py-4 max-w-lg mx-auto w-full">
-        <h1 className="font-display text-3xl font-semibold mb-2" style={{ color: 'var(--color-text-cream)' }}>
+      <main className="flex-1 px-5.5 py-4 max-w-lg mx-auto w-full">
+        <h1 className="font-display text-3xl font-black mb-2" style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}>
           Start a party.
         </h1>
         <p className="text-sm mb-8" style={{ color: 'var(--color-text-mist)' }}>
@@ -96,7 +96,7 @@ function NewParty() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Party name */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-mist)' }}>
+            <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
               Party name{' '}
               <span style={{ fontWeight: 400 }}>(optional)</span>
             </label>
@@ -108,7 +108,7 @@ function NewParty() {
               className="px-4 py-3 rounded-xl text-sm outline-none"
               style={{
                 background: 'var(--color-surface-twilight)',
-                border: '1px solid rgba(240,228,204,0.08)',
+                border: '1px solid var(--color-hairline)',
                 color: 'var(--color-text-cream)',
               }}
             />
@@ -116,7 +116,7 @@ function NewParty() {
 
           {/* Location */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-mist)' }}>
+            <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
               Location <span style={{ color: 'var(--color-accent-brick)' }}>*</span>
             </label>
             <LocationInput value={location} onChange={setLocation} />
@@ -125,7 +125,7 @@ function NewParty() {
           {/* Friends picker */}
           {friends.length > 0 && (
             <div className="flex flex-col gap-3">
-              <label className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-mist)' }}>
+              <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
                 Invite friends
               </label>
               <div className="flex flex-col gap-2">
@@ -139,14 +139,14 @@ function NewParty() {
                       className="flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all"
                       style={{
                         background: selected ? 'var(--color-surface-twilight)' : 'var(--color-surface-petrol)',
-                        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.06)'}`,
+                        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'var(--color-hairline)'}`,
                       }}
                     >
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                         style={{
                           background: selected ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-                          color: selected ? 'var(--color-on-ember)' : 'var(--color-accent-gold)',
+                          color: selected ? 'var(--color-on-ember)' : 'var(--color-text-mist)',
                         }}
                       >
                         {(friend.displayName ?? friend.email)[0].toUpperCase()}
@@ -175,7 +175,7 @@ function NewParty() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 py-4 rounded-2xl font-semibold text-base transition-opacity disabled:opacity-50 hover:opacity-90"
+            className="mt-2 py-4 rounded-2xl font-bold text-base transition-opacity disabled:opacity-50 hover:opacity-90"
             style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
           >
             {loading ? 'Creating…' : selectedFriendIds.size > 0 ? `Invite friends (${selectedFriendIds.size})` : 'Create party'}

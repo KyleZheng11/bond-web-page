@@ -33,7 +33,7 @@ function GuestVoteScreen() {
     resolveInvite({ data: { token } })
       .then((result) => {
         if (result.party.status === 'resolved') {
-          navigate({ to: '/party/$partyId/results', params: { partyId: result.party.id } })
+          navigate({ to: '/party/$partyId/result', params: { partyId: result.party.id } })
           return
         }
         setPartyId(result.party.id)
@@ -67,7 +67,7 @@ function GuestVoteScreen() {
         (payload) => {
           if ((payload.new as { id?: string }).id === partyId &&
               (payload.new as { status?: string }).status === 'resolved') {
-            navigate({ to: '/party/$partyId/results', params: { partyId } })
+            navigate({ to: '/party/$partyId/result', params: { partyId } })
           }
         })
       .subscribe()

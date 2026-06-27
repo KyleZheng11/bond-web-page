@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { useAuth, signOut, getUserProfile, updateDietaryRestrictions, updateLocation } from '#/features/auth'
+import { useAuth, signOut, getUserProfile, updateDietaryRestrictions, updateLocation, updateCuisineBlacklist } from '#/features/auth'
 import { getMyParties, PartyCard } from '#/features/parties'
 import { LocationInput } from '#/features/parties/components/LocationInput'
-import { DIETARY } from '#/features/preferences'
+import { DIETARY, CUISINES } from '#/features/preferences'
 import type { Party } from '#/features/parties'
 
 export const Route = createFileRoute('/_auth/profile')({ component: Profile })
@@ -16,6 +16,7 @@ function Profile() {
   // Saved values
   const [restrictions, setRestrictions] = useState<string[]>([])
   const [location, setLocation] = useState('')
+  const [cuisineBlacklist, setCuisineBlacklist] = useState<string[]>([])
   const [loadingProfile, setLoadingProfile] = useState(true)
 
   // Dietary edit state
@@ -23,6 +24,12 @@ function Profile() {
   const [draftRestrictions, setDraftRestrictions] = useState<string[]>([])
   const [savingDietary, setSavingDietary] = useState(false)
   const [dietaryFlash, setDietaryFlash] = useState(false)
+
+  // Cuisine blacklist edit state
+  const [editingBlacklist, setEditingBlacklist] = useState(false)
+  const [draftBlacklist, setDraftBlacklist] = useState<string[]>([])
+  const [savingBlacklist, setSavingBlacklist] = useState(false)
+  const [blacklistFlash, setBlacklistFlash] = useState(false)
 
   // Location edit state
   const [editingLocation, setEditingLocation] = useState(false)
@@ -37,8 +44,9 @@ function Profile() {
     if (!user) return
     getUserProfile({ data: { userId: user.id } })
       .then((p) => {
-        setRestrictions(p.dietary_restrictions as string[])
+        setRestrictions(p.dietary_restrictions)
         setLocation(p.location ?? '')
+        setCuisineBlacklist(p.cuisine_blacklist)
       })
       .finally(() => setLoadingProfile(false))
     getMyParties({ data: { userId: user.id } })
@@ -77,6 +85,37 @@ function Profile() {
     }
   }
 
+  // ── Cuisine blacklist ─────────────────────────────────────────────────────
+
+  function startEditingBlacklist() {
+    setDraftBlacklist([...cuisineBlacklist])
+    setEditingBlacklist(true)
+  }
+
+  function cancelBlacklist() {
+    setEditingBlacklist(false)
+  }
+
+  function toggleBlacklistDraft(item: string) {
+    setDraftBlacklist((prev) =>
+      prev.includes(item) ? prev.filter((c) => c !== item) : [...prev, item]
+    )
+  }
+
+  async function saveBlacklist() {
+    if (!user) return
+    setSavingBlacklist(true)
+    try {
+      await updateCuisineBlacklist({ data: { userId: user.id, blacklist: draftBlacklist } })
+      setCuisineBlacklist(draftBlacklist)
+      setEditingBlacklist(false)
+      setBlacklistFlash(true)
+      setTimeout(() => setBlacklistFlash(false), 2000)
+    } finally {
+      setSavingBlacklist(false)
+    }
+  }
+
   // ── Location ─────────────────────────────────────────────────────────────
 
   function startEditingLocation() {
@@ -111,8 +150,8 @@ function Profile() {
 
   function partyDestination(party: Party) {
     return party.status === 'resolved'
-      ? { to: '/party/$partyId/results' as const, params: { partyId: party.id } }
-      : { to: '/party/$partyId/lobby' as const, params: { partyId: party.id } }
+      ? { to: '/party/$partyId/result' as const, params: { partyId: party.id } }
+      : { to: '/party/$partyId/hub' as const, params: { partyId: party.id } }
   }
 
   const initial = user?.email?.[0].toUpperCase() ?? '?'
@@ -242,6 +281,102 @@ function Profile() {
                   key={item}
                   className="px-4 py-2 rounded-full text-sm font-medium"
                   style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  {item}
+                </span>
+              ))
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ── Cuisine blacklist ── */}
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
+            Cuisines I never eat
+          </p>
+          <div className="flex items-center gap-2">
+            <motion.span
+              className="text-xs font-semibold"
+              style={{ color: 'var(--color-accent-aurora)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: blacklistFlash ? 1 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              Saved
+            </motion.span>
+            {!editingBlacklist ? (
+              <button
+                onClick={startEditingBlacklist}
+                disabled={loadingProfile}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-30"
+                style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)' }}
+              >
+                Edit
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={cancelBlacklist}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
+                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveBlacklist}
+                  disabled={savingBlacklist}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70 disabled:opacity-40"
+                  style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                >
+                  {savingBlacklist ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+          These cuisines will never appear in your recommendations.
+        </p>
+
+        {loadingProfile ? (
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-8 w-24 rounded-full animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
+            ))}
+          </div>
+        ) : editingBlacklist ? (
+          <div className="flex flex-wrap gap-2">
+            {CUISINES.map((item) => {
+              const active = draftBlacklist.includes(item)
+              return (
+                <button
+                  key={item}
+                  onClick={() => toggleBlacklistDraft(item)}
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                  style={{
+                    background: active ? 'var(--color-accent-brick)' : 'var(--color-surface-petrol)',
+                    color: active ? 'var(--color-on-brick)' : 'var(--color-text-cream)',
+                    border: `1px solid ${active ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
+                  }}
+                >
+                  {item}
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {cuisineBlacklist.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>None</p>
+            ) : (
+              cuisineBlacklist.map((item) => (
+                <span
+                  key={item}
+                  className="px-4 py-2 rounded-full text-sm font-medium"
+                  style={{ background: 'var(--color-accent-brick)', color: 'var(--color-on-brick)' }}
                 >
                   {item}
                 </span>

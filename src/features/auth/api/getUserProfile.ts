@@ -6,11 +6,12 @@ export const getUserProfile = createServerFn()
   .handler(async ({ data }) => {
     const { data: profile } = await supabaseServer
       .from('users')
-      .select('dietary_restrictions, location')
+      .select('dietary_restrictions, location, cuisine_blacklist')
       .eq('id', data.userId)
-      .single()
+      .maybeSingle()
     return {
       dietary_restrictions: profile?.dietary_restrictions ?? [],
       location: profile?.location ?? null,
+      cuisine_blacklist: profile?.cuisine_blacklist ?? [],
     }
   })

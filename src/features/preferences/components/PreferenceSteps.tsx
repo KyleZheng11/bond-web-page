@@ -36,7 +36,7 @@ export function StepCuisine({
     <div className="flex flex-col gap-6 py-4">
       <div>
         <h1
-          className="font-display text-3xl font-semibold leading-tight"
+          className="font-display text-3xl font-black leading-tight"
           style={{ color: 'var(--color-text-cream)' }}
         >
           What are you in the mood for?
@@ -56,7 +56,7 @@ export function StepCuisine({
               style={{
                 background: selected ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
                 color: selected ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                border: `1px solid ${selected ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
+                border: `1px solid ${selected ? 'transparent' : 'var(--color-hairline)'}`,
               }}
             >
               {c}
@@ -79,7 +79,7 @@ export function StepBudget({
     <div className="flex flex-col gap-6 py-4">
       <div>
         <h1
-          className="font-display text-3xl font-semibold leading-tight"
+          className="font-display text-3xl font-black leading-tight"
           style={{ color: 'var(--color-text-cream)' }}
         >
           What's your budget?
@@ -99,7 +99,7 @@ export function StepBudget({
               style={{
                 background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
                 color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                border: `1px solid ${active ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
+                border: `1px solid ${active ? 'transparent' : 'var(--color-hairline)'}`,
               }}
             >
               <span className="font-display text-xl font-bold w-14 shrink-0">{symbol}</span>
@@ -126,7 +126,7 @@ export function StepDietary({
     <div className="flex flex-col gap-6 py-4">
       <div>
         <h1
-          className="font-display text-3xl font-semibold leading-tight"
+          className="font-display text-3xl font-black leading-tight"
           style={{ color: 'var(--color-text-cream)' }}
         >
           Any dietary restrictions?
@@ -146,7 +146,7 @@ export function StepDietary({
               style={{
                 background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
                 color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                border: `1px solid ${active ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
+                border: `1px solid ${active ? 'transparent' : 'var(--color-hairline)'}`,
               }}
             >
               {d}

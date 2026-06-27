@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
@@ -6,42 +6,33 @@
 
 @theme inline {
   --font-sans: 'Manrope', ui-sans-serif, sans-serif;
-  --font-display: 'Fraunces', ui-serif, serif;
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, sans-serif;
 
-  /* ── Surfaces — the petrol night (most of every screen) ── */
-  --color-surface-deep: #0b1f2d; /* App background — deepest petrol-near-black, behind everything */
-  --color-surface-petrol: #133d5c; /* Default surface — cards, list rows, nav bars, sheets */
-  --color-surface-twilight: #1f567a; /* Elevated surface — modals, popovers, hover states, dividers */
+  /* ── Surfaces — Sunny is a LIGHT theme ── */
+  --color-surface-deep: #FBF3E7;     /* app background (warm cream) */
+  --color-surface-petrol: #FFFFFF;   /* default surface — cards, list rows */
+  --color-surface-twilight: #F3ECE0; /* elevated / inputs / hover / dividers */
 
-  /* ── Accents — the fire, in strict pecking order ── */
-  --color-accent-ember: #d45a1f; /* PRIMARY action — main CTAs, active tabs, the "press me" warmth. Dominant. */
-  --color-accent-brick: #b82e1c; /* LIVE / HOT signal — "happening now", urgency dots, time-sensitive flags. Sparingly. */
-  --color-accent-gold: #e8a93c; /* HIGHLIGHT — stars, "filling fast", icons, subtle emphasis. */
-  --color-accent-aurora: #3dd4e8; /* RARE SPARK — streaks, celebrations, delight moments only. Never the default anything. */
+  /* ── Accents ── */
+  --color-accent-ember: #FF5B22;     /* PRIMARY — CTAs, active, links */
+  --color-accent-brick: #D7372A;     /* error / live / urgency */
+  --color-accent-gold: #1FA85C;      /* success / "ready" / leaf green */
+  --color-accent-aurora: #7A3CC4;    /* rare spark — celebration only */
 
   /* ── Text ── */
-  --color-text-cream: #f0e4cc; /* Primary text & icons on dark surfaces */
-  --color-text-mist: #8fa8b5; /* Secondary — captions, metadata, placeholders, muted labels */
+  --color-text-cream: #211B16;       /* PRIMARY text + icons (dark ink) */
+  --color-text-mist: #8A7F72;        /* secondary — captions, placeholders */
 
-  /* ── On-accent text — legible labels on colored fills, stays on-brand ── */
-  --color-on-ember: #3a1607; /* Text/icons on an ember fill */
-  --color-on-brick: #f0d9c0; /* Text/icons on a brick fill (brick is dark — use cream tone) */
-  --color-on-gold: #3a2402; /* Text/icons on a gold fill */
-  --color-on-aurora: #062d34; /* Text/icons on an aurora fill */
+  /* ── On-accent text ── */
+  --color-on-ember: #FFFFFF;
+  --color-on-brick: #FFFFFF;
+  --color-on-gold: #FFFFFF;
+  --color-on-aurora: #FFFFFF;
+
+  /* ── Extra Sunny tokens ── */
+  --color-hairline: #EFE3D2;         /* 1px borders / dividers on cream */
+  --color-photo-placeholder: #F0D9B5; /* image slots before real photos */
 }
-
-/*
-  RULES OF THUMB
-  • One dominant accent per screen — ember leads, everything else supports.
-  • Ember and brick are close in hue — don't use them side-by-side as if they're
-    different colors. They read as the same family. Pick one per component.
-  • Never place aurora (cyan) directly against ember (orange) — they're
-    complementary and the edges will vibrate. Keep surface or whitespace between.
-  • Gold and aurora are sparkle colors. If they appear on every screen, they
-    stop sparkling. Aim for one moment of each per flow, max.
-  • On any colored fill, use the matching --color-on-* token for text, never
-    plain white or black — that's how the palette stays cohesive.
-*/
 
 body {
   font-family: var(--font-sans);
@@ -50,11 +41,7 @@ body {
 }
 
 .text-gradient-bond {
-  background: linear-gradient(
-    to right,
-    var(--color-text-cream),
-    var(--color-accent-gold)
-  );
+  background: linear-gradient(to right, #211B16, #FF5B22);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -62,15 +49,15 @@ body {
 }
 
 @keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
 .video-float-frame {
-  animation: float 6s ease-in-out infinite;
+  animation: floaty 6s ease-in-out infinite;
 }
