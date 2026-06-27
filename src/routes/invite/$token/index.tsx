@@ -20,7 +20,20 @@ function InviteLanding() {
     resolveInvite({ data: { token } })
       .then((result) => {
         if (result.party.status === 'resolved') {
-          navigate({ to: '/party/$partyId/results', params: { partyId: result.party.id } })
+          navigate({ to: '/invite/$token/results', params: { token } })
+          return
+        }
+        // If this is the general invite link, check whether this device already
+        // submitted via it — if so, send them straight to their member lobby.
+        if (!result.alreadySubmitted) {
+          const stored = localStorage.getItem(`bond:guest:${result.party.id}`)
+          if (stored) {
+            navigate({ to: '/invite/$token/lobby', params: { token: stored } })
+            return
+          }
+        }
+        if (result.alreadySubmitted) {
+          navigate({ to: '/invite/$token/lobby', params: { token } })
           return
         }
         setInvite(result)

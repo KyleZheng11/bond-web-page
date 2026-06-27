@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { supabaseServer } from '#/lib/supabase.server'
 import { aggregatePreferences } from '../lib/aggregatePreferences'
-import { geocodeLocation, searchNearbyRestaurants, resolvePhotoUrl, CUISINE_TO_GOOGLE_TYPE } from '../lib/googlePlaces'
+import { geocodeLocation, searchNearbyRestaurants, resolvePhotoUrl, CUISINE_TO_GOOGLE_TYPE, tiersToGooglePriceLevels } from '../lib/googlePlaces'
 import type { Place } from '../lib/googlePlaces'
 import type { Candidate } from '../types'
 import type { Json } from '#/types/database'
@@ -12,16 +12,6 @@ function scorePlace(place: Place): number {
   return place.rating * Math.log(Math.min(place.reviewCount, 800) + 1)
 }
 
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLng = ((lng2 - lng1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
 function normalizeRestaurantName(name: string): string {
   return name
     .toLowerCase()
@@ -30,30 +20,13 @@ function normalizeRestaurantName(name: string): string {
     .trim()
 }
 
-async function findSlotCandidate(
-  coords: { lat: number; lng: number },
-  cuisineLabel: string | null,
-  priceLevels: string[],
-  excludeIds: Set<string>,
-): Promise<Place | null> {
-  const includedTypes = cuisineLabel && CUISINE_TO_GOOGLE_TYPE[cuisineLabel]
-    ? [CUISINE_TO_GOOGLE_TYPE[cuisineLabel]]
-    : ['restaurant']
-
-  const places = await searchNearbyRestaurants({ ...coords, priceLevels, includedTypes })
-
-  const candidate = places
-    .filter((p) => !excludeIds.has(p.id) && p.rating > 0 && p.reviewCount > 10)
-    .sort((a, b) => scorePlace(b) - scorePlace(a))[0]
-
-  return candidate ?? null
-}
-
 async function withPhoto(place: Place): Promise<Place> {
   if (!place.photoName) return place
   const photoUrl = await resolvePhotoUrl(place.photoName)
   return { ...place, photoUrl }
 }
+
+const TARGET = 4
 
 export const findRestaurant = createServerFn()
   .inputValidator((d: { partyId: string }) => d)
@@ -79,124 +52,107 @@ export const findRestaurant = createServerFn()
 
     const signal = aggregatePreferences(preferences, cuisineBlacklist)
     const coords = await geocodeLocation(party.location)
+
+    const candidates: Array<{ place: Place; slot: 1 | 2 | 3 | 4; slotLabel: string }> = []
     const usedIds = new Set<string>()
-    const rawCandidates: Array<{ place: Place; slot: 1 | 2 | 3 | 4; slotLabel: string }> = []
+    const usedNames = new Set<string>()
 
-    // Slot 1 — top cuisine at common budget
-    const slot1Cuisine = signal.rankedCuisines[0] ?? null
-    const slot1Place = await findSlotCandidate(coords, slot1Cuisine, signal.commonPriceLevels, usedIds)
-    if (slot1Place) {
-      rawCandidates.push({ place: slot1Place, slot: 1, slotLabel: 'Top pick' })
-      usedIds.add(slot1Place.id)
-    }
+    // Google's Nearby Search API does not support priceLevels filtering in the request body
+    // (only Text Search does). We pass priceLevels in the request anyway for forward
+    // compatibility, but enforce the budget constraint ourselves after results come back.
+    // Places with PRICE_LEVEL_UNSPECIFIED are allowed through — no price data means unknown,
+    // not expensive.
+    const budgetLevelSet = new Set(signal.commonPriceLevels)
 
-    // Slot 2 — runner-up cuisine at common budget
-    const slot2Cuisine = signal.rankedCuisines[1] ?? slot1Cuisine
-    const slot2Place = await findSlotCandidate(coords, slot2Cuisine, signal.commonPriceLevels, usedIds)
-    if (slot2Place) {
-      rawCandidates.push({ place: slot2Place, slot: 2, slotLabel: 'Runner up' })
-      usedIds.add(slot2Place.id)
-    }
+    // For vegan/vegetarian: filter at the place level using Google's servesVegetarianFood field.
+    // For other restrictions (gluten-free, halal, kosher, dairy-free): Google Places has no
+    // equivalent field, so we restrict the cuisine types searched to those known to accommodate
+    // those restrictions. This is the best guarantee the API allows.
+    const needsVegetarianFilter = signal.needsVegan || signal.needsVegetarian
+    const hasNonVegRestrictions = signal.dietaryRestrictions.some(
+      (r) => !['vegan', 'vegetarian'].includes(r.toLowerCase()),
+    )
 
-    // Slot 3 — minority cuisine ("for everyone") at common budget
-    const slot3Cuisine = signal.minorityCuisine ?? signal.rankedCuisines[2] ?? slot2Cuisine ?? slot1Cuisine
-    const slot3Place = await findSlotCandidate(coords, slot3Cuisine, signal.commonPriceLevels, usedIds)
-    if (slot3Place) {
-      rawCandidates.push({ place: slot3Place, slot: 3, slotLabel: 'For everyone' })
-      usedIds.add(slot3Place.id)
-    }
+    // Build the ordered list of cuisines to search.
+    // When there are non-vegetarian dietary restrictions, we only search cuisines that are
+    // known to accommodate them. If none of the group's preferred cuisines qualify, fall
+    // back to the dietary-friendly list.
+    const searchCuisines: string[] = (() => {
+      if (!hasNonVegRestrictions) return signal.rankedCuisines
+      const friendlySet = new Set(signal.dietaryCuisines)
+      const compatible = signal.rankedCuisines.filter((c) => friendlySet.has(c))
+      return compatible.length > 0 ? compatible : signal.dietaryCuisines
+    })()
 
-    // Slot 4 — flex: dietary pick (best across all friendly cuisines) > splurge > alternative
-    let slot4Place: Place | null = null
-    let slot4Label = 'Alternative'
+    // fill() takes an optional priceSet override. Pass an empty Set to skip price filtering.
+    async function fill(cuisineLabel: string | null, priceSet: Set<string> = budgetLevelSet): Promise<void> {
+      if (candidates.length >= TARGET) return
 
-    if (signal.dietaryCuisines.length > 0) {
-      // Search all dietary-friendly cuisines in parallel and pick the highest-scoring
-      // result across all of them. This prevents the slot from always landing on the
-      // same cuisine/restaurant regardless of what's actually nearby.
-      const dietaryResults = await Promise.all(
-        signal.dietaryCuisines.map((c) => findSlotCandidate(coords, c, signal.commonPriceLevels, usedIds))
-      )
-      slot4Place = dietaryResults
-        .filter((p): p is Place => p !== null)
-        .sort((a, b) => scorePlace(b) - scorePlace(a))[0] ?? null
-      if (slot4Place) slot4Label = 'Dietary pick'
-    }
-    if (!slot4Place && signal.hasHigherBudget) {
-      slot4Place = await findSlotCandidate(coords, slot1Cuisine, signal.maxPriceLevels, usedIds)
-      if (slot4Place) slot4Label = 'Splurge'
-    }
-    if (!slot4Place) {
-      const slot4Cuisine = signal.rankedCuisines[2] ?? slot1Cuisine
-      slot4Place = await findSlotCandidate(coords, slot4Cuisine, signal.commonPriceLevels, usedIds)
-    }
-    if (slot4Place) {
-      rawCandidates.push({ place: slot4Place, slot: 4, slotLabel: slot4Label })
-      usedIds.add(slot4Place.id)
-    }
+      const includedTypes =
+        cuisineLabel && CUISINE_TO_GOOGLE_TYPE[cuisineLabel]
+          ? [CUISINE_TO_GOOGLE_TYPE[cuisineLabel]]
+          : ['restaurant']
 
-    if (rawCandidates.length === 0) {
-      throw new Error('No restaurants found nearby. Try a different location.')
-    }
-
-    // Dedup by place ID first, then by normalized name.
-    // For same-name restaurants at different locations, keep the closest one.
-    const targetLat = coords.lat
-    const targetLng = coords.lng
-
-    function distKm(place: Place): number {
-      if (place.lat == null || place.lng == null) return Infinity
-      return haversineKm(targetLat, targetLng, place.lat, place.lng)
-    }
-
-    // Step 1: ID dedup
-    const seenIds = new Set<string>()
-    const idDeduped = rawCandidates.filter((c) => {
-      if (seenIds.has(c.place.id)) return false
-      seenIds.add(c.place.id)
-      return true
-    })
-
-    // Step 2: name dedup — keep the closer location of any same-named restaurant
-    const byName = new Map<string, typeof idDeduped[0]>()
-    for (const c of idDeduped) {
-      const key = normalizeRestaurantName(c.place.name)
-      const existing = byName.get(key)
-      if (!existing || distKm(c.place) < distKm(existing.place)) {
-        byName.set(key, c)
-      }
-    }
-    const dedupedCandidates = [...byName.values()].sort((a, b) => a.slot - b.slot)
-
-    // Fill any gaps left by dedup with a broad fallback search
-    if (dedupedCandidates.length < rawCandidates.length) {
-      const allUsedIds = new Set(dedupedCandidates.map((c) => c.place.id))
-      const allUsedNames = new Set(dedupedCandidates.map((c) => normalizeRestaurantName(c.place.name)))
-
-      const broadPool = await searchNearbyRestaurants({
+      const places = await searchNearbyRestaurants({
         ...coords,
         priceLevels: signal.commonPriceLevels,
-        includedTypes: ['restaurant'],
+        includedTypes,
       })
-      const spares = broadPool
-        .filter((p) => !allUsedIds.has(p.id) && !allUsedNames.has(normalizeRestaurantName(p.name)) && p.rating > 0)
+
+      const sorted = places
+        .filter(
+          (p) =>
+            !usedIds.has(p.id) &&
+            !usedNames.has(normalizeRestaurantName(p.name)) &&
+            p.rating > 0 &&
+            p.reviewCount > 10 &&
+            (!needsVegetarianFilter || p.servesVegetarianFood) &&
+            // Respect budget when we have data; unspecified price passes through.
+            // If priceSet is empty, skip the filter entirely (budget-relaxation fallback).
+            (priceSet.size === 0 || p.priceLevel === 'PRICE_LEVEL_UNSPECIFIED' || priceSet.has(p.priceLevel)),
+        )
         .sort((a, b) => scorePlace(b) - scorePlace(a))
 
-      for (const spare of spares) {
-        if (dedupedCandidates.length >= rawCandidates.length) break
-        const slot = (dedupedCandidates.length + 1) as 1 | 2 | 3 | 4
-        dedupedCandidates.push({ place: spare, slot, slotLabel: 'Alternative' })
-        allUsedIds.add(spare.id)
-        allUsedNames.add(normalizeRestaurantName(spare.name))
+      for (const place of sorted) {
+        if (candidates.length >= TARGET) break
+        const slot = (candidates.length + 1) as 1 | 2 | 3 | 4
+        candidates.push({ place, slot, slotLabel: cuisineLabel ?? 'Restaurant' })
+        usedIds.add(place.id)
+        usedNames.add(normalizeRestaurantName(place.name))
       }
+    }
+
+    // Primary: top compatible cuisine at common budget
+    await fill(searchCuisines[0] ?? null)
+
+    // Fallback: runner-up compatible cuisine to fill any remaining slots
+    if (candidates.length < TARGET && searchCuisines[1]) {
+      await fill(searchCuisines[1])
+    }
+
+    // Budget-relaxation: Google labels many affordable restaurants as MODERATE rather than
+    // INEXPENSIVE, so strict filtering can leave us short. Expand one price tier at a time
+    // until we have enough candidates, rather than jumping straight to no filter.
+    let relaxedTier = signal.commonBudget + 1
+    while (candidates.length < TARGET && relaxedTier <= 4) {
+      const relaxedLevels = new Set(tiersToGooglePriceLevels(relaxedTier))
+      await fill(searchCuisines[0] ?? null, relaxedLevels)
+      if (candidates.length < TARGET && searchCuisines[1]) {
+        await fill(searchCuisines[1], relaxedLevels)
+      }
+      relaxedTier++
+    }
+
+    if (candidates.length === 0) {
+      throw new Error('No restaurants found nearby. Try a different location.')
     }
 
     // Resolve photos in parallel (non-fatal)
     const candidatesWithPhotos = await Promise.all(
-      dedupedCandidates.map(async (c) => ({ ...c, place: await withPhoto(c.place).catch(() => c.place) }))
+      candidates.map(async (c) => ({ ...c, place: await withPhoto(c.place).catch(() => c.place) })),
     )
 
-    const candidates: Candidate[] = candidatesWithPhotos.map((c) => ({
+    const result: Candidate[] = candidatesWithPhotos.map((c) => ({
       slot: c.slot,
       slotLabel: c.slotLabel,
       place: c.place,
@@ -212,7 +168,7 @@ export const findRestaurant = createServerFn()
           restaurant_name: 'pending',
           restaurant_data: {} as Json,
           reason: 'pending',
-          ranked_alternatives: candidates as unknown as Json,
+          ranked_alternatives: result as unknown as Json,
         },
         { onConflict: 'party_id' },
       )
@@ -223,5 +179,5 @@ export const findRestaurant = createServerFn()
       .update({ status: 'voting' })
       .eq('id', partyId)
 
-    return candidates
+    return result
   })

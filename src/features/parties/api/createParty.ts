@@ -17,5 +17,19 @@ export const createParty = createServerFn()
       .single()
 
     if (error) throw new Error(error.message)
+
+    const { data: profile } = await supabaseServer
+      .from('users')
+      .select('display_name, email')
+      .eq('id', data.creatorId)
+      .maybeSingle()
+
+    await supabaseServer.from('party_members').insert({
+      party_id: party.id,
+      user_id: data.creatorId,
+      guest_name: profile?.display_name || profile?.email?.split('@')[0] || 'Host',
+      joined_at: new Date().toISOString(),
+    })
+
     return party
   })

@@ -12,10 +12,10 @@ function AuthCallback() {
       if (event === 'SIGNED_IN' && session) {
         const { data: profile } = await supabase
           .from('users')
-          .select('location')
+          .select('display_name, location')
           .eq('id', session.user.id)
           .maybeSingle()
-        navigate({ to: profile?.location ? '/home' : '/onboarding' })
+        navigate({ to: profile?.display_name && profile?.location ? '/home' : '/onboarding' })
       }
     })
     return () => listener.subscription.unsubscribe()

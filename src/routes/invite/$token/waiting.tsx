@@ -20,7 +20,7 @@ function WaitingScreen() {
         if (result.party.status === 'voting') {
           navigate({ to: '/invite/$token/vote', params: { token } })
         } else if (result.party.status === 'resolved') {
-          navigate({ to: '/party/$partyId/results', params: { partyId: result.party.id } })
+          navigate({ to: '/invite/$token/results', params: { token } })
         }
       })
       .catch(() => {})
@@ -39,7 +39,7 @@ function WaitingScreen() {
           if (updated.status === 'voting') {
             navigate({ to: '/invite/$token/vote', params: { token } })
           } else if (updated.status === 'resolved') {
-            navigate({ to: '/party/$partyId/results', params: { partyId } })
+            navigate({ to: '/invite/$token/results', params: { token } })
           }
         })
       .subscribe()

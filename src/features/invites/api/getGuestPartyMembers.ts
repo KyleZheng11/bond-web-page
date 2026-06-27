@@ -29,11 +29,17 @@ export const getGuestPartyMembers = createServerFn()
 
     const { data: party } = await supabaseServer
       .from('parties')
-      .select('id, name, status, invite_token')
+      .select('id, name, status, invite_token, creator_id')
       .eq('id', partyId)
       .single()
 
     if (!party) throw new Error('Party not found.')
+
+    const { data: leader } = await supabaseServer
+      .from('users')
+      .select('display_name, email')
+      .eq('id', party.creator_id)
+      .maybeSingle()
 
     const { data: members } = await supabaseServer
       .from('party_members')
@@ -48,6 +54,7 @@ export const getGuestPartyMembers = createServerFn()
         status: party.status,
         invite_token: party.invite_token,
       },
+      leaderName: leader?.display_name ?? leader?.email?.split('@')[0] ?? 'Your host',
       members: members ?? [],
     }
   })

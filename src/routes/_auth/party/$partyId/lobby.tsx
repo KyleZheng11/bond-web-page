@@ -12,6 +12,7 @@ type LobbyData = {
   isCreator: boolean
   leaderHasSubmitted: boolean
   memberHasSubmitted: boolean
+  currentUserDisplayName: string | null
 }
 
 export const Route = createFileRoute('/_auth/party/$partyId/lobby')({ component: Lobby })
@@ -52,9 +53,10 @@ function Lobby() {
 
     const channel = supabase
       .channel(`lobby:${partyId}`)
-      // Broadcast from guest browser after they submit preferences
       .on('broadcast', { event: 'member_updated' }, () => load())
-      // Navigate on status changes
+      .on('broadcast', { event: 'voting_started' }, () => {
+        navigate({ to: '/party/$partyId/vote', params: { partyId } })
+      })
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
@@ -79,6 +81,10 @@ function Lobby() {
     setFindError(null)
     try {
       await findRestaurant({ data: { partyId } })
+      // Broadcast so all lobby members navigate regardless of auth state or RLS
+      const ch = supabase.channel(`lobby:${partyId}`)
+      await ch.send({ type: 'broadcast', event: 'voting_started', payload: {} })
+      supabase.removeChannel(ch)
       navigate({ to: '/party/$partyId/vote', params: { partyId } })
     } catch (err) {
       setFindError(err instanceof Error ? err.message : 'Something went wrong, try again.')
@@ -129,7 +135,7 @@ function Lobby() {
     )
   }
 
-  const { party, members, isCreator, leaderHasSubmitted, memberHasSubmitted } = data
+  const { party, members, isCreator, leaderHasSubmitted, memberHasSubmitted, currentUserDisplayName } = data
   const inviteLink = party.invite_token
     ? `${window.location.origin}/invite/${party.invite_token}`
     : null
@@ -231,7 +237,7 @@ function Lobby() {
                     style={{ background: 'var(--color-surface-petrol)' }}
                   >
                     <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {member.guest_name ?? '—'}
+                      {member.guest_name || '—'}
                     </span>
                     <span
                       className="flex items-center gap-1.5 text-xs font-semibold shrink-0"
@@ -323,6 +329,7 @@ function Lobby() {
             <div className="flex flex-col gap-2">
               {members.map((member) => {
                 const ready = !!member.preferences_submitted_at
+                const isYou = member.user_id === user?.id
                 return (
                   <div
                     key={member.id}
@@ -330,7 +337,12 @@ function Lobby() {
                     style={{ background: 'var(--color-surface-petrol)' }}
                   >
                     <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {member.guest_name ?? '—'}
+                      {isYou ? (currentUserDisplayName ?? member.guest_name ?? '—') : (member.guest_name ?? '—')}
+                      {isYou && (
+                        <span className="ml-2 text-xs font-bold" style={{ color: 'var(--color-text-mist)' }}>
+                          (You)
+                        </span>
+                      )}
                     </span>
                     {ready ? (
                       <span className="flex items-center gap-1.5 text-xs font-semibold shrink-0" style={{ color: 'var(--color-accent-gold)' }}>

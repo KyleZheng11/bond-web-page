@@ -14,6 +14,7 @@ export interface Place {
   photoUrl: string | null
   lat: number | null
   lng: number | null
+  servesVegetarianFood: boolean
 }
 
 export const CUISINE_TO_GOOGLE_TYPE: Record<string, string> = {
@@ -93,6 +94,7 @@ export async function searchNearbyRestaurants(params: {
         'places.shortFormattedAddress',
         'places.photos',
         'places.location',
+        'places.servesVegetarianFood',
       ].join(','),
     },
     body: JSON.stringify({
@@ -116,6 +118,7 @@ export async function searchNearbyRestaurants(params: {
       shortFormattedAddress?: string
       photos?: Array<{ name: string }>
       location?: { latitude: number; longitude: number }
+      servesVegetarianFood?: boolean
     }>
   }
 
@@ -131,6 +134,7 @@ export async function searchNearbyRestaurants(params: {
     photoUrl: null,
     lat: p.location?.latitude ?? null,
     lng: p.location?.longitude ?? null,
+    servesVegetarianFood: p.servesVegetarianFood ?? false,
   }))
 }
 

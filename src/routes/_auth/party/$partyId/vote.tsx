@@ -4,6 +4,7 @@ import { useAuth } from '#/features/auth'
 import { finalizeVoting } from '#/features/votes'
 import { getCandidates, submitVote } from '#/features/votes'
 import { supabase } from '#/lib/supabase'
+import { getRecommendation } from '#/features/recommendations'
 import type { Candidate } from '#/features/recommendations'
 
 export const Route = createFileRoute('/_auth/party/$partyId/vote')({ component: VoteScreen })
@@ -19,20 +20,13 @@ function CandidateCard({
   candidate,
   selected,
   onVote,
-  voteCount,
-  totalVotes,
-  revealed,
 }: {
   candidate: Candidate
   selected: boolean
   onVote: () => void
-  voteCount: number
-  totalVotes: number
-  revealed: boolean
 }) {
   const { place, slotLabel } = candidate
   const price = PRICE_SYMBOL[place.priceLevel] ?? ''
-  const pct = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0
 
   return (
     <div
@@ -42,7 +36,6 @@ function CandidateCard({
         border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.08)'}`,
       }}
     >
-      {/* Photo */}
       {place.photoUrl && (
         <div className="relative h-36 overflow-hidden">
           <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
@@ -94,24 +87,6 @@ function CandidateCard({
           )}
         </div>
 
-        {/* Vote bar — only shown after voting */}
-        {revealed && (
-          <div className="flex flex-col gap-1.5">
-            <div
-              className="h-1.5 rounded-full overflow-hidden"
-              style={{ background: 'var(--color-surface-twilight)' }}
-            >
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, background: 'var(--color-accent-ember)' }}
-              />
-            </div>
-            <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-              {voteCount} vote{voteCount !== 1 ? 's' : ''} · {pct}%
-            </p>
-          </div>
-        )}
-
         <button
           onClick={onVote}
           className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
@@ -133,7 +108,6 @@ function VoteScreen() {
   const navigate = useNavigate()
 
   const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({})
   const [totalVoters, setTotalVoters] = useState(0)
   const [votesCast, setVotesCast] = useState(0)
   const [myVote, setMyVote] = useState<string | null>(null)
@@ -146,7 +120,6 @@ function VoteScreen() {
   const load = useCallback(async () => {
     const result = await getCandidates({ data: { partyId } })
     setCandidates(result.candidates)
-    setVoteCounts(result.voteCounts)
     setTotalVoters(result.totalVoters)
     setVotesCast(result.votesCast)
   }, [partyId])
@@ -155,11 +128,35 @@ function VoteScreen() {
     load().finally(() => setLoading(false))
   }, [load])
 
+  // Poll vote counts every 3s so the progress bar stays live regardless of
+  // whether the guest's broadcast actually delivered.
+  useEffect(() => {
+    const interval = setInterval(load, 2000)
+    return () => clearInterval(interval)
+  }, [load])
+
+  // Once the leader has voted, also poll for the final result every 3s.
+  useEffect(() => {
+    if (!myVote) return
+    const interval = setInterval(async () => {
+      try {
+        const rec = await getRecommendation({ data: { partyId } })
+        if (rec.restaurant_id !== 'pending') {
+          navigate({ to: '/party/$partyId/results', params: { partyId } })
+        }
+      } catch { /* not ready yet */ }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [myVote, partyId, navigate])
+
   // Real-time: refresh when anyone votes
   useEffect(() => {
     const channel = supabase
       .channel(`vote:${partyId}`)
       .on('broadcast', { event: 'vote_cast' }, () => load())
+      .on('broadcast', { event: 'result_locked' }, () => {
+        navigate({ to: '/party/$partyId/results', params: { partyId } })
+      })
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
         (payload) => {
@@ -244,28 +241,41 @@ function VoteScreen() {
             candidate={c}
             selected={myVote === c.place.id}
             onVote={() => handleVote(c.place.id)}
-            voteCount={voteCounts[c.place.id] ?? 0}
-            totalVotes={votesCast}
-            revealed={!!myVote}
           />
         ))}
 
         {/* Leader finalizes */}
         {myVote && (
-          <button
-            onClick={handleFinalize}
-            disabled={finalizing}
-            className="w-full py-4 rounded-2xl font-semibold text-base transition-opacity disabled:opacity-50"
-            style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-          >
-            {finalizing ? 'Locking in…' : allVoted ? 'See results' : 'Lock in result'}
-          </button>
-        )}
+          <>
+            <button
+              onClick={handleFinalize}
+              disabled={finalizing}
+              className="w-full py-4 rounded-2xl font-semibold text-base transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+            >
+              {finalizing ? 'Locking in…' : allVoted ? 'See results' : 'Lock in result'}
+            </button>
 
-        {myVote && !allVoted && (
-          <p className="text-xs text-center -mt-2" style={{ color: 'var(--color-text-mist)' }}>
-            Still waiting on {totalVoters - votesCast} vote{totalVoters - votesCast !== 1 ? 's' : ''}. You can lock in early.
-          </p>
+            <div className="flex flex-col gap-2 -mt-1">
+              <div
+                className="h-2 rounded-full overflow-hidden"
+                style={{ background: 'var(--color-surface-petrol)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: totalVoters > 0 ? `${Math.round((votesCast / totalVoters) * 100)}%` : '0%',
+                    background: allVoted ? 'var(--color-accent-gold)' : 'var(--color-accent-ember)',
+                  }}
+                />
+              </div>
+              <p className="text-xs text-center" style={{ color: 'var(--color-text-mist)' }}>
+                {allVoted
+                  ? 'Everyone has voted.'
+                  : `${votesCast} of ${totalVoters} voted · you can lock in early`}
+              </p>
+            </div>
+          </>
         )}
       </main>
     </div>

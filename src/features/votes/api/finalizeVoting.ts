@@ -69,5 +69,11 @@ export const finalizeVoting = createServerFn()
       .update({ status: 'resolved', resolved_at: new Date().toISOString() })
       .eq('id', partyId)
 
+    // Broadcast from the server so all vote screen subscribers navigate
+    // regardless of their auth state or RLS.
+    const broadcastChannel = supabaseServer.channel(`vote:${partyId}`)
+    await broadcastChannel.send({ type: 'broadcast', event: 'result_locked', payload: {} })
+    await supabaseServer.removeChannel(broadcastChannel)
+
     return { ok: true, winnerId: place.id }
   })

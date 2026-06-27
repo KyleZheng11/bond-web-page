@@ -38,13 +38,18 @@ function GuestLobby() {
     const channel = supabase
       .channel(`lobby:${data.party.id}`)
       .on('broadcast', { event: 'member_updated' }, () => load())
+      .on('broadcast', { event: 'voting_started' }, () => {
+        navigate({ to: '/invite/$token/vote', params: { token } })
+      })
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
         (payload) => {
           const updated = payload.new as { id?: string; status?: string }
           if (updated.id !== data.party.id) return
-          if (updated.status === 'resolved') {
+          if (updated.status === 'voting') {
+            navigate({ to: '/invite/$token/vote', params: { token } })
+          } else if (updated.status === 'resolved') {
             navigate({ to: '/invite/$token', params: { token } })
           } else {
             load()
@@ -99,7 +104,7 @@ function GuestLobby() {
     )
   }
 
-  const { party, members } = data
+  const { party, members, leaderName } = data
   const inviteLink = party.invite_token
     ? `${window.location.origin}/invite/${party.invite_token}`
     : null
@@ -119,12 +124,17 @@ function GuestLobby() {
       <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-8">
         {/* Party title */}
         <div className="flex items-start justify-between gap-4 pt-2">
-          <h1
-            className="font-display text-3xl font-semibold leading-tight"
-            style={{ color: 'var(--color-text-cream)' }}
-          >
-            {party.name ?? 'The party'}
-          </h1>
+          <div className="flex flex-col gap-1">
+            <h1
+              className="font-display text-3xl font-semibold leading-tight"
+              style={{ color: 'var(--color-text-cream)' }}
+            >
+              {party.name ?? 'The party'}
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+              Hosted by {leaderName}
+            </p>
+          </div>
           <span
             className="mt-1 shrink-0 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
             style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-mist)' }}
@@ -211,7 +221,7 @@ function GuestLobby() {
                   style={{ background: 'var(--color-surface-petrol)' }}
                 >
                   <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
-                    {member.guest_name ?? '—'}
+                    {member.guest_name || '—'}
                   </span>
                   <span
                     className="flex items-center gap-1.5 text-xs font-semibold shrink-0"

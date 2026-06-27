@@ -28,11 +28,21 @@ export const getPartyLobby = createServerFn()
       .eq('user_id', data.userId)
       .maybeSingle()
 
+    const { data: userProfile } = await supabaseServer
+      .from('users')
+      .select('display_name, email')
+      .eq('id', data.userId)
+      .maybeSingle()
+
+    const currentUserDisplayName =
+      userProfile?.display_name ?? userProfile?.email?.split('@')[0] ?? null
+
     return {
       party,
       members: members ?? [],
       isCreator,
       leaderHasSubmitted: isCreator ? !!userPref : false,
       memberHasSubmitted: !!userPref,
+      currentUserDisplayName,
     }
   })

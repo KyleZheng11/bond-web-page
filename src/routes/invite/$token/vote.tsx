@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getCandidates, submitVote } from '#/features/votes'
 import { resolveInvite } from '#/features/invites'
 import { supabase } from '#/lib/supabase'
+import { getRecommendation } from '#/features/recommendations'
 import type { Candidate } from '#/features/recommendations'
 
 export const Route = createFileRoute('/invite/$token/vote')({ component: GuestVoteScreen })
@@ -21,7 +22,6 @@ function GuestVoteScreen() {
   const [partyId, setPartyId] = useState<string | null>(null)
   const [voterId, setVoterId] = useState<string | null>(null)
   const [candidates, setCandidates] = useState<Candidate[]>([])
-  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({})
   const [totalVoters, setTotalVoters] = useState(0)
   const [votesCast, setVotesCast] = useState(0)
   const [myVote, setMyVote] = useState<string | null>(null)
@@ -33,7 +33,7 @@ function GuestVoteScreen() {
     resolveInvite({ data: { token } })
       .then((result) => {
         if (result.party.status === 'resolved') {
-          navigate({ to: '/party/$partyId/results', params: { partyId: result.party.id } })
+          navigate({ to: '/invite/$token/results', params: { token } })
           return
         }
         setPartyId(result.party.id)
@@ -46,7 +46,6 @@ function GuestVoteScreen() {
   const loadCandidates = useCallback(async (pid: string) => {
     const result = await getCandidates({ data: { partyId: pid } })
     setCandidates(result.candidates)
-    setVoteCounts(result.voteCounts)
     setTotalVoters(result.totalVoters)
     setVotesCast(result.votesCast)
   }, [])
@@ -56,18 +55,35 @@ function GuestVoteScreen() {
     loadCandidates(partyId).finally(() => setLoading(false))
   }, [partyId, loadCandidates])
 
+  // Polling fallback: once the user has voted, check every 3s for the result.
+  useEffect(() => {
+    if (!myVote || !partyId) return
+    const interval = setInterval(async () => {
+      try {
+        const rec = await getRecommendation({ data: { partyId } })
+        if (rec.restaurant_id !== 'pending') {
+          navigate({ to: '/invite/$token/results', params: { token } })
+        }
+      } catch { /* not ready yet */ }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [myVote, partyId, token, navigate])
+
   // Real-time: refresh when votes come in or party resolves
   useEffect(() => {
     if (!partyId) return
     const channel = supabase
-      .channel(`vote-guest:${partyId}`)
+      .channel(`vote:${partyId}`)
       .on('broadcast', { event: 'vote_cast' }, () => loadCandidates(partyId))
+      .on('broadcast', { event: 'result_locked' }, () => {
+        navigate({ to: '/invite/$token/results', params: { token } })
+      })
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
         (payload) => {
           if ((payload.new as { id?: string }).id === partyId &&
               (payload.new as { status?: string }).status === 'resolved') {
-            navigate({ to: '/party/$partyId/results', params: { partyId } })
+            navigate({ to: '/invite/$token/results', params: { token } })
           }
         })
       .subscribe()
@@ -132,8 +148,6 @@ function GuestVoteScreen() {
           const { place, slotLabel } = c
           const price = PRICE_SYMBOL[place.priceLevel] ?? ''
           const selected = myVote === place.id
-          const voteCount = voteCounts[place.id] ?? 0
-          const pct = votesCast > 0 ? Math.round((voteCount / votesCast) * 100) : 0
 
           return (
             <div
@@ -184,18 +198,6 @@ function GuestVoteScreen() {
                     <span className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>{place.address}</span>
                   )}
                 </div>
-
-                {myVote && (
-                  <div className="flex flex-col gap-1.5">
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-surface-twilight)' }}>
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${pct}%`, background: 'var(--color-accent-ember)' }} />
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-                      {voteCount} vote{voteCount !== 1 ? 's' : ''} · {pct}%
-                    </p>
-                  </div>
-                )}
 
                 <button
                   onClick={() => handleVote(place.id)}

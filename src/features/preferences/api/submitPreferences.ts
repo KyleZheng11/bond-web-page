@@ -34,5 +34,12 @@ export const submitPreferences = createServerFn()
       )
 
     if (error) throw new Error(error.message)
+
+    await supabaseServer
+      .from('party_members')
+      .update({ preferences_submitted_at: new Date().toISOString() })
+      .eq('party_id', data.partyId)
+      .eq('user_id', data.userId)
+
     return { ok: true }
   })

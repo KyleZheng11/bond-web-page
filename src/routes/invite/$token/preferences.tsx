@@ -49,7 +49,14 @@ function GuestPreferences() {
       const ch = supabase.channel(`lobby:${result.partyId}`)
       await ch.send({ type: 'broadcast', event: 'member_updated', payload: {} })
       supabase.removeChannel(ch)
-      navigate({ to: '/invite/$token/lobby', params: { token } })
+      // When joining via the general invite link a new per-member guestToken is
+      // issued. Persist it so returning guests are recognised on future visits
+      // and don't accidentally create a second member row.
+      const nextToken = result.guestToken ?? token
+      if (result.guestToken) {
+        localStorage.setItem(`bond:guest:${result.partyId}`, result.guestToken)
+      }
+      navigate({ to: '/invite/$token/lobby', params: { token: nextToken } })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setSubmitting(false)

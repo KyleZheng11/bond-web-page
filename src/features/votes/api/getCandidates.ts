@@ -29,10 +29,27 @@ export const getCandidates = createServerFn()
       .eq('party_id', data.partyId)
       .not('preferences_submitted_at', 'is', null)
 
+    // The leader is the party creator — they are not in party_members, so
+    // count them separately by checking if they have a preferences row.
+    const { data: party } = await supabaseServer
+      .from('parties')
+      .select('creator_id')
+      .eq('id', data.partyId)
+      .single()
+
+    const { data: leaderPref } = await supabaseServer
+      .from('preferences')
+      .select('id')
+      .eq('party_id', data.partyId)
+      .eq('user_id', party?.creator_id ?? '')
+      .maybeSingle()
+
+    const totalVoters = (memberCount ?? 0) + (leaderPref ? 1 : 0)
+
     return {
       candidates,
       voteCounts,
-      totalVoters: memberCount ?? 0,
+      totalVoters,
       votesCast: (votes ?? []).length,
     }
   })
