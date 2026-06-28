@@ -19,7 +19,7 @@ const PRICE_SYMBOL: Record<string, string> = {
   PRICE_LEVEL_EXPENSIVE: '$$$',
   PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
 }
-const FIRST_N = 8
+const FIRST_N = 12
 
 function formatCuisineTag(type: string): string {
   return type

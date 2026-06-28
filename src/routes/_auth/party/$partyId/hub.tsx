@@ -19,7 +19,7 @@ type LobbyData = {
 export const Route = createFileRoute('/_auth/party/$partyId/hub')({ component: PartyHub })
 
 const BUDGET_SYMBOL: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
-const FIRST_N = 8
+const FIRST_N = 12
 
 function PartyHub() {
   const { partyId } = Route.useParams()
