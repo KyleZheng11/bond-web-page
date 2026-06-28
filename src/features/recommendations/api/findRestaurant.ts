@@ -6,10 +6,10 @@ import type { Place } from '../lib/googlePlaces'
 import type { Candidate } from '../types'
 import type { Json } from '#/types/database'
 
-// Cap the review-count benefit at 800 so high-volume chains don't automatically
+// Cap the review-count benefit at 50 so high-volume chains don't automatically
 // outrank well-rated local restaurants with fewer reviews.
 function scorePlace(place: Place): number {
-  return place.rating * Math.log(Math.min(place.reviewCount, 800) + 1)
+  return place.rating * Math.log(Math.min(place.reviewCount, 50) + 1)
 }
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -51,7 +51,8 @@ async function findSlotCandidate(
     if (vegPool.length > 0) pool = vegPool
   }
 
-  return pool.sort((a, b) => scorePlace(b) - scorePlace(a))[0] ?? null
+  const top = pool.sort((a, b) => scorePlace(b) - scorePlace(a)).slice(0, 20)
+  return top[Math.floor(Math.random() * top.length)] ?? null
 }
 
 // Try common budget first; relax to max budget if no result found.

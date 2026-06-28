@@ -1,10 +1,29 @@
 export const CUISINES = [
-  'American', 'BBQ', 'Breakfast & Brunch', 'Burgers', 'Caribbean', 'Cajun & Southern',
-  'Chinese', 'Ethiopian', 'French', 'Greek', 'Indian',
-  'Italian', 'Japanese', 'Korean', 'Latin American', 'Lebanese',
-  'Mediterranean', 'Mexican', 'Middle Eastern', 'Peruvian', 'Pizza',
-  'Seafood', 'Spanish', 'Steakhouse', 'Sushi', 'Thai',
-  'Turkish', 'Vietnamese', 'Sandwiches & Deli',
+  // Top picks — shown before "view more"
+  'American', 'Chinese', 'Italian', 'Mexican', 'Japanese', 'Thai', 'Indian', 'Korean', 'Pizza', 'Sushi', 'BBQ', 'Mediterranean',
+  // Everything else — alphabetical
+  'Afghani', 'African', 'Argentinian', 'Australian', 'Austrian',
+  'Bangladeshi', 'Basque', 'Bavarian', 'Belgian', 'Brazilian', 'Breakfast & Brunch', 'British', 'Burgers', 'Burmese',
+  'Cajun & Southern', 'Californian', 'Cambodian', 'Cantonese', 'Caribbean', 'Chilean',
+  'Chinese Noodles', 'Colombian', 'Croatian', 'Cuban', 'Czech',
+  'Danish', 'Dim Sum', 'Dutch',
+  'Eastern European', 'Ethiopian',
+  'Filipino', 'French',
+  'German', 'Greek',
+  'Hawaiian', 'Hot Pot', 'Hungarian',
+  'Indonesian', 'Irish', 'Israeli',
+  'Japanese Curry', 'Japanese Izakaya',
+  'Korean BBQ',
+  'Latin American', 'Lebanese',
+  'Malaysian', 'Middle Eastern', 'Mongolian BBQ', 'Moroccan',
+  'North Indian',
+  'Pakistani', 'Persian', 'Peruvian', 'Polish', 'Portuguese',
+  'Ramen', 'Romanian', 'Russian',
+  'Sandwiches & Deli', 'Scandinavian', 'Seafood', 'Soul Food', 'South American', 'South Indian', 'Southwestern', 'Spanish', 'Sri Lankan', 'Steakhouse', 'Swiss',
+  'Taiwanese', 'Tapas', 'Tex-Mex', 'Tibetan', 'Tonkatsu', 'Turkish',
+  'Ukrainian',
+  'Vegan', 'Vegetarian', 'Vietnamese',
+  'Yakiniku', 'Yakitori',
 ]
 
 export const BUDGETS = [
