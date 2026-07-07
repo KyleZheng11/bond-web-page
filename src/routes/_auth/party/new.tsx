@@ -1,9 +1,11 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { Check } from 'lucide-react'
 import { useAuth, getUserProfile } from '#/features/auth'
 import { createParty, inviteFriends, LocationInput, PartyProgressBar } from '#/features/parties'
 import { getFriends } from '#/features/friends'
 import type { Friend } from '#/features/friends'
+import { AppHeader, Avatar, ShinyButton } from '#/components/ui'
 
 export const Route = createFileRoute('/_auth/party/new')({ component: NewParty })
 
@@ -67,60 +69,40 @@ function NewParty() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      {/* Header */}
-      <header className="flex flex-col px-6 pt-5 pb-3">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/home"
-            className="text-sm font-semibold transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-mist)' }}
-          >
-            ← Back
-          </Link>
-          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-            Bond
-          </span>
+    <div className="min-h-dvh flex flex-col">
+      <div className="max-w-lg mx-auto w-full">
+        <AppHeader backTo="/home" />
+        <div className="px-6">
+          <PartyProgressBar step={1} />
         </div>
-        <PartyProgressBar step={1} />
-      </header>
+      </div>
 
-      <main className="flex-1 px-5.5 py-4 max-w-lg mx-auto w-full">
-        <h1 className="font-display text-3xl font-black mb-2" style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}>
-          Start a party.
-        </h1>
-        <p className="text-sm mb-8" style={{ color: 'var(--color-text-mist)' }}>
+      <main className="flex-1 px-6 py-6 max-w-lg mx-auto w-full">
+        <h1 className="display text-3xl mb-2">Start a party.</h1>
+        <p className="text-sm mb-8" style={{ color: 'var(--color-ink-soft)' }}>
           Invite your crew and let Bond find the perfect spot.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Party name */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
-              Party name{' '}
-              <span style={{ fontWeight: 400 }}>(optional)</span>
+          <div>
+            <label htmlFor="party-name" className="field-label">
+              Party name <span style={{ color: 'var(--color-ink-faint)', fontWeight: 400 }}>(optional)</span>
             </label>
             <input
+              id="party-name"
               type="text"
               placeholder="Saturday Night, Team Lunch…"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="px-4 py-3 rounded-xl text-sm outline-none"
-              style={{
-                background: 'var(--color-surface-twilight)',
-                border: '1px solid var(--color-hairline)',
-                color: 'var(--color-text-cream)',
-              }}
+              className="input"
             />
           </div>
 
           {/* Location */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
-              Location <span style={{ color: 'var(--color-accent-brick)' }}>*</span>
+          <div>
+            <label className="field-label">
+              Location <span style={{ color: 'var(--color-error)' }}>*</span>
             </label>
             <LocationInput value={location} onChange={setLocation} />
           </div>
@@ -128,9 +110,7 @@ function NewParty() {
           {/* Friends picker */}
           {friends.length > 0 && (
             <div className="flex flex-col gap-3">
-              <label className="text-xs font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
-                Invite friends
-              </label>
+              <p className="field-label !mb-0">Invite friends</p>
               <div className="flex flex-col gap-2">
                 {friends.map((friend) => {
                   const selected = selectedFriendIds.has(friend.userId)
@@ -139,29 +119,25 @@ function NewParty() {
                       key={friend.userId}
                       type="button"
                       onClick={() => toggleFriend(friend.userId)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all"
-                      style={{
-                        background: selected ? 'var(--color-surface-twilight)' : 'var(--color-surface-petrol)',
-                        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'var(--color-hairline)'}`,
-                      }}
+                      aria-pressed={selected}
+                      className="card flex items-center gap-3 px-4 py-3 text-left cursor-pointer transition-colors"
+                      style={selected ? { borderColor: 'var(--color-bond)', background: '#f2f8fb' } : undefined}
                     >
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{
-                          background: selected ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-                          color: selected ? 'var(--color-on-ember)' : 'var(--color-text-mist)',
-                        }}
-                      >
-                        {(friend.displayName ?? friend.email)[0].toUpperCase()}
-                      </div>
-                      <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--color-text-cream)' }}>
+                      <Avatar name={friend.displayName ?? friend.email} size="sm" />
+                      <span className="flex-1 text-sm font-medium truncate">
                         {friend.displayName ?? friend.email.split('@')[0]}
                       </span>
-                      {selected && (
-                        <span className="text-xs font-bold shrink-0" style={{ color: 'var(--color-accent-ember)' }}>
-                          ✓
-                        </span>
-                      )}
+                      <span
+                        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                        style={
+                          selected
+                            ? { background: 'var(--color-bond)', color: '#ffffff' }
+                            : { border: '1.5px solid var(--color-line)' }
+                        }
+                        aria-hidden
+                      >
+                        {selected && <Check size={14} />}
+                      </span>
                     </button>
                   )
                 })}
@@ -170,19 +146,18 @@ function NewParty() {
           )}
 
           {error && (
-            <p className="text-sm" style={{ color: 'var(--color-accent-brick)' }}>
+            <p role="alert" className="text-sm" style={{ color: 'var(--color-error)' }}>
               {error}
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 py-4 rounded-2xl font-bold text-base transition-opacity disabled:opacity-50 hover:opacity-90"
-            style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-          >
-            {loading ? 'Creating…' : selectedFriendIds.size > 0 ? `Invite friends (${selectedFriendIds.size})` : 'Create party'}
-          </button>
+          <ShinyButton type="submit" disabled={loading} className="w-full mt-2">
+            {loading
+              ? 'Creating…'
+              : selectedFriendIds.size > 0
+              ? `Invite friends (${selectedFriendIds.size})`
+              : 'Create party'}
+          </ShinyButton>
         </form>
       </main>
     </div>

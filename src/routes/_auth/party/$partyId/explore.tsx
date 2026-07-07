@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { Star, Navigation } from 'lucide-react'
 import { getRecommendation } from '#/features/recommendations'
 import type { Candidate } from '#/features/recommendations'
+import { AppHeader } from '#/components/ui'
 
 export const Route = createFileRoute('/_auth/party/$partyId/explore')({ component: Explore })
 
@@ -18,21 +20,14 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.id}`
 
   return (
-    <div
-      className="flex flex-col gap-3 px-4 py-4 rounded-2xl"
-      style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}
-    >
+    <div className="card flex flex-col gap-3 px-5 py-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
-            {slotLabel}
-          </span>
-          <p className="font-display text-lg font-semibold leading-tight" style={{ color: 'var(--color-text-cream)' }}>
-            {place.name}
-          </p>
+          <span className="eyebrow">{slotLabel}</span>
+          <p className="font-display text-lg font-bold leading-tight">{place.name}</p>
         </div>
         {price && (
-          <span className="shrink-0 text-sm font-bold mt-5" style={{ color: 'var(--color-accent-gold)' }}>
+          <span className="shrink-0 text-sm font-bold mt-5" style={{ color: 'var(--color-blueberry)' }}>
             {price}
           </span>
         )}
@@ -40,8 +35,8 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
 
       <div className="flex items-center gap-3 flex-wrap">
         {place.rating > 0 && (
-          <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
+          <span className="flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-ink-soft)' }}>
+            <Star size={14} fill="var(--color-sunrise)" color="var(--color-sunrise)" aria-hidden />
             {place.rating}
             {place.reviewCount > 0 && (
               <span className="text-xs">({place.reviewCount.toLocaleString()})</span>
@@ -49,7 +44,7 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
           </span>
         )}
         {place.address && (
-          <span className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+          <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
             {place.address}
           </span>
         )}
@@ -59,10 +54,10 @@ function CandidateCard({ candidate }: { candidate: Candidate }) {
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="self-start text-xs font-semibold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-        style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-cream)', border: '1px solid var(--color-hairline)' }}
+        className="btn btn-secondary self-start !min-h-9 !py-1.5 !px-3.5 text-xs"
       >
-        Get directions →
+        <Navigation size={13} aria-hidden />
+        Get directions
       </a>
     </div>
   )
@@ -84,54 +79,43 @@ function Explore() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-surface-deep)' }}>
-        <header className="flex items-center gap-4 px-6 py-5">
-          <div className="h-4 w-20 rounded animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        </header>
-        <main className="flex-1 px-6 py-4 max-w-lg mx-auto w-full flex flex-col gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-          ))}
+      <div className="min-h-dvh flex flex-col">
+        <div className="max-w-lg md:max-w-285 mx-auto w-full">
+          <AppHeader backTo={`/party/${partyId}/result`} backLabel="Results" wide />
+        </div>
+        <main className="flex-1 px-6 py-4 max-w-lg md:max-w-285 mx-auto w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-28 rounded-[20px] animate-pulse" style={{ background: 'var(--color-surface)' }} />
+            ))}
+          </div>
         </main>
       </div>
     )
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/party/$partyId/result"
-          params={{ partyId }}
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Results
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-          Bond
-        </span>
-      </header>
+    <div className="min-h-dvh flex flex-col">
+      <div className="max-w-lg md:max-w-285 mx-auto w-full">
+        <AppHeader backTo={`/party/${partyId}/result`} backLabel="Results" wide />
+      </div>
 
-      <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-4 pt-2">
-        <div className="flex flex-col gap-1 mb-2">
-          <h1 className="font-display text-3xl font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-            All options
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            The four restaurants your group voted on.
+      <main className="flex-1 px-6 pb-10 max-w-lg md:max-w-285 mx-auto w-full pt-2">
+        <div className="flex flex-col gap-1 mb-4">
+          <h1 className="display text-3xl">All options</h1>
+          <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
+            The three restaurants your group voted on.
           </p>
         </div>
 
         {candidates.length === 0 ? (
-          <p className="text-sm py-8 text-center" style={{ color: 'var(--color-text-mist)' }}>
+          <p className="text-sm py-8 text-center" style={{ color: 'var(--color-ink-soft)' }}>
             No candidates found.
           </p>
         ) : (
-          candidates.map((c) => <CandidateCard key={c.place.id} candidate={c} />)
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {candidates.map((c) => <CandidateCard key={c.place.id} candidate={c} />)}
+          </div>
         )}
       </main>
     </div>

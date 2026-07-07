@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { supabase } from '#/lib/supabase'
+import { Spinner } from '#/components/ui'
 
 export const Route = createFileRoute('/auth/callback')({ component: AuthCallback })
 
@@ -22,11 +23,9 @@ function AuthCallback() {
   }, [navigate])
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ background: 'var(--color-surface-deep)' }}
-    >
-      <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4">
+      <Spinner size={32} />
+      <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
         Signing you in…
       </p>
     </div>

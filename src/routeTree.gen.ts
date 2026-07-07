@@ -19,6 +19,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthHomeRouteImport } from './routes/_auth/home'
 import { Route as AuthFriendsRouteImport } from './routes/_auth/friends'
+import { Route as AuthPartyRouteRouteImport } from './routes/_auth/party/route'
 import { Route as InviteTokenIndexRouteImport } from './routes/invite/$token/index'
 import { Route as FriendInviteTokenIndexRouteImport } from './routes/friend-invite/$token/index'
 import { Route as InviteTokenVoteRouteImport } from './routes/invite/$token/vote'
@@ -78,6 +79,11 @@ const AuthFriendsRoute = AuthFriendsRouteImport.update({
   path: '/friends',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthPartyRouteRoute = AuthPartyRouteRouteImport.update({
+  id: '/party',
+  path: '/party',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 const InviteTokenIndexRoute = InviteTokenIndexRouteImport.update({
   id: '/invite/$token/',
   path: '/invite/$token/',
@@ -99,29 +105,29 @@ const InviteTokenResultsRoute = InviteTokenResultsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthPartyNewRoute = AuthPartyNewRouteImport.update({
-  id: '/party/new',
-  path: '/party/new',
-  getParentRoute: () => AuthRouteRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthPartyRouteRoute,
 } as any)
 const AuthPartyPartyIdVoteRoute = AuthPartyPartyIdVoteRouteImport.update({
-  id: '/party/$partyId/vote',
-  path: '/party/$partyId/vote',
-  getParentRoute: () => AuthRouteRoute,
+  id: '/$partyId/vote',
+  path: '/$partyId/vote',
+  getParentRoute: () => AuthPartyRouteRoute,
 } as any)
 const AuthPartyPartyIdResultRoute = AuthPartyPartyIdResultRouteImport.update({
-  id: '/party/$partyId/result',
-  path: '/party/$partyId/result',
-  getParentRoute: () => AuthRouteRoute,
+  id: '/$partyId/result',
+  path: '/$partyId/result',
+  getParentRoute: () => AuthPartyRouteRoute,
 } as any)
 const AuthPartyPartyIdHubRoute = AuthPartyPartyIdHubRouteImport.update({
-  id: '/party/$partyId/hub',
-  path: '/party/$partyId/hub',
-  getParentRoute: () => AuthRouteRoute,
+  id: '/$partyId/hub',
+  path: '/$partyId/hub',
+  getParentRoute: () => AuthPartyRouteRoute,
 } as any)
 const AuthPartyPartyIdExploreRoute = AuthPartyPartyIdExploreRouteImport.update({
-  id: '/party/$partyId/explore',
-  path: '/party/$partyId/explore',
-  getParentRoute: () => AuthRouteRoute,
+  id: '/$partyId/explore',
+  path: '/$partyId/explore',
+  getParentRoute: () => AuthPartyRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/welcome': typeof WelcomeRoute
+  '/party': typeof AuthPartyRouteRouteWithChildren
   '/friends': typeof AuthFriendsRoute
   '/home': typeof AuthHomeRoute
   '/profile': typeof AuthProfileRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/welcome': typeof WelcomeRoute
+  '/party': typeof AuthPartyRouteRouteWithChildren
   '/friends': typeof AuthFriendsRoute
   '/home': typeof AuthHomeRoute
   '/profile': typeof AuthProfileRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/welcome': typeof WelcomeRoute
+  '/_auth/party': typeof AuthPartyRouteRouteWithChildren
   '/_auth/friends': typeof AuthFriendsRoute
   '/_auth/home': typeof AuthHomeRoute
   '/_auth/profile': typeof AuthProfileRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/welcome'
+    | '/party'
     | '/friends'
     | '/home'
     | '/profile'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/welcome'
+    | '/party'
     | '/friends'
     | '/home'
     | '/profile'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/welcome'
+    | '/_auth/party'
     | '/_auth/friends'
     | '/_auth/home'
     | '/_auth/profile'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthFriendsRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/party': {
+      id: '/_auth/party'
+      path: '/party'
+      fullPath: '/party'
+      preLoaderRoute: typeof AuthPartyRouteRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/invite/$token/': {
       id: '/invite/$token/'
       path: '/invite/$token'
@@ -366,46 +385,43 @@ declare module '@tanstack/react-router' {
     }
     '/_auth/party/new': {
       id: '/_auth/party/new'
-      path: '/party/new'
+      path: '/new'
       fullPath: '/party/new'
       preLoaderRoute: typeof AuthPartyNewRouteImport
-      parentRoute: typeof AuthRouteRoute
+      parentRoute: typeof AuthPartyRouteRoute
     }
     '/_auth/party/$partyId/vote': {
       id: '/_auth/party/$partyId/vote'
-      path: '/party/$partyId/vote'
+      path: '/$partyId/vote'
       fullPath: '/party/$partyId/vote'
       preLoaderRoute: typeof AuthPartyPartyIdVoteRouteImport
-      parentRoute: typeof AuthRouteRoute
+      parentRoute: typeof AuthPartyRouteRoute
     }
     '/_auth/party/$partyId/result': {
       id: '/_auth/party/$partyId/result'
-      path: '/party/$partyId/result'
+      path: '/$partyId/result'
       fullPath: '/party/$partyId/result'
       preLoaderRoute: typeof AuthPartyPartyIdResultRouteImport
-      parentRoute: typeof AuthRouteRoute
+      parentRoute: typeof AuthPartyRouteRoute
     }
     '/_auth/party/$partyId/hub': {
       id: '/_auth/party/$partyId/hub'
-      path: '/party/$partyId/hub'
+      path: '/$partyId/hub'
       fullPath: '/party/$partyId/hub'
       preLoaderRoute: typeof AuthPartyPartyIdHubRouteImport
-      parentRoute: typeof AuthRouteRoute
+      parentRoute: typeof AuthPartyRouteRoute
     }
     '/_auth/party/$partyId/explore': {
       id: '/_auth/party/$partyId/explore'
-      path: '/party/$partyId/explore'
+      path: '/$partyId/explore'
       fullPath: '/party/$partyId/explore'
       preLoaderRoute: typeof AuthPartyPartyIdExploreRouteImport
-      parentRoute: typeof AuthRouteRoute
+      parentRoute: typeof AuthPartyRouteRoute
     }
   }
 }
 
-interface AuthRouteRouteChildren {
-  AuthFriendsRoute: typeof AuthFriendsRoute
-  AuthHomeRoute: typeof AuthHomeRoute
-  AuthProfileRoute: typeof AuthProfileRoute
+interface AuthPartyRouteRouteChildren {
   AuthPartyNewRoute: typeof AuthPartyNewRoute
   AuthPartyPartyIdExploreRoute: typeof AuthPartyPartyIdExploreRoute
   AuthPartyPartyIdHubRoute: typeof AuthPartyPartyIdHubRoute
@@ -413,15 +429,30 @@ interface AuthRouteRouteChildren {
   AuthPartyPartyIdVoteRoute: typeof AuthPartyPartyIdVoteRoute
 }
 
-const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-  AuthFriendsRoute: AuthFriendsRoute,
-  AuthHomeRoute: AuthHomeRoute,
-  AuthProfileRoute: AuthProfileRoute,
+const AuthPartyRouteRouteChildren: AuthPartyRouteRouteChildren = {
   AuthPartyNewRoute: AuthPartyNewRoute,
   AuthPartyPartyIdExploreRoute: AuthPartyPartyIdExploreRoute,
   AuthPartyPartyIdHubRoute: AuthPartyPartyIdHubRoute,
   AuthPartyPartyIdResultRoute: AuthPartyPartyIdResultRoute,
   AuthPartyPartyIdVoteRoute: AuthPartyPartyIdVoteRoute,
+}
+
+const AuthPartyRouteRouteWithChildren = AuthPartyRouteRoute._addFileChildren(
+  AuthPartyRouteRouteChildren,
+)
+
+interface AuthRouteRouteChildren {
+  AuthPartyRouteRoute: typeof AuthPartyRouteRouteWithChildren
+  AuthFriendsRoute: typeof AuthFriendsRoute
+  AuthHomeRoute: typeof AuthHomeRoute
+  AuthProfileRoute: typeof AuthProfileRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthPartyRouteRoute: AuthPartyRouteRouteWithChildren,
+  AuthFriendsRoute: AuthFriendsRoute,
+  AuthHomeRoute: AuthHomeRoute,
+  AuthProfileRoute: AuthProfileRoute,
 }
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { LocateFixed } from 'lucide-react'
 import { autocompleteLocation } from '../api/autocompleteLocation'
 import type { LocationSuggestion } from '../api/autocompleteLocation'
 
@@ -89,20 +90,19 @@ export function LocationInput({ value, onChange }: LocationInputProps) {
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
           autoComplete="off"
-          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-          style={{
-            background: 'var(--color-surface-twilight)',
-            border: '1px solid rgba(240,228,204,0.08)',
-            color: 'var(--color-text-cream)',
-          }}
+          className="input"
         />
 
         {/* Spinner */}
         {fetching && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
             <div
-              className="w-3.5 h-3.5 rounded-full border-2 animate-spin"
-              style={{ borderColor: 'rgba(143,168,181,0.3)', borderTopColor: 'var(--color-text-mist)' }}
+              className="w-3.5 h-3.5 rounded-full border-2"
+              style={{
+                borderColor: 'var(--color-line)',
+                borderTopColor: 'var(--color-bond)',
+                animation: 'spin .8s linear infinite',
+              }}
             />
           </div>
         )}
@@ -110,11 +110,8 @@ export function LocationInput({ value, onChange }: LocationInputProps) {
         {/* Suggestions dropdown */}
         {open && suggestions.length > 0 && (
           <ul
-            className="absolute left-0 right-0 top-full mt-1.5 rounded-xl overflow-hidden z-50 shadow-xl"
-            style={{
-              background: 'var(--color-surface-twilight)',
-              border: '1px solid rgba(240,228,204,0.12)',
-            }}
+            className="card absolute left-0 right-0 top-full mt-1.5 overflow-hidden z-50"
+            style={{ boxShadow: '0 12px 32px -8px rgba(16, 48, 77, 0.25)' }}
           >
             {suggestions.map((s, i) => (
               <li key={i}>
@@ -122,17 +119,16 @@ export function LocationInput({ value, onChange }: LocationInputProps) {
                   type="button"
                   // onMouseDown instead of onClick so it fires before the input's onBlur
                   onMouseDown={(e) => { e.preventDefault(); select(s) }}
-                  className="w-full text-left px-4 py-3 flex flex-col gap-0.5 transition-colors hover:brightness-125"
+                  className="w-full text-left px-4 py-3 flex flex-col gap-0.5 cursor-pointer transition-colors hover:bg-(--color-surface-dim)"
                   style={{
-                    borderBottom:
-                      i < suggestions.length - 1 ? '1px solid rgba(240,228,204,0.06)' : 'none',
+                    borderBottom: i < suggestions.length - 1 ? '1px solid var(--color-line)' : 'none',
                   }}
                 >
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-text-cream)' }}>
+                  <span className="text-sm font-medium" style={{ color: 'var(--color-ink)' }}>
                     {s.mainText}
                   </span>
                   {s.secondaryText && (
-                    <span className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+                    <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
                       {s.secondaryText}
                     </span>
                   )}
@@ -148,13 +144,10 @@ export function LocationInput({ value, onChange }: LocationInputProps) {
         type="button"
         onClick={detectLocation}
         disabled={detecting}
-        className="px-4 py-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-opacity disabled:opacity-50 hover:opacity-80"
-        style={{
-          background: 'var(--color-surface-twilight)',
-          color: 'var(--color-text-mist)',
-        }}
+        className="btn btn-secondary !rounded-xl !px-4 text-xs whitespace-nowrap"
       >
-        {detecting ? 'Detecting…' : '📍 Use location'}
+        <LocateFixed size={14} aria-hidden />
+        {detecting ? 'Detecting…' : 'Use location'}
       </button>
     </div>
   )

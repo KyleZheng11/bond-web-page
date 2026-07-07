@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import type { Party, PartyStatus } from '#/features/parties'
 
 const STATUS: Record<PartyStatus, { label: string; meta: string; bg: string; color: string }> = {
-  open:      { label: 'Open',      meta: 'Waiting on the crew',    bg: '#F1ECE2', color: '#8A7F72' },
-  searching: { label: 'Searching', meta: 'Finding your spot',      bg: '#FFE9DF', color: '#FF5B22' },
-  voting:    { label: 'Voting',    meta: 'Voting in progress',     bg: '#FFE9DF', color: '#FF5B22' },
-  resolved:  { label: 'Resolved',  meta: 'All done',               bg: '#E6F5EC', color: '#1FA85C' },
+  open:      { label: 'Open',      meta: 'Waiting on the crew', bg: 'var(--color-surface-dim)',   color: 'var(--color-ink-soft)' },
+  searching: { label: 'Searching', meta: 'Finding your spot',   bg: 'var(--color-sunrise-soft)',  color: 'var(--color-ember-text)' },
+  voting:    { label: 'Voting',    meta: 'Voting in progress',  bg: 'var(--color-sunrise-soft)',  color: 'var(--color-ember-text)' },
+  resolved:  { label: 'Resolved',  meta: 'All done',            bg: 'var(--color-success-soft)',  color: 'var(--color-success)' },
 }
 
 export function PartyCard({
@@ -40,26 +41,19 @@ export function PartyCard({
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden transition-colors"
-      style={{
-        background: 'var(--color-surface-petrol)',
-        border: `1px solid ${confirming ? 'rgba(215,55,42,0.4)' : 'var(--color-hairline)'}`,
-        boxShadow: '0 1px 3px rgba(0,0,0,.08)',
-      }}
+      className="glass w-full overflow-hidden transition-colors"
+      style={confirming ? { borderColor: 'rgba(207,58,44,0.5)' } : undefined}
     >
       {/* Main row */}
       <div className="flex items-center">
         <button
           onClick={onClick}
-          className="flex-1 text-left px-5 py-4 flex items-center gap-3 hover:brightness-[0.97] transition-all"
+          className="flex-1 text-left px-5 py-4 flex items-center gap-3 cursor-pointer transition-colors hover:bg-white/25"
         >
           <div className="flex-1 min-w-0">
             {/* Name + status pill on the same row */}
             <div className="flex items-start justify-between gap-2">
-              <p
-                className="font-display font-black text-lg leading-tight truncate"
-                style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.01em' }}
-              >
+              <p className="font-display font-bold text-lg leading-tight truncate" style={{ color: 'var(--color-ink)', letterSpacing: '-0.01em' }}>
                 {party.name ?? `Party · ${date}`}
               </p>
               <span
@@ -70,7 +64,7 @@ export function PartyCard({
               </span>
             </div>
             {/* Meta line */}
-            <p className="text-xs mt-1" style={{ color: 'var(--color-text-mist)' }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--color-ink-soft)' }}>
               {status.meta}
             </p>
           </div>
@@ -79,11 +73,11 @@ export function PartyCard({
         {onDelete && (
           <button
             onClick={(e) => { e.stopPropagation(); setConfirming((v) => !v) }}
-            className="px-4 py-5 text-lg transition-opacity hover:opacity-70"
-            style={{ color: confirming ? 'var(--color-accent-brick)' : 'var(--color-text-mist)' }}
+            className="px-4 self-stretch flex items-center transition-opacity hover:opacity-70 cursor-pointer"
+            style={{ color: confirming ? 'var(--color-error)' : 'var(--color-ink-faint)' }}
             aria-label="Delete party"
           >
-            ×
+            <X size={18} aria-hidden />
           </button>
         )}
       </div>
@@ -92,24 +86,24 @@ export function PartyCard({
       {confirming && (
         <div
           className="flex items-center justify-between px-5 py-3 gap-4 border-t"
-          style={{ borderColor: 'rgba(215,55,42,0.3)' }}
+          style={{ borderColor: 'rgba(207,58,44,0.3)', background: 'var(--color-error-soft)' }}
         >
-          <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
             Delete this party?
           </p>
           <div className="flex gap-2">
             <button
               onClick={(e) => { e.stopPropagation(); setConfirming(false) }}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-70"
-              style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-mist)' }}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-opacity hover:opacity-70"
+              style={{ background: 'var(--color-surface)', color: 'var(--color-ink-soft)', border: '1px solid var(--color-line)' }}
             >
               Cancel
             </button>
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-opacity disabled:opacity-50"
-              style={{ background: 'var(--color-accent-brick)', color: 'var(--color-on-brick)' }}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--color-error)', color: '#ffffff' }}
             >
               {deleting ? 'Deleting…' : 'Delete'}
             </button>

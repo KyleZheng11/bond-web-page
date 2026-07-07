@@ -1,20 +1,80 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { motion, useInView } from 'motion/react'
+import { motion, AnimatePresence, useInView } from 'motion/react'
 import { useState, useEffect, useRef } from 'react'
+import { EyeOff, Timer, MapPin, Star } from 'lucide-react'
+import { Wordmark, FadeUp, ShinyButton } from '#/components/ui'
+import { cn } from '#/lib/utils'
 
 export const Route = createFileRoute('/')({ component: Home })
 
-// Scroll-triggered slide-up reveal
-function SlideUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+/* Floating "dynamic island" nav — expanded (full width, logo + CTA + log
+   in) above 60px of scroll, collapsed to a small centered logo pill below
+   it. Width animates via a plain CSS transition rather than Framer Motion
+   (a layout-affecting property like this doesn't need spring physics), while
+   the CTA/log-in fade in and out with AnimatePresence so they cross-fade
+   independently of the width easing instead of stretching with it. */
+function FloatingNav() {
+  const [expanded, setExpanded] = useState(true)
+
+  useEffect(() => {
+    function onScroll() {
+      setExpanded(window.scrollY < 60)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 48 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.6, ease: 'easeOut', delay }}
-    >
-      {children}
-    </motion.div>
+    <div className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
+      <nav
+        className="scale-75 relative rounded-full h-16 overflow-hidden border"
+        style={{
+          width: expanded ? 'min(calc(100% - 2rem), 71.25rem)' : '9rem',
+          transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+          background: 'rgba(255,255,255,0.5)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderColor: 'rgba(11,15,20,0.08)',
+          boxShadow: '0 8px 32px rgba(11,15,20,0.14)',
+        }}
+      >
+        <button
+          onClick={() => setExpanded(true)}
+          aria-label="Bond home"
+          className={cn(
+            'absolute top-1/2 -translate-y-1/2 transition-all duration-300 cursor-pointer',
+            expanded ? 'left-6' : 'left-1/2 -translate-x-1/2',
+          )}
+        >
+          <Wordmark className="text-2xl" />
+        </button>
+
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              key="actions"
+              className="absolute top-1/2 -translate-y-1/2 right-6 flex items-center gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Link
+                to="/login"
+                className="text-base font-semibold whitespace-nowrap transition-opacity hover:opacity-70"
+                style={{ color: 'var(--color-ink-soft)' }}
+              >
+                Log in
+              </Link>
+              <ShinyButton to="/welcome" className="h-12 px-5 text-base whitespace-nowrap">
+                Start a party
+              </ShinyButton>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+    </div>
   )
 }
 
@@ -44,341 +104,338 @@ function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
   return <span ref={ref}>{count}{suffix}</span>
 }
 
+/* ── Phone frame — the one recurring object the whole story plays inside ── */
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="relative w-56 h-[27.5rem] sm:w-64 sm:h-[31.5rem] md:w-71 md:h-[37rem] rounded-[2rem] md:rounded-[2.75rem] overflow-hidden shrink-0"
+      style={{ background: '#ffffff', border: '8px solid var(--color-ink)', boxShadow: '0 40px 80px -24px rgba(11,15,20,0.45)' }}
+    >
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 md:w-28 md:h-6 rounded-b-2xl z-10" style={{ background: 'var(--color-ink)' }} aria-hidden />
+      {children}
+    </div>
+  )
+}
+
+/* Beat 1 — join screen, mirrors the real guest-invite hub */
+function BeatInvite() {
+  return (
+    <div className="h-full flex flex-col px-5 pt-11 pb-6 gap-5">
+      <p className="eyebrow" style={{ color: 'var(--color-ink-faint)' }}>Sam invited you</p>
+      <p className="font-display font-extrabold text-2xl leading-tight" style={{ color: 'var(--color-ink)' }}>
+        Saturday Night
+      </p>
+      <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>4 people joining</p>
+      <div className="card px-4 py-4 flex flex-col gap-2 mt-2">
+        <p className="eyebrow" style={{ color: 'var(--color-ink-faint)' }}>Your name</p>
+        <div className="input !bg-(--color-surface-dim) flex items-center text-sm" style={{ color: 'var(--color-ink)' }}>Jordan</div>
+      </div>
+      <div className="flex -space-x-2 mt-1">
+        {['S', 'M', 'A', 'K'].map((l, i) => (
+          <div key={i} className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold" style={{ background: '#dcebf4', color: 'var(--color-blueberry)', borderColor: '#fff' }}>
+            {l}
+          </div>
+        ))}
+      </div>
+      <div className="mt-auto btn btn-primary w-full">Join the party</div>
+    </div>
+  )
+}
+
+/* Beat 2 — private taste picker, mirrors the real preference form */
+function BeatTaste() {
+  const cuisines = [{ label: 'Italian', on: true }, { label: 'Mexican', on: false }, { label: 'Sushi', on: true }, { label: 'Thai', on: false }, { label: 'BBQ', on: false }]
+  return (
+    <div className="h-full flex flex-col px-5 pt-11 pb-6 gap-5">
+      <p className="eyebrow" style={{ color: 'var(--color-ink-faint)' }}>Your taste · private</p>
+      <p className="font-display font-extrabold text-2xl leading-tight" style={{ color: 'var(--color-ink)' }}>
+        In the mood for?
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {cuisines.map((c) => (
+          <span key={c.label} className={`chip ${c.on ? 'chip-active' : ''}`}>{c.label}</span>
+        ))}
+      </div>
+      <p className="eyebrow mt-2" style={{ color: 'var(--color-ink-faint)' }}>Budget</p>
+      <div className="flex gap-2">
+        {['$', '$$', '$$$', '$$$$'].map((s, i) => (
+          <span key={s} className={`chip flex-1 justify-center !rounded-xl font-bold ${i === 1 ? 'chip-active' : ''}`}>{s}</span>
+        ))}
+      </div>
+      <p className="text-xs mt-1" style={{ color: 'var(--color-ink-faint)' }}>Never shown to anyone else in the party.</p>
+      <div className="mt-auto btn btn-primary w-full">Save my taste</div>
+    </div>
+  )
+}
+
+/* Beat 3 — the reveal, mirrors the real result screen. The one place
+   Orange Peel gets to lead, since this is the emotional payoff. */
+function BeatReveal() {
+  return (
+    <div className="h-full flex flex-col">
+      <div className="h-44 relative flex items-start px-4 pt-8" style={{ background: 'linear-gradient(135deg,#f7b26e,var(--color-sunrise) 60%,var(--color-sunrise-deep))' }}>
+        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full" style={{ background: 'rgba(11,15,20,0.85)', color: '#fff' }}>
+          Bond's pick
+        </span>
+      </div>
+      <div className="flex-1 flex flex-col px-5 pt-5 pb-6 gap-4">
+        <div>
+          <p className="font-display font-extrabold text-2xl leading-tight" style={{ color: 'var(--color-ink)' }}>Casa Lumbre</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-ink-soft)' }}>Mexican · $$ · 0.4 mi away</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--color-ink-soft)' }}>
+          <Star size={13} fill="var(--color-sunrise)" color="var(--color-sunrise)" aria-hidden />
+          4.7 · loved by all 4 of you
+        </div>
+        <div className="mt-auto btn btn-primary w-full">Get directions</div>
+      </div>
+    </div>
+  )
+}
+
+const BEATS = [
+  { key: 'invite', eyebrow: '01 — Invite', title: 'Share one link.', body: 'No app to download. No account required. Anyone taps in and they’re in the party.', Node: BeatInvite },
+  { key: 'taste', eyebrow: '02 — Taste', title: 'Everyone picks, privately.', body: 'Cravings, budget, dietary needs — set in ten seconds. Nobody else in the group sees it.', Node: BeatTaste },
+  { key: 'reveal', eyebrow: '03 — Reveal', title: 'Bond finds the spot.', body: 'Every preference gets weighed. One restaurant rises to the top — a place the whole table agrees on.', Node: BeatReveal },
+] as const
+
+/* The signature moment: Bond's own three-step story, told as three
+   ordinary sections the page scrolls through normally — no pinning,
+   no captured scroll. Each row alternates which side the phone sits
+   on, so the eye keeps moving instead of reading the same column
+   three times. Numbering the eyebrows is warranted here (01/02/03):
+   this genuinely is a sequence, not decoration. */
+function FeatureRow({ beat, index }: { beat: (typeof BEATS)[number]; index: number }) {
+  const phoneOnRight = index % 2 === 0
+  const Node = beat.Node
+  return (
+    <section className="px-6 py-16 md:py-24">
+      <div className="max-w-285 mx-auto grid md:grid-cols-2 items-center gap-10 md:gap-20">
+        <FadeUp className={phoneOnRight ? 'md:order-1' : 'md:order-2'}>
+          <div className="flex flex-col items-center md:items-start gap-4 text-center md:text-left">
+            <p className="eyebrow" style={{ color: 'var(--color-ember-text)' }}>{beat.eyebrow}</p>
+            <h2 className="display text-3xl md:text-5xl">{beat.title}</h2>
+            <p className="text-base md:text-lg leading-relaxed max-w-sm" style={{ color: 'var(--color-ink-soft)' }}>
+              {beat.body}
+            </p>
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={0.1} className={`flex justify-center ${phoneOnRight ? 'md:order-2' : 'md:order-1'}`}>
+          <PhoneFrame><Node /></PhoneFrame>
+        </FadeUp>
+      </div>
+    </section>
+  )
+}
+
 function Home() {
   return (
-    <div style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}>
+    <div>
 
-      {/* ── Sticky Nav ───────────────────────────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 border-b"
-        style={{
-          background: 'rgba(251,243,231,0.85)',
-          backdropFilter: 'blur(10px)',
-          borderColor: 'var(--color-hairline)',
-        }}
-      >
-        <div className="max-w-285 mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="font-display text-xl font-black" style={{ color: 'var(--color-accent-ember)' }}>
-            Bond
-          </span>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-sm font-semibold transition-opacity hover:opacity-70"
-              style={{ color: 'var(--color-text-cream)' }}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/welcome"
-              className="text-sm font-bold px-4 py-2 rounded-full transition-all hover:opacity-90"
-              style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-            >
+      {/* ── Floating nav ─────────────────────────────────────────────────── */}
+      <FloatingNav />
+
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="relative px-6 pb-20">
+        <div className="max-w-225 mx-auto pt-24 md:pt-32 flex flex-col items-center text-center gap-7">
+          <motion.p
+            className="eyebrow"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Every group has the same problem
+          </motion.p>
+
+          <motion.h1
+            className="font-display font-extrabold leading-[0.98] whitespace-nowrap"
+            style={{ fontSize: 'clamp(36px, 7.5vw, 92px)', letterSpacing: '-0.04em', color: 'var(--color-ink)' }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Decided, together.
+          </motion.h1>
+
+          <motion.p
+            className="text-lg leading-relaxed max-w-md"
+            style={{ color: 'var(--color-ink-soft)' }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Bond finds what actually matters to your group and turns it into
+            one answer everyone's happy with.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ShinyButton to="/welcome" className="whitespace-nowrap">
               Start a party
-            </Link>
-          </div>
-        </div>
-      </nav>
+            </ShinyButton>
+          </motion.div>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 pt-16 pb-16">
-        {/* Soft tangerine radial blob */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 70% 40%, rgba(255,91,34,0.10), transparent 65%)' }}
-        />
-        <div className="max-w-285 mx-auto flex flex-wrap items-center gap-x-16 gap-y-12">
-          {/* Left: copy */}
-          <div className="flex-1 min-w-70 flex flex-col gap-6">
-            <p className="text-xs font-black tracking-[.14em] uppercase" style={{ color: 'var(--color-text-mist)' }}>
-              Eat together, easy
+          <motion.div
+            className="flex items-center gap-3 mt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.6 }}
+          >
+            <div className="flex -space-x-2">
+              {(['A', 'J', 'M', 'K'] as const).map((l, i) => (
+                <div
+                  key={i}
+                  className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-bold shrink-0"
+                  style={{ background: (['#4193bd', '#236797', '#113a5f', '#f1792d'] as const)[i], color: '#fff', borderColor: '#fff' }}
+                >
+                  {l}
+                </div>
+              ))}
+            </div>
+            <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
+              Loved by 200+ friend groups on campus
             </p>
-            <h1
-              className="font-display font-black leading-none"
-              style={{ fontSize: 'clamp(48px, 7.5vw, 80px)', letterSpacing: '-0.02em', color: 'var(--color-text-cream)' }}
-            >
-              Good food.<br />
-              <span style={{ color: 'var(--color-accent-ember)' }}>Zero drama.</span>
-            </h1>
-            <p className="text-lg leading-relaxed" style={{ color: '#6A6056', maxWidth: '380px' }}>
-              Bond collects everyone's preferences and picks one restaurant your whole crew will love. No group chat needed.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/welcome"
-                className="px-6 py-3 rounded-full font-bold text-sm transition-all hover:opacity-90 active:scale-95"
-                style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-              >
-                Start a party
-              </Link>
-              <a
-                href="#how"
-                className="px-6 py-3 rounded-full font-bold text-sm border-2 transition-all hover:opacity-70"
-                style={{ color: 'var(--color-text-cream)', borderColor: 'var(--color-text-cream)' }}
-              >
-                How it works
-              </a>
-            </div>
-            {/* Avatar stack + social proof */}
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {(['A', 'J', 'M', 'K'] as const).map((l, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{
-                      background: (['#FF5B22', '#1FA85C', '#7A3CC4', '#D7372A'] as const)[i],
-                      color: '#fff',
-                      borderColor: 'var(--color-surface-deep)',
-                    }}
-                  >
-                    {l}
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-                Loved by 200+ friend groups on campus
-              </p>
-            </div>
-          </div>
-
-          {/* Right: phone mockup */}
-          <div className="flex-1 min-w-55 flex justify-center">
-            <div
-              className="video-float-frame relative w-50 h-100 rounded-4xl flex flex-col overflow-hidden"
-              style={{ background: '#fff', border: '6px solid #211B16', boxShadow: '0 24px 60px rgba(33,27,22,0.18)' }}
-            >
-              {/* notch */}
-              <div className="h-5 flex items-center justify-center shrink-0" style={{ background: '#FBF3E7' }}>
-                <div className="w-14 h-1 rounded-full" style={{ background: '#EFE3D2' }} />
-              </div>
-              {/* mock results screen */}
-              <div className="flex-1 flex flex-col gap-2 p-3" style={{ background: '#FBF3E7' }}>
-                <div className="h-24 rounded-[14px] flex items-start p-2" style={{ background: '#F0D9B5' }}>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full text-white" style={{ background: '#FF5B22' }}>
-                    Bond's pick
-                  </span>
-                </div>
-                <div className="h-3 rounded-full mt-1" style={{ background: '#211B16', width: '75%' }} />
-                <div className="h-2.5 rounded-full" style={{ background: '#EFE3D2', width: '45%' }} />
-                <div className="flex gap-1.5 mt-1">
-                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#F1ECE2', color: '#8A7F72' }}>Italian</span>
-                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFE9DF', color: '#FF5B22' }}>★ 4.6</span>
-                </div>
-                <div className="h-2.5 rounded-full" style={{ background: '#EFE3D2', width: '90%' }} />
-                <div className="h-2 rounded-full" style={{ background: '#EFE3D2', width: '80%' }} />
-                <div className="mt-auto flex flex-col gap-1.5">
-                  <div className="h-7 rounded-full" style={{ background: '#FF5B22' }} />
-                  <div className="h-7 rounded-full border" style={{ background: '#fff', borderColor: '#EFE3D2' }} />
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── Stats band ────────────────────────────────────────────────────── */}
-      <section className="px-6 py-16" style={{ background: '#211B16' }}>
-        <div className="max-w-285 mx-auto flex flex-col gap-10">
-          <SlideUp>
-            <p className="text-xs font-black tracking-[.14em] uppercase mb-4" style={{ color: 'var(--color-accent-ember)' }}>
-              The disconnect is real
-            </p>
-            <h2
-              className="font-display font-black text-3xl md:text-4xl"
-              style={{ color: '#FBF3E7', letterSpacing: '-0.02em' }}
-            >
-              Planning one night out<br />shouldn't take all night.
-            </h2>
-          </SlideUp>
-          <SlideUp delay={0.15}>
+      {/* ── Signature — Bond's own three-step story, told in three
+             alternating rows as the page scrolls normally ─────────── */}
+      <div className="pt-4">
+        <FadeUp className="px-6">
+          <div className="max-w-285 mx-auto text-center">
+            <p className="eyebrow mb-3">How it works</p>
+            <h2 className="display text-3xl md:text-4xl">Three steps, one great dinner.</h2>
+          </div>
+        </FadeUp>
+        {BEATS.map((beat, i) => (
+          <FeatureRow key={beat.key} beat={beat} index={i} />
+        ))}
+      </div>
+
+      {/* ── Stats — a translucent panel floating on the wash ──────────────── */}
+      <section className="px-6 py-16">
+        <FadeUp className="max-w-285 mx-auto">
+          <div className="wash-panel px-8 py-12 md:px-14 md:py-16 flex flex-col gap-12">
+            <div>
+              <p className="eyebrow mb-4">The disconnect is real</p>
+              <h2 className="display text-3xl md:text-4xl">
+                Planning one night out<br />shouldn't take all night.
+              </h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3">
               <div className="md:pr-12 flex flex-col gap-3 pb-8 md:pb-0">
-                <p className="text-5xl md:text-7xl font-black leading-none" style={{ color: 'var(--color-accent-ember)' }}>
+                <p className="font-display text-5xl md:text-7xl font-extrabold leading-none" style={{ color: 'var(--color-ink)' }}>
                   <CountUp to={5} suffix="+" />
                 </p>
-                <p className="leading-relaxed" style={{ color: '#8A7F72' }}>
+                <p className="leading-relaxed" style={{ color: 'var(--color-ink-soft)' }}>
                   Apps the average person juggles just to plan one night out
                 </p>
               </div>
-              <div
-                className="md:px-12 flex flex-col gap-3 py-8 md:py-0 border-t border-b md:border-t-0 md:border-b-0 md:border-l"
-                style={{ borderColor: '#3A332C' }}
-              >
-                <p className="text-5xl md:text-7xl font-black leading-none" style={{ color: 'var(--color-accent-ember)' }}>
+              <div className="md:px-12 flex flex-col gap-3 py-8 md:py-0 border-t border-b md:border-t-0 md:border-b-0 md:border-l" style={{ borderColor: 'rgba(11,15,20,0.12)' }}>
+                <p className="font-display text-5xl md:text-7xl font-extrabold leading-none" style={{ color: 'var(--color-ink)' }}>
                   <CountUp to={37} suffix="%" />
                 </p>
-                <p className="leading-relaxed" style={{ color: '#8A7F72' }}>
+                <p className="leading-relaxed" style={{ color: 'var(--color-ink-soft)' }}>
                   Drop in time spent with friends between 2014–2023
                 </p>
-                <p className="text-xs opacity-50 mt-1" style={{ color: '#8A7F72' }}>American Time Use Survey</p>
+                <p className="text-xs opacity-60" style={{ color: 'var(--color-ink-faint)' }}>American Time Use Survey</p>
               </div>
-              <div
-                className="md:pl-12 flex flex-col gap-3 pt-8 md:pt-0 md:border-l"
-                style={{ borderColor: '#3A332C' }}
-              >
-                <p className="text-5xl md:text-7xl font-black leading-none" style={{ color: 'var(--color-accent-ember)' }}>
+              <div className="md:pl-12 flex flex-col gap-3 pt-8 md:pt-0 md:border-l" style={{ borderColor: 'rgba(11,15,20,0.12)' }}>
+                <p className="font-display text-5xl md:text-7xl font-extrabold leading-none" style={{ color: 'var(--color-ink)' }}>
                   <CountUp to={20} suffix="hrs" />
                 </p>
-                <p className="leading-relaxed" style={{ color: '#8A7F72' }}>
+                <p className="leading-relaxed" style={{ color: 'var(--color-ink-soft)' }}>
                   Less social engagement with friends every single month
                 </p>
               </div>
             </div>
-          </SlideUp>
-        </div>
-      </section>
-
-      {/* ── How it works ─────────────────────────────────────────────────── */}
-      <section id="how" className="px-6 py-16">
-        <div className="max-w-285 mx-auto flex flex-col gap-10">
-          <SlideUp>
-            <p className="text-xs font-black tracking-[.14em] uppercase mb-3" style={{ color: 'var(--color-text-mist)' }}>
-              How it works
-            </p>
-            <h2
-              className="font-display font-black text-3xl md:text-4xl"
-              style={{ letterSpacing: '-0.02em', color: 'var(--color-text-cream)' }}
-            >
-              Three steps, one great dinner.
-            </h2>
-          </SlideUp>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { n: '1', title: 'Add your crew', body: 'Share a link. Anyone can join in seconds — no app, no account required.' },
-              { n: '2', title: 'Everyone picks', body: 'Each person takes 60 seconds to set their cuisines and budget. All private.' },
-              { n: '3', title: 'Bond decides', body: 'Bond weighs every preference and surfaces one restaurant everyone can get behind.' },
-            ].map(({ n, title, body }, i) => (
-              <SlideUp key={n} delay={i * 0.1}>
-                <motion.div
-                  className="rounded-[18px] p-7 flex flex-col gap-4 h-full"
-                  style={{
-                    background: 'var(--color-surface-petrol)',
-                    border: '1px solid var(--color-hairline)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,.08)',
-                  }}
-                  whileHover={{ y: -5, boxShadow: '0 18px 40px rgba(33,27,22,.10)' }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
-                >
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black"
-                    style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-                  >
-                    {n}
-                  </div>
-                  <h3 className="font-display text-xl font-black" style={{ letterSpacing: '-0.01em' }}>{title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#6A6056' }}>{body}</p>
-                </motion.div>
-              </SlideUp>
-            ))}
           </div>
-        </div>
+        </FadeUp>
       </section>
 
-      {/* ── Why Bond ─────────────────────────────────────────────────────── */}
-      <section
-        className="px-6 py-16 border-t border-b"
-        style={{ background: 'var(--color-surface-petrol)', borderColor: 'var(--color-hairline)' }}
-      >
-        <div className="max-w-285 mx-auto flex flex-col gap-10">
-          <SlideUp>
-            <h2
-              className="font-display font-black text-3xl md:text-4xl"
-              style={{ letterSpacing: '-0.02em', color: 'var(--color-text-cream)' }}
-            >
-              Why Bond?
-            </h2>
-          </SlideUp>
+      {/* ── Why Bond ───────────────────────────────────────────────────────── */}
+      <section className="px-6 py-20">
+        <div className="max-w-285 mx-auto flex flex-col gap-12">
+          <FadeUp>
+            <h2 className="display text-3xl md:text-4xl">Why Bond?</h2>
+          </FadeUp>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { title: 'One answer, not a list', body: 'No endless scrolling, no voting rounds. Bond gives you one recommendation your group actually agrees on.', border: 'var(--color-accent-ember)' },
-              { title: 'Private by design', body: "Nobody sees what you picked. Your dietary restrictions, your budget, your preferences — all yours.", border: 'var(--color-accent-gold)' },
-              { title: 'Under a minute', body: 'From party link to restaurant pick, the whole flow takes less than 60 seconds per person.', border: 'var(--color-text-cream)' },
-            ].map(({ title, body, border }, i) => (
-              <SlideUp key={title} delay={i * 0.1}>
-                <div
-                  className="rounded-[18px] p-7 flex flex-col gap-3 h-full"
-                  style={{
-                    background: 'var(--color-surface-deep)',
-                    borderTop: `3px solid ${border}`,
-                    border: `1px solid var(--color-hairline)`,
-                    borderTopWidth: '3px',
-                    borderTopColor: border,
-                  }}
-                >
-                  <h3 className="font-display text-lg font-black" style={{ letterSpacing: '-0.01em' }}>{title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#6A6056' }}>{body}</p>
+              { icon: MapPin, title: 'One answer, not a list', body: 'No endless scrolling, no voting rounds that drag on. Bond gives your group one recommendation it actually agrees on.' },
+              { icon: EyeOff, title: 'Private by design', body: "Your dietary restrictions, your budget, your guilty-pleasure cravings — nobody in the group sees what you picked." },
+              { icon: Timer, title: 'Under a minute', body: 'From party link to restaurant pick, the whole flow takes less than 60 seconds per person.' },
+            ].map(({ icon: Icon, title, body }, i) => (
+              <FadeUp key={title} delay={i * 0.1} className="h-full">
+                <div className="card p-7 flex flex-col gap-3 h-full !shadow-none">
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} style={{ color: 'var(--color-ink)' }} aria-hidden />
+                    <h3 className="display text-lg">{title}</h3>
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--color-ink-soft)' }}>
+                    {body}
+                  </p>
                 </div>
-              </SlideUp>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Mission ──────────────────────────────────────────────────────── */}
-      <section className="px-6 py-20">
+      <section className="px-6 py-24">
         <div className="max-w-225 mx-auto text-center">
-          <SlideUp>
-            <p className="text-xs font-black tracking-[.14em] uppercase mb-6" style={{ color: 'var(--color-text-mist)' }}>
-              Our mission
+          <FadeUp>
+            <p className="eyebrow mb-6">Our mission</p>
+            <p className="display text-2xl md:text-3xl leading-snug" style={{ fontWeight: 700 }}>
+              People are at their best in{' '}
+              <span style={{ color: 'var(--color-ember-text)' }}>good company</span>.
+              We're here to make going out with your friends effortless —
+              no fuss, no drawn-out planning. Just living in the moment.
             </p>
-            <p
-              className="font-display font-black text-2xl md:text-3xl leading-snug"
-              style={{ letterSpacing: '-0.02em', color: 'var(--color-text-cream)' }}
-            >
-              We believe people are at their best when surrounded by{' '}
-              <span style={{ color: 'var(--color-accent-ember)' }}>good company</span>.
-              We want to make going out with your friends easy and fulfilling —
-              no fuss, no long planning. Just living in the moment.
-            </p>
-          </SlideUp>
+          </FadeUp>
         </div>
       </section>
 
-      {/* ── Final CTA ────────────────────────────────────────────────────── */}
-      <section className="px-6 pb-16">
+      {/* ── Final CTA — ink-black band, one warm glow, closing the loop ──── */}
+      <section className="px-6 pb-20">
         <div className="max-w-285 mx-auto">
-          <SlideUp>
+          <FadeUp>
             <div
-              className="relative rounded-3xl px-8 py-14 text-center overflow-hidden flex flex-col items-center gap-6"
-              style={{ background: 'var(--color-accent-ember)' }}
+              className="relative rounded-[28px] px-8 py-16 text-center overflow-hidden flex flex-col items-center gap-6"
+              style={{ background: 'var(--color-ink)' }}
             >
-              {/* Decorative circles */}
-              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-20" style={{ background: '#fff' }} />
-              <div className="absolute -bottom-16 -left-8 w-64 h-64 rounded-full opacity-10" style={{ background: '#fff' }} />
-              <h2
-                className="relative font-display font-black text-3xl md:text-4xl"
-                style={{ color: '#fff', letterSpacing: '-0.02em' }}
-              >
+              <div
+                className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full pointer-events-none"
+                style={{ background: 'radial-gradient(circle, rgba(241,121,45,0.35), transparent 68%)' }}
+                aria-hidden
+              />
+              <h2 className="relative font-display font-extrabold text-3xl md:text-4xl" style={{ color: '#ffffff', letterSpacing: '-0.02em' }}>
                 Hungry? Settle it.
               </h2>
-              <p className="relative text-base" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              <p className="relative text-base" style={{ color: 'rgba(255,255,255,0.7)' }}>
                 Start a party in seconds. Your crew will thank you.
               </p>
-              <Link
-                to="/welcome"
-                className="relative px-7 py-3 rounded-full font-bold text-sm transition-all hover:opacity-90 active:scale-95"
-                style={{ background: '#fff', color: 'var(--color-accent-ember)' }}
-              >
-                Start a party →
-              </Link>
+              <ShinyButton to="/welcome" className="whitespace-nowrap">
+                Start a party
+              </ShinyButton>
             </div>
-          </SlideUp>
+          </FadeUp>
         </div>
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer
-        className="px-6 py-8 border-t"
-        style={{ borderColor: 'var(--color-hairline)' }}
-      >
+      <footer className="px-6 py-10 border-t" style={{ borderColor: 'var(--color-line)' }}>
         <div className="max-w-285 mx-auto flex flex-wrap items-center justify-between gap-4">
-          <span className="font-display font-black text-lg" style={{ color: 'var(--color-accent-ember)' }}>Bond</span>
-          <div className="flex gap-6 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            <a href="#how" className="transition-opacity hover:opacity-70">How it works</a>
+          <Wordmark className="text-lg" />
+          <div className="flex gap-6 text-sm" style={{ color: 'var(--color-ink-soft)' }}>
             <Link to="/login" className="transition-opacity hover:opacity-70">Log in</Link>
           </div>
-          <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>© 2026 Bond</p>
+          <p className="text-sm" style={{ color: 'var(--color-ink-faint)' }}>© 2026 Bond</p>
         </div>
       </footer>
 

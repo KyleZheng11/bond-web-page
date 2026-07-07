@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate, redirect } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import {
   OAuthButton,
   EmailAuthForm,
@@ -8,6 +9,7 @@ import {
   signUpWithEmail,
 } from '#/features/auth'
 import { supabase } from '#/lib/supabase'
+import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/signup')({
   beforeLoad: async () => {
@@ -43,68 +45,54 @@ function SignUp() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
-      style={{ background: 'var(--color-surface-deep)' }}
-    >
-      {/* Back to welcome */}
-      <Link
-        to="/welcome"
-        className="absolute left-6 text-sm font-semibold transition-opacity hover:opacity-70"
-        style={{ color: 'var(--color-text-mist)', top: 'max(1.5rem, env(safe-area-inset-top))' }}
-      >
-        ← Back
-      </Link>
+    <div className="min-h-dvh flex flex-col items-center px-6 py-6">
+      <div className="w-full max-w-sm flex items-center justify-between">
+        <Link
+          to="/welcome"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold min-h-11 transition-opacity hover:opacity-70"
+          style={{ color: 'var(--color-ink-soft)' }}
+        >
+          <ArrowLeft size={16} aria-hidden />
+          Back
+        </Link>
+        <Link to="/" aria-label="Bond home">
+          <Wordmark className="text-xl" />
+        </Link>
+      </div>
 
       <motion.div
-        className="w-full max-w-sm flex flex-col gap-8"
+        className="w-full max-w-sm my-auto py-10"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
-        {/* Heading */}
-        <div className="text-center">
-          <h1
-            className="font-display text-4xl font-bold mb-2 leading-tight"
-            style={{ color: 'var(--color-text-cream)' }}
-          >
-            Join your people.
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
-            Create an account to start a party.
-          </p>
-        </div>
+        <div className="card p-8 flex flex-col gap-7">
+          <div>
+            <h1 className="display text-3xl mb-2">Join your people.</h1>
+            <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
+              Create an account to start a party.
+            </p>
+          </div>
 
-        {/* Social login — visually dominant, above the fold */}
-        <div className="flex flex-col gap-3">
           <OAuthButton onClick={handleGoogle} loading={oauthLoading} />
+
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px" style={{ background: 'var(--color-line)' }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--color-ink-soft)' }}>
+              or continue with email
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'var(--color-line)' }} />
+          </div>
+
+          <EmailAuthForm mode="signup" onSubmit={handleEmail} error={emailError} />
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4">
-          <div
-            className="flex-1 h-px"
-            style={{ background: 'rgba(240,228,204,0.08)' }}
-          />
-          <span className="text-xs font-medium" style={{ color: 'var(--color-text-mist)' }}>
-            or continue with email
-          </span>
-          <div
-            className="flex-1 h-px"
-            style={{ background: 'rgba(240,228,204,0.08)' }}
-          />
-        </div>
-
-        {/* Email / password fallback */}
-        <EmailAuthForm mode="signup" onSubmit={handleEmail} error={emailError} />
-
-        {/* Log in link */}
-        <p className="text-center text-sm" style={{ color: 'var(--color-text-mist)' }}>
+        <p className="text-center text-sm mt-6" style={{ color: 'var(--color-ink-soft)' }}>
           Already have an account?{' '}
           <Link
             to="/login"
             className="font-semibold transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-cream)' }}
+            style={{ color: 'var(--color-blueberry)' }}
           >
             Log in
           </Link>

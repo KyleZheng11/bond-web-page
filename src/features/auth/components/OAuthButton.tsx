@@ -1,5 +1,3 @@
-import { motion } from 'motion/react'
-
 interface OAuthButtonProps {
   onClick: () => void
   loading?: boolean
@@ -16,17 +14,14 @@ const GOOGLE_ICON = (
 
 export function OAuthButton({ onClick, loading }: OAuthButtonProps) {
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
       disabled={loading}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-semibold text-sm transition-opacity disabled:opacity-50"
-      style={{ background: '#F0E4CC', color: '#1a1a1a' }}
+      className="btn btn-secondary w-full py-3.5"
     >
       {GOOGLE_ICON}
       {loading ? 'Connecting…' : 'Continue with Google'}
-    </motion.button>
+    </button>
   )
 }

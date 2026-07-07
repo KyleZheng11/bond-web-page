@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { supabase } from '#/lib/supabase'
 import { updateUserProfile } from '#/features/auth'
 import {
@@ -9,6 +10,7 @@ import {
   StepNeverCuisines,
   StepLocation,
 } from '#/features/auth/components/OnboardingSteps'
+import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/onboarding')({
   beforeLoad: async () => {
@@ -82,21 +84,33 @@ function Onboarding() {
     (step === 3 && location.trim().length > 0)
 
   return (
-    <div
-      className="min-h-screen flex flex-col px-6 py-12"
-      style={{ background: 'var(--color-surface-deep)' }}
-    >
-      {/* Progress bar */}
-      <div className="flex gap-1.5 mb-10">
-        {Array.from({ length: STEPS }).map((_, i) => (
-          <div
-            key={i}
-            className="h-1 flex-1 rounded-full transition-all duration-300"
-            style={{
-              background: i <= step ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.12)',
-            }}
-          />
-        ))}
+    <div className="min-h-dvh flex flex-col px-6 py-6 max-w-lg mx-auto w-full">
+      {/* Header: back within steps + wordmark */}
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          disabled={step === 0}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold min-h-11 transition-opacity hover:opacity-70 disabled:opacity-0 disabled:pointer-events-none"
+          style={{ color: 'var(--color-ink-soft)' }}
+        >
+          <ArrowLeft size={16} aria-hidden />
+          Back
+        </button>
+        <Wordmark className="text-xl" />
+      </div>
+
+      {/* Progress */}
+      <div className="flex flex-col gap-2 mb-10">
+        <p className="eyebrow">Step {step + 1} of {STEPS}</p>
+        <div className="flex gap-1.5">
+          {Array.from({ length: STEPS }).map((_, i) => (
+            <div
+              key={i}
+              className="h-1.5 flex-1 rounded-full transition-all duration-300"
+              style={{ background: i <= step ? 'var(--color-sunrise)' : 'var(--color-line)' }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Step content */}
@@ -126,7 +140,7 @@ function Onboarding() {
       </div>
 
       {error && (
-        <p className="text-sm mb-4 text-center" style={{ color: 'var(--color-accent-brick)' }}>
+        <p role="alert" className="text-sm mb-4 text-center" style={{ color: 'var(--color-error)' }}>
           {error}
         </p>
       )}
@@ -134,11 +148,7 @@ function Onboarding() {
       <button
         onClick={handleNext}
         disabled={!canProceed || saving}
-        className="w-full py-4 rounded-2xl font-semibold text-base transition-all disabled:opacity-40"
-        style={{
-          background: 'var(--color-accent-ember)',
-          color: 'var(--color-on-ember)',
-        }}
+        className="btn btn-primary w-full py-4 text-base"
       >
         {saving ? 'Saving…' : step === STEPS - 1 ? 'Start using Bond' : 'Next'}
       </button>

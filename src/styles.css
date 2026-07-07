@@ -1,63 +1,636 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
 @import 'tw-animate-css';
 
 @theme inline {
-  --font-sans: 'Manrope', ui-sans-serif, sans-serif;
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, sans-serif;
+  --font-display: 'Sora', ui-sans-serif, sans-serif;
 
-  /* ── Surfaces — Sunny is a LIGHT theme ── */
-  --color-surface-deep: #FBF3E7;     /* app background (warm cream) */
-  --color-surface-petrol: #FFFFFF;   /* default surface — cards, list rows */
-  --color-surface-twilight: #F3ECE0; /* elevated / inputs / hover / dividers */
+  /* ── Quiet-shell theme ───────────────────────────────────────
+     A near-black/white/silver shell that stays disciplined so
+     Bond Blue and Orange Peel read as deliberate accents rather
+     than the whole page shouting at once — color lives in specific
+     moments (the reveal, ratings, one hero wash), not everywhere. */
 
-  /* ── Accents ── */
-  --color-accent-ember: #FF5B22;     /* PRIMARY — CTAs, active, links */
-  --color-accent-brick: #D7372A;     /* error / live / urgency */
-  --color-accent-gold: #1FA85C;      /* success / "ready" / leaf green */
-  --color-accent-aurora: #7A3CC4;    /* rare spark — celebration only */
+  /* Surfaces */
+  --color-mist: #edeef3;         /* default app canvas (silver-gray) */
+  --color-surface: #ffffff;      /* cards, list rows */
+  --color-surface-dim: #f5f6fa;  /* inputs, hover fills */
+  --color-line: #e1e3e9;         /* hairline borders on mist/white */
 
-  /* ── Text ── */
-  --color-text-cream: #211B16;       /* PRIMARY text + icons (dark ink) */
-  --color-text-mist: #8A7F72;        /* secondary — captions, placeholders */
+  /* Dark surfaces (used sparingly — footer, one hero) */
+  --color-deep: #113a5f;         /* deep blue sections */
+  --color-night: #0b2740;        /* darkest sky, on-sunrise text */
+  --color-deep-line: #24527c;    /* hairlines on deep surfaces */
 
-  /* ── On-accent text ── */
-  --color-on-ember: #FFFFFF;
-  --color-on-brick: #FFFFFF;
-  --color-on-gold: #FFFFFF;
-  --color-on-aurora: #FFFFFF;
+  /* Text — near-black, not navy: the graphic confidence of the
+     headlines comes from this being genuinely dark, not tinted. */
+  --color-ink: #0b0f14;          /* primary text + primary CTA fill */
+  --color-ink-soft: #565f6b;     /* secondary text */
+  --color-ink-faint: #8b929c;    /* placeholders, disabled */
+  --color-on-deep: #edeef3;      /* body text on deep blue */
+  --color-on-deep-soft: #9fbdd8; /* secondary text on deep blue */
 
-  /* ── Extra Sunny tokens ── */
-  --color-hairline: #EFE3D2;         /* 1px borders / dividers on cream */
-  --color-photo-placeholder: #F0D9B5; /* image slots before real photos */
+  /* Brand blues — accent, not the default surface */
+  --color-bond: #4193bd;         /* Bond Blue — focus rings, data */
+  --color-blueberry: #236797;    /* secondary — links, active text (6.1:1 on white) */
+
+  /* Sunrise accent — reserved for the reveal, ratings, one hero wash */
+  --color-sunrise: #f1792d;      /* Orange Peel — accent only */
+  --color-sunrise-deep: #d95f14;
+  --color-sunrise-soft: #fdeadd; /* warm tint chips/badges */
+  --color-ember-text: #c45510;   /* orange as text on white (4.5:1) */
+  --color-on-sunrise: #0b0f14;
+
+  /* Semantic */
+  --color-success: #1d8a5f;
+  --color-success-soft: #e3f4ec;
+  --color-error: #cf3a2c;
+  --color-error-soft: #fdeae7;
+}
+
+/* Typed so the browser can interpolate them — a plain custom property
+   holding a gradient can't be animated stop-by-stop, but a <percentage>
+   position can. This is what actually lets the orange and blue glows
+   travel to each other's corner instead of the gradient just panning
+   as one frozen block. Unsupported browsers keep the static wash. */
+@property --wash-a-x { syntax: '<percentage>'; inherits: true; initial-value: 4%; }
+@property --wash-a-y { syntax: '<percentage>'; inherits: true; initial-value: 100%; }
+@property --wash-b-x { syntax: '<percentage>'; inherits: true; initial-value: 100%; }
+@property --wash-b-y { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+
+/* Same technique for the wave button's smoke blobs — baking each blob's
+   "at X% Y%" directly into a typed custom property keeps positions in
+   the pill's own plain 0–100% coordinate space, instead of the confusing
+   nested math an oversized/cropped background layer would need. */
+@property --smoke-a-x { syntax: '<percentage>'; inherits: false; initial-value: 25%; }
+@property --smoke-a-y { syntax: '<percentage>'; inherits: false; initial-value: 30%; }
+@property --smoke-b-x { syntax: '<percentage>'; inherits: false; initial-value: 75%; }
+@property --smoke-b-y { syntax: '<percentage>'; inherits: false; initial-value: 65%; }
+@property --smoke-c-x { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --smoke-c-y { syntax: '<percentage>'; inherits: false; initial-value: 80%; }
+
+/* Two elongated "ribbon" streaks for the wave button's ribbon variant —
+   each one drifts right-to-left on its own typed position pair rather
+   than wandering in all directions like the default smoke blobs. */
+@property --ribbon-a-x { syntax: '<percentage>'; inherits: false; initial-value: 130%; }
+@property --ribbon-a-y { syntax: '<percentage>'; inherits: false; initial-value: 35%; }
+@property --ribbon-b-x { syntax: '<percentage>'; inherits: false; initial-value: 140%; }
+@property --ribbon-b-y { syntax: '<percentage>'; inherits: false; initial-value: 62%; }
+
+/* Ambient sunrise wash — kept as a named, opt-in background (not a
+   global body background). It's the one atmospheric moment: the
+   landing page uses it explicitly via .hero-wash; everywhere else
+   stays a quiet, calm silver-gray so this reads as genuinely special.
+
+   The gradient is written directly here rather than through an
+   intermediate --bg-wash custom property: routing var(--wash-a-x)
+   through a second custom property before reaching `background`
+   left the paint stuck on the initial value even though the animated
+   property itself was confirmed (via getComputedStyle) to be
+   interpolating correctly — a two-hop var() chain into a gradient
+   position just doesn't reliably repaint. One hop, directly on the
+   animated element, does.
+
+   The --wash-*-x/y values themselves aren't set here — they're
+   driven by scroll progress in JS (see ScrollWash in index.tsx), so
+   the orange and blue glow travel as the page scrolls rather than on
+   a timer. Falling back to each property's @property initial-value
+   below means the page still renders the correct static wash before
+   JS hydrates, and reduced-motion users just get that static wash
+   permanently (the scroll handler skips wiring up the live values). */
+.hero-wash {
+  background:
+    radial-gradient(ellipse 46% 40% at var(--wash-a-x) var(--wash-a-y), rgba(241, 121, 45, 0.28), transparent 58%),
+    radial-gradient(ellipse 74% 64% at var(--wash-b-x) var(--wash-b-y), rgba(65, 147, 189, 0.4), transparent 66%),
+    linear-gradient(to bottom left, #cfe4ee 0%, #e3e7eb 26%, #ececef 52%, #ece2d5 74%, #eecda6 90%, #eab787 100%);
+  background-attachment: fixed;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-surface-deep);
-  color: var(--color-text-cream);
+  background: var(--color-mist);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
 }
 
-.text-gradient-bond {
-  background: linear-gradient(to right, #211B16, #FF5B22);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  padding-bottom: 0.2em;
+:focus-visible {
+  outline: 2px solid var(--color-bond);
+  outline-offset: 2px;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+/* Keeps light text legible as it crosses the brighter, warmer parts
+   of .dawn-sky — a soft dark shadow rather than dimming the sky itself. */
+.text-on-dawn {
+  text-shadow: 0 1px 2px rgba(11, 39, 64, 0.3), 0 2px 18px rgba(11, 39, 64, 0.28);
 }
 
-@keyframes floaty {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+@layer components {
+  /* ── Type ── */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-ink);
+  }
+
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition:
+      transform 0.15s ease-out,
+      box-shadow 0.15s ease-out,
+      opacity 0.15s ease-out,
+      background-color 0.15s ease-out;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Primary CTA is the ink-black pill everywhere — Orange Peel is
+     the accent color, not the action color (this is what the brand's
+     own "accent-only usage" rule for Orange Peel actually asks for). */
+  .btn-primary {
+    background: var(--color-ink);
+    color: #ffffff;
+    box-shadow: 0 8px 20px -10px rgba(11, 15, 20, 0.5);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #1c222b;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  /* Rare warm emphasis — the reveal, a rating, a highlight moment.
+     Not the default action color; use deliberately, once per screen. */
+  .btn-accent {
+    background: linear-gradient(135deg, #f79552 0%, var(--color-sunrise) 55%, #e2670f 100%);
+    color: var(--color-on-sunrise);
+    box-shadow: 0 8px 24px -8px rgba(241, 121, 45, 0.55);
+  }
+  .btn-accent:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px -8px rgba(241, 121, 45, 0.65);
+  }
+  .btn-accent:active { transform: scale(0.97); }
+
+  .btn-dark {
+    background: var(--color-deep);
+    color: #ffffff;
+  }
+  .btn-dark:hover:not(:disabled) { background: var(--color-night); }
+
+  /* Prominent CTAs stay fully opaque even when locked — a translucent
+     45%-opacity fade reads as broken, not "not yet available". A flat
+     neutral fill keeps the locked state crisp. */
+  .btn-primary:disabled,
+  .btn-accent:disabled,
+  .btn-dark:disabled {
+    opacity: 1;
+    background: var(--color-line);
+    color: var(--color-ink-faint);
+    box-shadow: none;
+  }
+
+  .btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 1px 2px rgba(16, 48, 77, 0.05);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--color-surface-dim); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink-soft);
+  }
+  .btn-ghost:hover:not(:disabled) { color: var(--color-ink); }
+
+  /* ── Wave button ──
+     The one deliberately loud CTA treatment on the site. Brand blue →
+     sunrise orange → the same light peach used in the wordmark's "o",
+     so it reads as "Bond" even at full saturation. Reserve for primary
+     "Start a party" CTAs only — not a general button style. */
+  .wave-button {
+    position: relative;
+  }
+  /* A crisp pill silhouette (this element, unblurred) clipping a
+     blurred inner layer (::before) — putting the blur on the SAME
+     element as the overflow:hidden clip softens the pill's own edge
+     into a fuzzy blob instead of a clean shape with soft color inside
+     it, so the blur lives one layer down instead. */
+  .wave-button-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--wave-radius, 9999px);
+    overflow: hidden;
+    background: var(--color-sunrise);
+    box-shadow: 0 6px 18px rgba(246, 129, 57, 0.929);
+    z-index: 1;
+  }
+  /* Three large, overlapping color blobs (radii sized as a % of the
+     pill's own box, positions in the same 0–100% space), blended and
+     softened by blur — this is what gives the "smoke" quality, not the
+     drifting alone. The dark base above shows only in the rare gap
+     between blobs. */
+  .wave-button-fill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(48% 48% at var(--smoke-a-x) var(--smoke-a-y), color-mix(in srgb, var(--color-bond) 65%, transparent) 0%, color-mix(in srgb, var(--color-bond) 65%, transparent) 40%, transparent 100%),
+      radial-gradient(80% 80% at var(--smoke-b-x) var(--smoke-b-y), var(--color-sunrise) 0%, var(--color-sunrise) 48%, transparent 100%),
+      radial-gradient(65% 65% at var(--smoke-c-x) var(--smoke-c-y), #f7b26e 0%, #f7b26e 40%, transparent 100%);
+    filter: blur(14px) saturate(160%);
+    animation: wave-smoke-drift 17s ease-in-out infinite;
+  }
+  /* ── Ribbon variant (opt-in via <WaveButton variant="ribbon">) ──
+     Two elongated, glowing blue streaks (both blue — the orange comes
+     from the solid background underneath, matching the reference
+     photos' solid-color backdrop with a single contrasting glow
+     colour) — bright white-hot core fading into brand blue, drifting
+     left-to-right at a constant linear speed (no ease, so it never
+     speeds up or slows down) instead of the default blobs wandering in
+     every direction. Closer to a silk/light-wave reference than smoke;
+     slower and steadier, meant to read as premium rather than busy. */
+  .wave-button-fill.wave-button-fill--ribbon::before {
+    background:
+      radial-gradient(58% 22% at var(--ribbon-a-x) var(--ribbon-a-y), rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 16%, var(--color-bond) 40%, transparent 82%),
+      radial-gradient(40% 16% at var(--ribbon-b-x) var(--ribbon-b-y), rgba(255, 255, 255, 0.95) 0%, var(--color-bond) 38%, transparent 80%);
+    filter: blur(5px) saturate(170%);
+    animation: wave-ribbon-a 24s linear infinite, wave-ribbon-b 29s linear infinite;
+  }
+  /* display:block + width:100% (rather than the inline default) so
+     this can host either a plain centered label (text-align handles
+     that case) or a full custom layout — like the home-page "Start a
+     new party" card's icon-and-copy row — without the label's own box
+     shrink-wrapping around it. */
+  .wave-button-label {
+    position: relative;
+    z-index: 10;
+    display: block;
+    width: 100%;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    text-align: center;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wave-button-fill::before,
+    .wave-button-fill.wave-button-fill--ribbon::before { animation: none; }
+  }
+
+  /* ── Shiny button ──
+     A glossy pill CTA: the orange gradient continuously shimmers via
+     background-position (not just on hover), plus an outer orange glow
+     and inset highlight/shadow pair for a glossy, slightly 3D surface.
+     animation-direction: alternate is what keeps the loop seamless —
+     it eases back the way it came instead of snapping back to a start
+     position, so there's no visible jump. */
+  .shiny-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.75rem;
+    padding: 0 2.5rem;
+    border-radius: 9999px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    background: linear-gradient(325deg, #f1792d 0%, #ffb37a 55%, #f1792d 90%);
+    background-size: 280% auto;
+    animation: shiny-button-shimmer 6s ease-in-out infinite alternate;
+    box-shadow:
+      0 10px 28px -8px rgba(241, 121, 45, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  }
+  .shiny-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 14px 32px -8px rgba(241, 121, 45, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.18);
+  }
+  .shiny-button:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .shiny-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    animation-play-state: paused;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shiny-button { animation: none; }
+  }
+
+  /* ── Floating pill nav ──
+     A rounded, blurred island rather than a full-width bar — the
+     header reads as one more object floating on the quiet canvas. */
+  .pill-nav {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(11, 15, 20, 0.07);
+    border-radius: 9999px;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    box-shadow: 0 10px 30px -14px rgba(11, 15, 20, 0.18);
+  }
+
+  /* Same frosted-glass language as .pill-nav, generously rounded
+     instead of a full capsule — for content blocks that sit directly
+     on the wash and should still let its color breathe through them,
+     not a card that could be mistaken for content the wash stops at. */
+  .wash-panel {
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid rgba(11, 15, 20, 0.08);
+    border-radius: 32px;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: 0 20px 50px -24px rgba(11, 15, 20, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(16, 48, 77, 0.06);
+  }
+
+  /* Glass surface — the same frosted-white wash-panel language as the
+     landing page's stats block, at card scale (20px radius instead of
+     32px). Translucent enough to let the wash breathe through rather
+     than reading as an opaque tinted box. Used for content that should
+     feel light/ambient (party history); form-heavy surfaces keep the
+     opaque .card. */
+  .glass {
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    box-shadow: 0 20px 50px -24px rgba(11, 15, 20, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* ── Hero "start a party" card ──
+     A compact slice of the sunrise, tuned for a short wide box: deep
+     blue on the left so the copy always has guaranteed contrast, a
+     warm glow confined to the right where the action button — the
+     sun — sits. Not the full-viewport .dawn-sky gradient, which reads
+     as a random low-contrast crossover band at this aspect ratio. */
+  .party-cta {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(100deg, #0d2c48 0%, #163f66 34%, #2f6a92 58%, #d98a53 100%);
+    box-shadow:
+      0 18px 40px -18px rgba(13, 44, 72, 0.6),
+      0 6px 18px -8px rgba(241, 121, 45, 0.28);
+  }
+  .party-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 90% 50%, rgba(255, 186, 122, 0.6), transparent 62%);
+    pointer-events: none;
+  }
+  .party-cta-icon {
+    position: relative;
+    background: var(--color-sunrise);
+    color: var(--color-on-sunrise);
+    box-shadow:
+      0 0 0 6px rgba(241, 121, 45, 0.2),
+      0 8px 18px -4px rgba(241, 121, 45, 0.6);
+  }
+
+  /* ── Forms ── */
+  .field-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    margin-bottom: 0.375rem;
+  }
+
+  .input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink);
+    transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+  }
+  .input::placeholder { color: var(--color-ink-faint); }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-bond);
+    box-shadow: 0 0 0 3px rgba(65, 147, 189, 0.2);
+  }
+
+  /* ── Chips (selectable pills) ── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 36px;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink);
+    transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.15s ease-out;
+  }
+  .chip:hover { border-color: var(--color-bond); }
+  .chip:active { transform: scale(0.96); }
+  .chip-active {
+    background: var(--color-deep);
+    border-color: var(--color-deep);
+    color: #ffffff;
+  }
+  .chip-active:hover { border-color: var(--color-deep); }
+  .chip-danger.chip-active {
+    background: var(--color-error);
+    border-color: var(--color-error);
+  }
+
+  /* Glass-context chip — for selectable pills that sit inside a
+     translucent .glass box (party hub taste zone) instead of the
+     opaque .card default. More solid than the box behind it so it
+     still reads clearly as a button, but still lets some blur/color
+     through rather than going fully flat white. Selecting one turns
+     it orange — the accent color — instead of navy. */
+  .chip-glass {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 36px;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    color: var(--color-ink);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, transform 0.15s ease-out;
+  }
+  .chip-glass:hover { border-color: var(--color-sunrise); }
+  .chip-glass:active { transform: scale(0.96); }
+  .chip-glass-active {
+    background: var(--color-sunrise);
+    border-color: var(--color-sunrise);
+    color: var(--color-on-sunrise);
+  }
+  .chip-glass-active:hover { border-color: var(--color-sunrise-deep); }
 }
 
-.video-float-frame {
-  animation: floaty 6s ease-in-out infinite;
+/* ── Dawn sky (hero / dark headers) ─────────────────────────────
+   Bright pastel daybreak: pale blue up top easing into a warm
+   peach-orange horizon glow — brighter throughout than a night sky,
+   with just enough depth at the very top to hold small white text. */
+.dawn-sky {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    #2a5680 0%,
+    #3d7aa2 20%,
+    #5b9bbd 40%,
+    #8ebdcd 58%,
+    #c9d6c8 72%,
+    #f0c79e 86%,
+    #f6b083 100%
+  );
+}
+
+/* Sun glow — breathes slowly; pure opacity/transform so it stays cheap */
+.dawn-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -18rem;
+  width: 42rem;
+  height: 42rem;
+  margin-left: -21rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(255, 214, 168, 0.98) 0%,
+    rgba(247, 178, 110, 0.75) 30%,
+    rgba(241, 121, 45, 0.4) 55%,
+    rgba(241, 121, 45, 0.12) 72%,
+    transparent 85%
+  );
+  animation: sun-breathe 9s ease-in-out infinite;
+}
+
+/* Warm horizon band above the sun */
+.dawn-horizon {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 187, 130, 0.28) 55%, rgba(247, 165, 105, 0.5) 100%);
+}
+
+@keyframes sun-breathe {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-14px) scale(1.03); opacity: 1; }
+}
+
+@keyframes sun-rise {
+  from { transform: translateY(6rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 0.9; }
+}
+
+.dawn-sun-rise {
+  animation: sun-rise 1.6s cubic-bezier(0.22, 1, 0.36, 1) both, sun-breathe 9s ease-in-out 1.6s infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Each of the 3 blobs (its own --smoke-*-x/-y pair) wanders its own
+   slow, uneven loop through the pill's plain 0–100% coordinate space —
+   none share a path, so they drift past and blend into each other
+   rather than orbiting in visible lockstep. */
+@keyframes wave-smoke-drift {
+  0%   { --smoke-a-x: 25%; --smoke-a-y: 30%; --smoke-b-x: 75%; --smoke-b-y: 65%; --smoke-c-x: 50%; --smoke-c-y: 80%; }
+  22%  { --smoke-a-x: 45%; --smoke-a-y: 55%; --smoke-b-x: 55%; --smoke-b-y: 25%; --smoke-c-x: 70%; --smoke-c-y: 55%; }
+  47%  { --smoke-a-x: 65%; --smoke-a-y: 35%; --smoke-b-x: 30%; --smoke-b-y: 60%; --smoke-c-x: 25%; --smoke-c-y: 70%; }
+  71%  { --smoke-a-x: 35%; --smoke-a-y: 65%; --smoke-b-x: 70%; --smoke-b-y: 40%; --smoke-c-x: 55%; --smoke-c-y: 20%; }
+  100% { --smoke-a-x: 25%; --smoke-a-y: 30%; --smoke-b-x: 75%; --smoke-b-y: 65%; --smoke-c-x: 50%; --smoke-c-y: 80%; }
+}
+
+/* Ribbon variant: constant left-to-right drift (X only ever increases,
+   never reverses) with an up/down wobble layered on top so it reads as
+   an undulating wave rather than a robotic straight line. Both ends
+   (-20%/-25% up to 130%/140%) sit fully outside the visible 0–100%
+   pill, so the jump back to the start at the loop point is never seen.
+   linear timing (not ease-in-out) keeps the speed constant throughout
+   instead of surging and slowing. */
+@keyframes wave-ribbon-a {
+  0%   { --ribbon-a-x: -20%; --ribbon-a-y: 28%; }
+  25%  { --ribbon-a-x: 5%;   --ribbon-a-y: 48%; }
+  50%  { --ribbon-a-x: 40%;  --ribbon-a-y: 26%; }
+  75%  { --ribbon-a-x: 78%;  --ribbon-a-y: 50%; }
+  100% { --ribbon-a-x: 130%; --ribbon-a-y: 30%; }
+}
+
+@keyframes wave-ribbon-b {
+  0%   { --ribbon-b-x: -25%; --ribbon-b-y: 64%; }
+  25%  { --ribbon-b-x: 9%;   --ribbon-b-y: 48%; }
+  50%  { --ribbon-b-x: 46%;  --ribbon-b-y: 70%; }
+  75%  { --ribbon-b-x: 88%;  --ribbon-b-y: 46%; }
+  100% { --ribbon-b-x: 140%; --ribbon-b-y: 66%; }
+}
+
+/* animation-direction: alternate (set where this is used) plays this
+   0%->100% then eases back 100%->0% on the same easing curve, so the
+   reversal is smooth — there's no snap-back "restart" the way a plain
+   `infinite` loop of a one-way keyframe would have. */
+@keyframes shiny-button-shimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dawn-sun, .dawn-sun-rise {
+    animation: none;
+    opacity: 0.9;
+    transform: none;
+  }
 }

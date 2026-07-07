@@ -1,11 +1,14 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
+import { Star, Check } from 'lucide-react'
 import { useAuth } from '#/features/auth'
 import { finalizeVoting } from '#/features/votes'
 import { getCandidates, submitVote } from '#/features/votes'
 import { PartyProgressBar } from '#/features/parties'
 import { supabase } from '#/lib/supabase'
+import { getRecommendation } from '#/features/recommendations'
 import type { Candidate } from '#/features/recommendations'
+import { AppHeader, ShinyButton } from '#/components/ui'
 
 export const Route = createFileRoute('/_auth/party/$partyId/vote')({ component: VoteScreen })
 
@@ -30,42 +33,35 @@ function CandidateCard({
 
   return (
     <div
-      className="flex flex-col rounded-2xl overflow-hidden transition-all"
-      style={{
-        background: 'var(--color-surface-petrol)',
-        border: `1px solid ${selected ? 'var(--color-accent-ember)' : 'var(--color-hairline)'}`,
-      }}
+      className="card flex flex-col overflow-hidden transition-colors"
+      style={selected ? { borderColor: 'var(--color-bond)', borderWidth: '1.5px' } : undefined}
     >
       {/* Photo */}
       {place.photoUrl && (
-        <div className="relative h-36 overflow-hidden">
-          <img src={place.photoUrl} alt={place.name} className="w-full h-full object-cover" />
+        <div className="relative h-40 overflow-hidden">
+          <img src={place.photoUrl} alt={place.name} loading="lazy" className="w-full h-full object-cover" />
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to top, rgba(33,27,22,0.55) 0%, transparent 60%)' }}
+            style={{ background: 'linear-gradient(to top, rgba(11,39,64,0.6) 0%, transparent 55%)' }}
           />
           <span
-            className="absolute bottom-3 left-3 text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(33,27,22,0.55)', color: '#fff' }}
+            className="absolute bottom-3 left-3 text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(11,39,64,0.65)', color: '#ffffff' }}
           >
             {slotLabel}
           </span>
         </div>
       )}
 
-      <div className="flex flex-col gap-3 px-4 py-4">
+      <div className="flex flex-col gap-3 px-5 py-4">
         {!place.photoUrl && (
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-mist)' }}>
-            {slotLabel}
-          </span>
+          <span className="eyebrow">{slotLabel}</span>
         )}
 
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-display text-lg font-semibold leading-tight" style={{ color: 'var(--color-text-cream)' }}>
-            {place.name}
-          </h3>
+          <h3 className="font-display text-lg font-bold leading-tight">{place.name}</h3>
           {price && (
-            <span className="shrink-0 text-sm font-bold mt-0.5" style={{ color: 'var(--color-accent-gold)' }}>
+            <span className="shrink-0 text-sm font-bold mt-0.5" style={{ color: 'var(--color-blueberry)' }}>
               {price}
             </span>
           )}
@@ -73,8 +69,8 @@ function CandidateCard({
 
         <div className="flex items-center gap-3 flex-wrap">
           {place.rating > 0 && (
-            <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-              <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
+            <span className="flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--color-ink-soft)' }}>
+              <Star size={14} fill="var(--color-sunrise)" color="var(--color-sunrise)" aria-hidden />
               {place.rating}
               {place.reviewCount > 0 && (
                 <span className="text-xs">({place.reviewCount.toLocaleString()})</span>
@@ -82,7 +78,7 @@ function CandidateCard({
             </span>
           )}
           {place.address && (
-            <span className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
+            <span className="text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
               {place.address}
             </span>
           )}
@@ -90,13 +86,10 @@ function CandidateCard({
 
         <button
           onClick={onVote}
-          className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
-          style={{
-            background: selected ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-            color: selected ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-          }}
+          className={`btn w-full py-3 !rounded-xl text-sm ${selected ? 'btn-dark' : 'btn-secondary'}`}
         >
-          {selected ? '✓ Your pick' : 'Vote for this'}
+          {selected && <Check size={15} aria-hidden />}
+          {selected ? 'Your pick' : 'Vote for this'}
         </button>
       </div>
     </div>
@@ -132,11 +125,36 @@ function VoteScreen() {
     load().finally(() => setLoading(false))
   }, [load])
 
+  // Poll every 2s so vote counts and the progress bar stay accurate even if
+  // a guest's broadcast never arrives.
+  useEffect(() => {
+    const interval = setInterval(load, 2000)
+    return () => clearInterval(interval)
+  }, [load])
+
+  // Once this user has voted, also poll for the final result as a guaranteed
+  // fallback in case the result_locked broadcast doesn't arrive.
+  useEffect(() => {
+    if (!myVote) return
+    const interval = setInterval(async () => {
+      try {
+        const rec = await getRecommendation({ data: { partyId } })
+        if (rec.restaurant_id !== 'pending') {
+          navigate({ to: '/party/$partyId/result', params: { partyId } })
+        }
+      } catch { /* not ready yet */ }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [myVote, partyId, navigate])
+
   // Real-time: refresh when anyone votes
   useEffect(() => {
     const channel = supabase
       .channel(`vote:${partyId}`)
       .on('broadcast', { event: 'vote_cast' }, () => load())
+      .on('broadcast', { event: 'result_locked' }, () => {
+        navigate({ to: '/party/$partyId/result', params: { partyId } })
+      })
       .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'parties' },
         (payload) => {
@@ -164,6 +182,11 @@ function VoteScreen() {
     setFinalizing(true)
     try {
       await finalizeVoting({ data: { partyId } })
+      // Broadcast so every guest jumps to the result immediately instead of
+      // waiting on their own poll cycle.
+      const ch = supabase.channel(`vote:${partyId}`)
+      await ch.send({ type: 'broadcast', event: 'result_locked', payload: {} })
+      supabase.removeChannel(ch)
       navigate({ to: '/party/$partyId/result', params: { partyId } })
     } catch {
       setFinalizing(false)
@@ -172,100 +195,82 @@ function VoteScreen() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-surface-deep)' }}>
-        <header className="flex items-center gap-4 px-6 py-5">
-          <div className="h-4 w-12 rounded animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        </header>
-        <main className="flex-1 px-6 py-4 max-w-lg mx-auto w-full flex flex-col gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-          ))}
+      <div className="min-h-dvh flex flex-col">
+        <div className="max-w-lg md:max-w-285 mx-auto w-full">
+          <AppHeader backTo="/home" wide />
+        </div>
+        <main className="flex-1 px-6 py-4 max-w-lg md:max-w-285 mx-auto w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 rounded-[20px] animate-pulse" style={{ background: 'var(--color-surface)' }} />
+            ))}
+          </div>
         </main>
       </div>
     )
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      <header className="flex flex-col px-6 pt-5 pb-3">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/party/$partyId/hub"
-            params={{ partyId }}
-            className="text-sm font-semibold transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-mist)' }}
-          >
-            ← Back
-          </Link>
-          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-            Bond
-          </span>
+    <div className="min-h-dvh flex flex-col">
+      <div className="max-w-lg md:max-w-285 mx-auto w-full">
+        <AppHeader backTo={`/party/${partyId}/hub`} wide />
+        <div className="px-6">
+          <PartyProgressBar step={3} />
         </div>
-        <PartyProgressBar step={3} />
-      </header>
+      </div>
 
-      <main className="flex-1 px-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-5">
+      <main className="flex-1 px-6 pb-10 pt-4 max-w-lg md:max-w-285 mx-auto w-full flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <h1 className="font-display text-3xl font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-            Vote for your pick.
-          </h1>
+          <h1 className="display text-3xl">Vote for your pick.</h1>
           {/* Voting progress bar — visible to the leader only */}
           {isLeader && totalVoters > 0 && (
             <div className="flex flex-col gap-1.5 pt-1">
-              <div
-                className="h-1.5 rounded-full overflow-hidden"
-                style={{ background: 'var(--color-surface-petrol)' }}
-              >
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-line)' }}>
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${Math.round((votesCast / totalVoters) * 100)}%`,
-                    background: allVoted ? 'var(--color-accent-gold)' : 'var(--color-accent-ember)',
+                    background: allVoted ? 'var(--color-success)' : 'var(--color-sunrise)',
                   }}
                 />
               </div>
-              <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+              <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
                 {votesCast} of {totalVoters} voted{allVoted ? ' — all in!' : ''}
               </p>
             </div>
           )}
         </div>
 
-        {candidates.map((c) => (
-          <CandidateCard
-            key={c.place.id}
-            candidate={c}
-            selected={myVote === c.place.id}
-            onVote={() => handleVote(c.place.id)}
-          />
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {candidates.map((c) => (
+            <CandidateCard
+              key={c.place.id}
+              candidate={c}
+              selected={myVote === c.place.id}
+              onVote={() => handleVote(c.place.id)}
+            />
+          ))}
+        </div>
 
         {/* Only the party leader can lock in the result */}
         {isLeader && myVote && (
-          <button
+          <ShinyButton
             onClick={handleFinalize}
             disabled={finalizing}
-            className="w-full py-4 rounded-2xl font-semibold text-base transition-opacity disabled:opacity-50"
-            style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+            className="w-full md:max-w-sm md:mx-auto"
           >
             {finalizing ? 'Locking in…' : allVoted ? 'See results' : 'Lock in result'}
-          </button>
+          </ShinyButton>
         )}
 
         {isLeader && myVote && !allVoted && (
-          <p className="text-xs text-center -mt-2" style={{ color: 'var(--color-text-mist)' }}>
+          <p className="text-xs text-center -mt-2" style={{ color: 'var(--color-ink-soft)' }}>
             Still waiting on {totalVoters - votesCast} vote{totalVoters - votesCast !== 1 ? 's' : ''}. You can lock in early.
           </p>
         )}
 
         {!isLeader && myVote && (
-          <div
-            className="px-4 py-4 rounded-2xl text-sm text-center"
-            style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)' }}
-          >
+          <div className="card px-4 py-4 text-sm text-center md:max-w-sm md:mx-auto" style={{ color: 'var(--color-ink-soft)' }}>
             You're locked in. The host will reveal the result.
           </div>
         )}

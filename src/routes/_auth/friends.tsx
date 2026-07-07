@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { useAuth } from '#/features/auth'
@@ -11,23 +11,11 @@ import {
   generateFriendInvite,
 } from '#/features/friends'
 import type { Friend, FriendRequest, UserSearchResult } from '#/features/friends'
+import { AppHeader, Avatar } from '#/components/ui'
 
 export const Route = createFileRoute('/_auth/friends')({ component: Friends })
 
 type Tab = 'search' | 'requests' | 'friends'
-
-function Avatar({ name, size = 'md' }: { name: string | null; size?: 'sm' | 'md' }) {
-  const letter = (name ?? '?')[0].toUpperCase()
-  const cls = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
-  return (
-    <div
-      className={`${cls} rounded-full flex items-center justify-center font-bold shrink-0`}
-      style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-accent-gold)' }}
-    >
-      {letter}
-    </div>
-  )
-}
 
 function Friends() {
   const { user } = useAuth()
@@ -127,53 +115,42 @@ function Friends() {
   ]
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      {/* Header */}
-      <header className="flex items-center gap-4 px-6 py-5">
-        <Link
-          to="/home"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
-        >
-          ← Back
-        </Link>
-        <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
-          Friends
-        </span>
-      </header>
-
-      {/* Tab bar */}
-      <div
-        className="flex gap-1 mx-6 p-1 rounded-2xl"
-        style={{ background: 'var(--color-surface-petrol)' }}
-      >
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-            style={{
-              background: tab === t.id ? 'var(--color-surface-twilight)' : 'transparent',
-              color: tab === t.id ? 'var(--color-text-cream)' : 'var(--color-text-mist)',
-            }}
-          >
-            {t.label}
-            {t.badge ? (
-              <span
-                className="text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-              >
-                {t.badge}
-              </span>
-            ) : null}
-          </button>
-        ))}
+    <div className="min-h-dvh flex flex-col">
+      <div className="max-w-lg md:max-w-285 mx-auto w-full">
+        <AppHeader backTo="/home" wide />
       </div>
 
-      <main className="flex-1 px-6 pt-6 pb-10 max-w-lg mx-auto w-full flex flex-col gap-4">
+      <div className="max-w-lg md:max-w-285 mx-auto w-full px-6 pt-2">
+        <h1 className="display text-3xl mb-5">Friends</h1>
+
+        {/* Tab bar */}
+        <div className="card flex gap-1 p-1 !rounded-full !shadow-none">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              aria-pressed={tab === t.id}
+              className="flex-1 flex items-center justify-center gap-1.5 min-h-10 rounded-full text-sm font-semibold cursor-pointer transition-colors"
+              style={{
+                background: tab === t.id ? 'var(--color-deep)' : 'transparent',
+                color: tab === t.id ? '#ffffff' : 'var(--color-ink-soft)',
+              }}
+            >
+              {t.label}
+              {t.badge ? (
+                <span
+                  className="text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--color-sunrise)', color: 'var(--color-on-sunrise)' }}
+                >
+                  {t.badge}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="flex-1 px-6 pt-5 pb-10 max-w-lg md:max-w-285 mx-auto w-full flex flex-col gap-4">
 
         {/* ── Search tab ── */}
         {tab === 'search' && (
@@ -190,112 +167,94 @@ function Friends() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{
-                background: 'var(--color-surface-petrol)',
-                border: '1px solid rgba(240,228,204,0.08)',
-                color: 'var(--color-text-cream)',
-              }}
+              className="input"
             />
 
             {searching && (
-              <p className="text-sm text-center" style={{ color: 'var(--color-text-mist)' }}>
+              <p className="text-sm text-center" style={{ color: 'var(--color-ink-soft)' }}>
                 Searching…
               </p>
             )}
 
             {!searching && query.trim().length >= 2 && searchResults.length === 0 && (
-              <p className="text-sm text-center py-6" style={{ color: 'var(--color-text-mist)' }}>
+              <p className="text-sm text-center py-6" style={{ color: 'var(--color-ink-soft)' }}>
                 No users found.
               </p>
             )}
 
-            {searchResults.map((result) => {
-              const isFriend = friendIds.has(result.id)
-              const isPending = sentToIds.has(result.id)
-              return (
-                <div
-                  key={result.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                  style={{ background: 'var(--color-surface-petrol)' }}
-                >
-                  <Avatar name={result.display_name} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {result.display_name ?? result.email.split('@')[0]}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
-                      {result.email}
-                    </p>
-                  </div>
-                  {isFriend ? (
-                    <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--color-accent-gold)' }}>
-                      Friends
-                    </span>
-                  ) : isPending ? (
-                    <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--color-text-mist)' }}>
-                      Pending
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleSendRequest(result.id)}
-                      className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-                      style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-                    >
-                      Add
-                    </button>
-                  )}
-                </div>
-              )
-            })}
+            {searchResults.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {searchResults.map((result) => {
+                  const isFriend = friendIds.has(result.id)
+                  const isPending = sentToIds.has(result.id)
+                  return (
+                    <div key={result.id} className="card flex items-center gap-3 px-4 py-3">
+                      <Avatar name={result.display_name} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">
+                          {result.display_name ?? result.email.split('@')[0]}
+                        </p>
+                        <p className="text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
+                          {result.email}
+                        </p>
+                      </div>
+                      {isFriend ? (
+                        <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--color-success)' }}>
+                          Friends
+                        </span>
+                      ) : isPending ? (
+                        <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--color-ink-soft)' }}>
+                          Pending
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleSendRequest(result.id)}
+                          className="btn btn-primary shrink-0 !min-h-9 !py-1.5 !px-4 text-xs"
+                        >
+                          Add
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
 
             {/* SMS invite section */}
-            <div
-              className="flex flex-col gap-3 px-4 py-4 rounded-2xl mt-2"
-              style={{ background: 'var(--color-surface-petrol)', border: '1px solid rgba(240,228,204,0.08)' }}
-            >
+            <div className="card flex flex-col gap-3 px-5 py-5 mt-2">
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                  Invite via SMS
-                </p>
-                <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+                <p className="font-display font-semibold text-sm">Invite via SMS</p>
+                <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
                   Share a link — anyone who taps it gets added as your friend.
                 </p>
               </div>
 
               {!inviteLink ? (
-                <button
-                  onClick={handleGenerateInvite}
-                  className="py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
-                >
+                <button onClick={handleGenerateInvite} className="btn btn-dark !rounded-xl py-3 text-sm">
                   Generate invite link
                 </button>
               ) : (
                 <div className="flex flex-col gap-2">
                   <div
                     className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                    style={{ background: 'var(--color-surface-twilight)' }}
+                    style={{ background: 'var(--color-surface-dim)', border: '1px solid var(--color-line)' }}
                   >
-                    <span className="flex-1 text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
+                    <span className="flex-1 text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
                       {inviteLink}
                     </span>
                     <button
                       onClick={copyInviteLink}
-                      className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-opacity hover:opacity-80"
-                      style={{
-                        background: copied ? 'var(--color-surface-petrol)' : 'var(--color-accent-ember)',
-                        color: copied ? 'var(--color-text-mist)' : 'var(--color-on-ember)',
-                      }}
+                      className="shrink-0 text-xs font-bold px-2.5 py-1.5 rounded-lg cursor-pointer transition-opacity hover:opacity-85"
+                      style={
+                        copied
+                          ? { background: 'var(--color-success-soft)', color: 'var(--color-success)' }
+                          : { background: 'var(--color-deep)', color: '#ffffff' }
+                      }
                     >
                       {copied ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
-                  <button
-                    onClick={shareInviteLink}
-                    className="py-3 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-80"
-                    style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-cream)' }}
-                  >
+                  <button onClick={shareInviteLink} className="btn btn-secondary !rounded-xl py-3 text-sm">
                     Share
                   </button>
                 </div>
@@ -314,52 +273,48 @@ function Friends() {
             transition={{ duration: 0.2 }}
           >
             {loadingLists ? (
-              [1, 2].map((i) => (
-                <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-16 rounded-[20px] animate-pulse" style={{ background: 'var(--color-surface)' }} />
+                ))}
+              </div>
             ) : requests.length === 0 ? (
-              <div className="py-16 text-center flex flex-col gap-2">
-                <p className="font-display text-xl font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                  No pending requests.
-                </p>
-                <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+              <div className="card py-14 text-center flex flex-col gap-2">
+                <p className="display text-xl">No pending requests.</p>
+                <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
                   When someone adds you, they'll appear here.
                 </p>
               </div>
             ) : (
-              requests.map((req) => (
-                <div
-                  key={req.friendshipId}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                  style={{ background: 'var(--color-surface-petrol)' }}
-                >
-                  <Avatar name={req.displayName} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {req.displayName ?? req.email.split('@')[0]}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
-                      {req.email}
-                    </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {requests.map((req) => (
+                  <div key={req.friendshipId} className="card flex items-center gap-3 px-4 py-3">
+                    <Avatar name={req.displayName} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {req.displayName ?? req.email.split('@')[0]}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
+                        {req.email}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => handleRespond(req.friendshipId, true)}
+                        className="btn btn-primary !min-h-9 !py-1.5 !px-4 text-xs"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleRespond(req.friendshipId, false)}
+                        className="btn btn-secondary !min-h-9 !py-1.5 !px-4 text-xs"
+                      >
+                        Decline
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      onClick={() => handleRespond(req.friendshipId, true)}
-                      className="text-xs font-bold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-                      style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleRespond(req.friendshipId, false)}
-                      className="text-xs font-bold px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
-                      style={{ background: 'var(--color-surface-twilight)', color: 'var(--color-text-mist)' }}
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </motion.div>
         )}
@@ -374,43 +329,41 @@ function Friends() {
             transition={{ duration: 0.2 }}
           >
             {loadingLists ? (
-              [1, 2, 3].map((i) => (
-                <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-              ))
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 rounded-[20px] animate-pulse" style={{ background: 'var(--color-surface)' }} />
+                ))}
+              </div>
             ) : friends.length === 0 ? (
-              <div className="py-16 text-center flex flex-col gap-2">
-                <p className="font-display text-xl font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                  No friends yet.
-                </p>
-                <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+              <div className="card py-14 text-center flex flex-col gap-2">
+                <p className="display text-xl">No friends yet.</p>
+                <p className="text-sm" style={{ color: 'var(--color-ink-soft)' }}>
                   Search for people or send an invite link.
                 </p>
                 <button
                   onClick={() => setTab('search')}
-                  className="mt-2 text-sm font-semibold self-center"
-                  style={{ color: 'var(--color-accent-ember)' }}
+                  className="mt-2 text-sm font-semibold self-center cursor-pointer transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--color-blueberry)' }}
                 >
                   Find friends →
                 </button>
               </div>
             ) : (
-              friends.map((friend) => (
-                <div
-                  key={friend.friendshipId}
-                  className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                  style={{ background: 'var(--color-surface-petrol)' }}
-                >
-                  <Avatar name={friend.displayName} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-text-cream)' }}>
-                      {friend.displayName ?? friend.email.split('@')[0]}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
-                      {friend.email}
-                    </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {friends.map((friend) => (
+                  <div key={friend.friendshipId} className="card flex items-center gap-3 px-4 py-3">
+                    <Avatar name={friend.displayName} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {friend.displayName ?? friend.email.split('@')[0]}
+                      </p>
+                      <p className="text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
+                        {friend.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </motion.div>
         )}

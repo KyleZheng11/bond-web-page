@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { Star, Navigation, Share2, Compass } from 'lucide-react'
 import { getRecommendation } from '#/features/recommendations'
 import { PartyProgressBar } from '#/features/parties'
 import type { Place } from '#/features/recommendations'
 import type { Tables } from '#/types/database'
+import { AppHeader, Spinner } from '#/components/ui'
 
 export const Route = createFileRoute('/_auth/party/$partyId/result')({ component: Result })
 
@@ -45,28 +47,16 @@ function Result() {
   // ── Searching / loading state ───────────────────────────────────────────────
   if (loading) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
-        style={{ background: 'var(--color-surface-deep)' }}
-      >
-        <div className="flex flex-col items-center gap-6 max-w-xs">
-          {/* Spinner */}
-          <div
-            className="w-12 h-12 rounded-full"
-            style={{
-              border: '4px solid var(--color-hairline)',
-              borderTopColor: 'var(--color-accent-ember)',
-              animation: 'spin .8s linear infinite',
-            }}
-          />
-          <div className="flex flex-col gap-2">
-            <h1
-              className="font-display text-3xl font-black leading-tight"
-              style={{ color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}
-            >
+      <div className="dawn-sky min-h-dvh flex flex-col items-center justify-center px-6 text-center">
+        <div className="dawn-sun dawn-sun-rise" aria-hidden />
+        <div className="dawn-horizon" aria-hidden />
+        <div className="relative z-10 flex flex-col items-center gap-6 max-w-xs">
+          <Spinner size={48} dark />
+          <div className="flex flex-col gap-2 text-on-dawn">
+            <h1 className="font-display font-bold text-3xl leading-tight" style={{ color: '#ffffff', letterSpacing: '-0.02em' }}>
               Reading the room…
             </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-mist)' }}>
+            <p className="text-sm" style={{ color: 'var(--color-on-deep)' }}>
               Bond is picking the perfect spot for your crew.
             </p>
           </div>
@@ -78,21 +68,16 @@ function Result() {
   // ── Error / no result yet ───────────────────────────────────────────────────
   if (!rec) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center gap-4 px-6"
-        style={{ background: 'var(--color-surface-deep)' }}
-      >
-        <p className="font-display text-xl" style={{ color: 'var(--color-text-cream)' }}>
-          No result yet.
-        </p>
-        <p className="text-sm text-center" style={{ color: 'var(--color-text-mist)' }}>
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6">
+        <p className="display text-xl">No result yet.</p>
+        <p className="text-sm text-center" style={{ color: 'var(--color-ink-soft)' }}>
           The recommendation hasn't been generated yet, or something went wrong.
         </p>
         <Link
           to="/party/$partyId/hub"
           params={{ partyId }}
-          className="mt-2 text-sm font-semibold"
-          style={{ color: 'var(--color-accent-ember)' }}
+          className="mt-2 text-sm font-semibold transition-opacity hover:opacity-70"
+          style={{ color: 'var(--color-blueberry)' }}
         >
           ← Back to party
         </Link>
@@ -112,159 +97,140 @@ function Result() {
 
   // ── Resolved view ───────────────────────────────────────────────────────────
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      <header className="flex flex-col px-6 pt-5 pb-3">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/home"
-            className="text-sm font-semibold transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-mist)' }}
+    <div className="min-h-dvh flex flex-col">
+      {/* Nav, progress bar, and the photo all share one max-width so
+          their edges line up — the photo used to run wider than the
+          capped nav above it, leaving the header looking stranded on
+          large screens. */}
+      <div className="max-w-285 mx-auto w-full">
+        <AppHeader backTo="/home" backLabel="Home" wide />
+        <div className="px-6">
+          <PartyProgressBar step={4} />
+        </div>
+
+        {/* Photo block */}
+        <div className="mt-2 mx-6 h-72 md:h-[56vh] md:max-h-125 relative rounded-[20px] overflow-hidden flex items-start px-4 pt-4">
+          {place.photoUrl ? (
+            <>
+              <img
+                src={place.photoUrl}
+                alt={rec.restaurant_name}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(to bottom, rgba(11,39,64,0.5) 0%, transparent 50%)' }}
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 dawn-sky">
+              <div className="dawn-sun" aria-hidden />
+              <div className="dawn-horizon" aria-hidden />
+            </div>
+          )}
+          <span
+            className="relative text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full"
+            style={{ background: 'var(--color-sunrise)', color: 'var(--color-on-sunrise)' }}
           >
-            ← Home
-          </Link>
-          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-            Bond
+            Bond's pick
           </span>
         </div>
-        <PartyProgressBar step={4} />
-      </header>
-
-      {/* Photo block */}
-      <div className="mx-[22px] mt-2 h-52 relative rounded-[18px] overflow-hidden flex items-start px-4 pt-4">
-        {place.photoUrl ? (
-          <>
-            <img
-              src={place.photoUrl}
-              alt={rec.restaurant_name}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: 'linear-gradient(to bottom, rgba(33,27,22,0.50) 0%, transparent 50%)' }}
-            />
-          </>
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: 'var(--color-photo-placeholder)' }}
-          />
-        )}
-        <span
-          className="relative text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
-          style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-        >
-          Bond's pick
-        </span>
       </div>
 
-      <main className="flex-1 px-[22px] pb-10 max-w-lg mx-auto w-full flex flex-col gap-6 pt-6">
+      {/* Below md, this is a single column in DOM order (unchanged
+          from the original mobile layout). At md+ it splits into a
+          reading column plus a sticky action panel, like a real
+          desktop page instead of a phone screen stretched wide. */}
+      <main className="flex-1 px-6 pb-10 max-w-285 mx-auto w-full pt-6">
+        <div className="max-w-2xl md:max-w-none mx-auto grid md:grid-cols-[1fr_21rem] gap-8 md:gap-14 lg:gap-20">
 
-        {/* Name + cuisine tags */}
-        <div className="flex flex-col gap-3">
-          <h1
-            className="font-display font-black leading-tight"
-            style={{ fontSize: 29, color: 'var(--color-text-cream)', letterSpacing: '-0.02em' }}
-          >
-            {rec.restaurant_name}
-          </h1>
-          {cuisineTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {cuisineTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs font-semibold px-3 py-1 rounded-full"
-                  style={{ background: 'var(--color-surface-petrol)', color: 'var(--color-text-mist)', border: '1px solid var(--color-hairline)' }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Stats row */}
-        <div
-          className="flex items-center gap-4 px-4 py-3 rounded-2xl flex-wrap"
-          style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)' }}
-        >
-          {place.rating > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span style={{ color: 'var(--color-accent-ember)' }}>★</span>
-              <span className="text-sm font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                {place.rating}
-              </span>
-              {place.reviewCount > 0 && (
-                <span className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-                  ({place.reviewCount.toLocaleString()})
-                </span>
+          <div className="flex flex-col gap-6 min-w-0">
+            {/* Name + cuisine tags */}
+            <div className="flex flex-col gap-3">
+              <h1 className="font-display font-bold leading-tight text-[30px] md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+                {rec.restaurant_name}
+              </h1>
+              {cuisineTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {cuisineTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs font-semibold px-3 py-1 rounded-full"
+                      style={{ background: 'var(--color-surface)', color: 'var(--color-ink-soft)', border: '1px solid var(--color-line)' }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
-          )}
 
-          {priceSymbol !== '—' && (
-            <>
-              <span style={{ color: 'var(--color-hairline)' }}>·</span>
-              <span className="text-sm font-semibold" style={{ color: 'var(--color-accent-gold)' }}>
-                {priceSymbol}
-              </span>
-            </>
-          )}
+            {/* Stats row */}
+            <div className="card flex items-center gap-4 px-4 py-3 flex-wrap">
+              {place.rating > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Star size={15} fill="var(--color-sunrise)" color="var(--color-sunrise)" aria-hidden />
+                  <span className="text-sm font-semibold">{place.rating}</span>
+                  {place.reviewCount > 0 && (
+                    <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
+                      ({place.reviewCount.toLocaleString()})
+                    </span>
+                  )}
+                </div>
+              )}
 
-          {place.address && (
-            <>
-              <span style={{ color: 'var(--color-hairline)' }}>·</span>
-              <span className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-                {place.address}
-              </span>
-            </>
-          )}
-        </div>
+              {priceSymbol !== '—' && (
+                <>
+                  <span style={{ color: 'var(--color-line)' }}>·</span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--color-blueberry)' }}>
+                    {priceSymbol}
+                  </span>
+                </>
+              )}
 
-        {/* Why Bond picked this */}
-        <section className="flex flex-col gap-2">
-          <p className="text-[10px] font-black uppercase tracking-[.14em]" style={{ color: 'var(--color-text-mist)' }}>
-            Why Bond picked this
-          </p>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-cream)' }}>
-            {rec.reason}
-          </p>
-        </section>
+              {place.address && (
+                <>
+                  <span style={{ color: 'var(--color-line)' }}>·</span>
+                  <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
+                    {place.address}
+                  </span>
+                </>
+              )}
+            </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-3 pt-2">
-          <a
-            href={directionsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-4 rounded-2xl font-semibold text-sm text-center transition-opacity hover:opacity-90"
-            style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
-          >
-            Get directions
-          </a>
+            {/* Why Bond picked this */}
+            <section className="flex flex-col gap-2 max-w-xl">
+              <p className="eyebrow">Why Bond picked this</p>
+              <p className="text-sm leading-relaxed">{rec.reason}</p>
+            </section>
+          </div>
 
-          <button
-            onClick={shareResult}
-            className="w-full py-4 rounded-2xl font-semibold text-sm transition-opacity hover:opacity-80"
-            style={{
-              background: 'var(--color-surface-petrol)',
-              color: 'var(--color-text-cream)',
-              border: '1px solid var(--color-hairline)',
-            }}
-          >
-            {copied ? 'Link copied!' : 'Share result'}
-          </button>
+          {/* Actions — stays put while the reading column scrolls */}
+          <div className="flex flex-col gap-3 md:pt-1 md:sticky md:top-24 md:self-start">
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary w-full py-4 text-sm"
+            >
+              <Navigation size={16} aria-hidden />
+              Get directions
+            </a>
 
-          <Link
-            to="/party/$partyId/explore"
-            params={{ partyId }}
-            className="w-full py-4 rounded-2xl font-semibold text-sm text-center transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-mist)' }}
-          >
-            Explore alternatives →
-          </Link>
+            <button onClick={shareResult} className="btn btn-secondary w-full py-4 text-sm">
+              <Share2 size={16} aria-hidden />
+              {copied ? 'Link copied!' : 'Share result'}
+            </button>
+
+            <Link
+              to="/party/$partyId/explore"
+              params={{ partyId }}
+              className="btn btn-ghost w-full py-3 text-sm"
+            >
+              <Compass size={15} aria-hidden />
+              Explore alternatives
+            </Link>
+          </div>
         </div>
       </main>
     </div>
