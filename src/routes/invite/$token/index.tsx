@@ -32,10 +32,10 @@ function ReadyDot({ ready }: { ready: boolean }) {
 }
 
 const PRICE_SYMBOL: Record<string, string> = {
-  PRICE_LEVEL_INEXPENSIVE: '$',
-  PRICE_LEVEL_MODERATE: '$$',
-  PRICE_LEVEL_EXPENSIVE: '$$$',
-  PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
+  PRICE_LEVEL_INEXPENSIVE: 'Under $15',
+  PRICE_LEVEL_MODERATE: '$15–$30',
+  PRICE_LEVEL_EXPENSIVE: '$30–$60',
+  PRICE_LEVEL_VERY_EXPENSIVE: '$60+',
 }
 const FIRST_N = 12
 
@@ -482,7 +482,7 @@ function GuestHub() {
           </div>
 
           {/* Save preferences nudge */}
-          <Link to="/signup" className="btn btn-accent w-full py-4 text-sm">
+          <Link to="/signup" search={{ returnTo: `/invite/${token}` }} className="btn btn-accent w-full py-4 text-sm">
             Save your preferences
           </Link>
 
@@ -583,7 +583,7 @@ function GuestHub() {
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold">Budget</p>
             <div className="flex gap-2">
-              {BUDGETS.map(({ tier, symbol }: { tier: number; symbol: string; label: string; sub: string }) => {
+              {BUDGETS.map(({ tier, symbol }: { tier: number; symbol: string; sub: string }) => {
                 const active = budget === tier
                 return (
                   <button

@@ -27,10 +27,10 @@ export const CUISINES = [
 ]
 
 export const BUDGETS = [
-  { tier: 1, symbol: '$', label: 'Under $15', sub: 'per person' },
-  { tier: 2, symbol: '$$', label: '$15 – 30', sub: 'per person' },
-  { tier: 3, symbol: '$$$', label: '$30 – 60', sub: 'per person' },
-  { tier: 4, symbol: '$$$$', label: '$60+', sub: 'per person' },
+  { tier: 1, symbol: 'Under $15', sub: 'per person' },
+  { tier: 2, symbol: '$15 – $30', sub: 'per person' },
+  { tier: 3, symbol: '$30 – $60', sub: 'per person' },
+  { tier: 4, symbol: '$60+', sub: 'per person' },
 ]
 
 export const DIETARY = [
@@ -108,7 +108,7 @@ export function StepBudget({
         </p>
       </div>
       <div className="flex flex-col gap-3">
-        {BUDGETS.map(({ tier, symbol, label, sub }) => {
+        {BUDGETS.map(({ tier, symbol, sub }) => {
           const active = selected === tier
           return (
             <button
@@ -121,9 +121,8 @@ export function StepBudget({
                 border: `1px solid ${active ? 'transparent' : 'var(--color-hairline)'}`,
               }}
             >
-              <span className="font-display text-xl font-bold w-14 shrink-0">{symbol}</span>
               <div>
-                <p className="font-semibold text-sm">{label}</p>
+                <p className="font-display font-bold text-lg">{symbol}</p>
                 <p className="text-xs opacity-70">{sub}</p>
               </div>
             </button>

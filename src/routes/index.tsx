@@ -62,6 +62,7 @@ function FloatingNav() {
             >
               <Link
                 to="/login"
+                search={{ returnTo: undefined }}
                 className="text-base font-semibold whitespace-nowrap transition-opacity hover:opacity-70"
                 style={{ color: 'var(--color-ink-soft)' }}
               >
@@ -433,7 +434,7 @@ function Home() {
         <div className="max-w-285 mx-auto flex flex-wrap items-center justify-between gap-4">
           <Wordmark className="text-lg" />
           <div className="flex gap-6 text-sm" style={{ color: 'var(--color-ink-soft)' }}>
-            <Link to="/login" className="transition-opacity hover:opacity-70">Log in</Link>
+            <Link to="/login" search={{ returnTo: undefined }} className="transition-opacity hover:opacity-70">Log in</Link>
           </div>
           <p className="text-sm" style={{ color: 'var(--color-ink-faint)' }}>© 2026 Bond</p>
         </div>

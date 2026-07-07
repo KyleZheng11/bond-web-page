@@ -11,10 +11,10 @@ import { Wordmark, Spinner } from '#/components/ui'
 export const Route = createFileRoute('/invite/$token/results')({ component: GuestResults })
 
 const PRICE_SYMBOL: Record<string, string> = {
-  PRICE_LEVEL_INEXPENSIVE: '$',
-  PRICE_LEVEL_MODERATE: '$$',
-  PRICE_LEVEL_EXPENSIVE: '$$$',
-  PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
+  PRICE_LEVEL_INEXPENSIVE: 'Under $15',
+  PRICE_LEVEL_MODERATE: '$15–$30',
+  PRICE_LEVEL_EXPENSIVE: '$30–$60',
+  PRICE_LEVEL_VERY_EXPENSIVE: '$60+',
 }
 
 function formatCuisineTag(type: string): string {

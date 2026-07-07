@@ -2,7 +2,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { Star, Navigation, Share2, Compass } from 'lucide-react'
 import { getRecommendation } from '#/features/recommendations'
-import { PartyProgressBar } from '#/features/parties'
+import { getPartyLobby, PartyProgressBar } from '#/features/parties'
+import { useAuth } from '#/features/auth'
 import type { Place } from '#/features/recommendations'
 import type { Tables } from '#/types/database'
 import { AppHeader, Spinner } from '#/components/ui'
@@ -10,10 +11,10 @@ import { AppHeader, Spinner } from '#/components/ui'
 export const Route = createFileRoute('/_auth/party/$partyId/result')({ component: Result })
 
 const PRICE_SYMBOL: Record<string, string> = {
-  PRICE_LEVEL_INEXPENSIVE: '$',
-  PRICE_LEVEL_MODERATE: '$$',
-  PRICE_LEVEL_EXPENSIVE: '$$$',
-  PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
+  PRICE_LEVEL_INEXPENSIVE: 'Under $15',
+  PRICE_LEVEL_MODERATE: '$15–$30',
+  PRICE_LEVEL_EXPENSIVE: '$30–$60',
+  PRICE_LEVEL_VERY_EXPENSIVE: '$60+',
 }
 
 function formatCuisineTag(type: string): string {
@@ -27,7 +28,9 @@ function formatCuisineTag(type: string): string {
 
 function Result() {
   const { partyId } = Route.useParams()
+  const { user } = useAuth()
   const [rec, setRec] = useState<Tables<'recommendations'> | null>(null)
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
@@ -38,8 +41,18 @@ function Result() {
       .finally(() => setLoading(false))
   }, [partyId])
 
+  useEffect(() => {
+    if (!user) return
+    getPartyLobby({ data: { partyId, userId: user.id } })
+      .then((lobby) => setInviteToken(lobby.party.invite_token ?? null))
+      .catch(() => {})
+  }, [partyId, user])
+
   function shareResult() {
-    navigator.clipboard.writeText(window.location.href)
+    const url = inviteToken
+      ? `${window.location.origin}/invite/${inviteToken}/results`
+      : window.location.href
+    navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
