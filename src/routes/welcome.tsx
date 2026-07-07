@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { supabase } from '#/lib/supabase'
+import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/welcome')({
   beforeLoad: async () => {
@@ -12,63 +13,50 @@ export const Route = createFileRoute('/welcome')({
 
 function Welcome() {
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ background: 'var(--color-surface-deep)' }}
-    >
-      {/* Wordmark — tapping it returns to the marketing page */}
-      <motion.div
-        className="flex items-center gap-3 mb-6"
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <Link to="/" className="transition-opacity hover:opacity-70">
-          <span
-            className="text-4xl font-black tracking-tight"
-            style={{ color: 'var(--color-accent-gold)' }}
-          >
-            Bond
-          </span>
-        </Link>
-      </motion.div>
-      {/* Value prop */}
-      <motion.p
-        className="text-lg text-center max-w-xs mb-12"
-        style={{ color: 'var(--color-text-mist)' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.15 }}
-      >
-        One restaurant. No debate. Just go.
-      </motion.p>
-      {/* Primary CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.25 }}
-        className="flex flex-col items-center gap-4 w-full max-w-xs"
-      >
-        <Link
-          to="/signup"
-          className="w-full text-center font-bold py-4 rounded-2xl text-base transition-opacity hover:opacity-90 active:scale-95"
-          style={{
-            background: 'var(--color-accent-ember)',
-            color: 'var(--color-on-ember)',
-          }}
-        >
-          Create a party
-        </Link>
+    <div className="dawn-sky min-h-dvh flex flex-col items-center justify-center px-6">
+      <div className="dawn-sun dawn-sun-rise" aria-hidden />
+      <div className="dawn-horizon" aria-hidden />
 
-        {/* Secondary — Log in */}
-        <Link
-          to="/login"
-          className="text-sm font-semibold transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-text-mist)' }}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-xs text-center">
+        {/* Wordmark — tapping it returns to the marketing page */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          Log in
-        </Link>
-      </motion.div>
+          <Link to="/" className="transition-opacity hover:opacity-80">
+            <Wordmark dark className="text-5xl text-on-dawn" />
+          </Link>
+        </motion.div>
+
+        <motion.p
+          className="text-lg mt-5 mb-12 text-on-dawn"
+          style={{ color: 'var(--color-on-deep)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.15 }}
+        >
+          One restaurant. No debate. Just go.
+        </motion.p>
+
+        <motion.div
+          className="flex flex-col items-center gap-4 w-full"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.25 }}
+        >
+          <Link to="/signup" className="btn btn-primary w-full py-4 text-base">
+            Create a party
+          </Link>
+          <Link
+            to="/login"
+            className="text-sm font-semibold py-2 transition-opacity hover:opacity-80 text-on-dawn"
+            style={{ color: 'var(--color-on-deep)' }}
+          >
+            Log in
+          </Link>
+        </motion.div>
+      </div>
     </div>
   )
 }

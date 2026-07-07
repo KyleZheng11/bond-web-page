@@ -1,6 +1,17 @@
 import { LocationInput } from '#/features/parties/components/LocationInput'
 import { CUISINES, DIETARY } from '#/features/preferences/components/PreferenceSteps'
 
+function StepHeading({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div>
+      <h1 className="display text-3xl leading-tight">{title}</h1>
+      <p className="mt-2 text-sm" style={{ color: 'var(--color-ink-soft)' }}>
+        {sub}
+      </p>
+    </div>
+  )
+}
+
 export function StepUsername({
   value,
   onChange,
@@ -10,17 +21,10 @@ export function StepUsername({
 }) {
   return (
     <div className="flex flex-col gap-6 py-4">
-      <div>
-        <h1
-          className="font-display text-3xl font-semibold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
-        >
-          What should we call you?
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          This is how you'll appear to others in your party.
-        </p>
-      </div>
+      <StepHeading
+        title="What should we call you?"
+        sub="This is how you'll appear to others in your party."
+      />
       <input
         type="text"
         placeholder="Your name"
@@ -28,12 +32,7 @@ export function StepUsername({
         onChange={(e) => onChange(e.target.value)}
         autoFocus
         maxLength={40}
-        className="px-4 py-3 rounded-xl text-base outline-none w-full"
-        style={{
-          background: 'var(--color-surface-petrol)',
-          border: `1.5px solid ${value.trim() ? 'var(--color-accent-ember)' : 'rgba(240,228,204,0.12)'}`,
-          color: 'var(--color-text-cream)',
-        }}
+        className="input text-base"
       />
     </div>
   )
@@ -48,17 +47,10 @@ export function StepDietaryOnboarding({
 }) {
   return (
     <div className="flex flex-col gap-6 py-4">
-      <div>
-        <h1
-          className="font-display text-3xl font-semibold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
-        >
-          Any dietary restrictions?
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          These are kept private — never shown to other party members.
-        </p>
-      </div>
+      <StepHeading
+        title="Any dietary restrictions?"
+        sub="These are kept private — never shown to other party members."
+      />
       <div className="flex flex-wrap gap-2">
         {DIETARY.map((d) => {
           const active = selected.includes(d)
@@ -66,19 +58,15 @@ export function StepDietaryOnboarding({
             <button
               key={d}
               onClick={() => onToggle(d)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
-              style={{
-                background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-petrol)',
-                color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                border: `1px solid ${active ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
-              }}
+              aria-pressed={active}
+              className={`chip ${active ? 'chip-active' : ''}`}
             >
               {d}
             </button>
           )
         })}
       </div>
-      <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+      <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
         Nothing selected = no restrictions.
       </p>
     </div>
@@ -94,17 +82,10 @@ export function StepNeverCuisines({
 }) {
   return (
     <div className="flex flex-col gap-6 py-4">
-      <div>
-        <h1
-          className="font-display text-3xl font-semibold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
-        >
-          Anything you'd never eat?
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          These cuisines will never appear in your recommendations.
-        </p>
-      </div>
+      <StepHeading
+        title="Anything you'd never eat?"
+        sub="These cuisines will never appear in your recommendations."
+      />
       <div className="flex flex-wrap gap-2">
         {CUISINES.map((c) => {
           const isSelected = selected.includes(c)
@@ -112,19 +93,15 @@ export function StepNeverCuisines({
             <button
               key={c}
               onClick={() => onToggle(c)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all"
-              style={{
-                background: isSelected ? 'var(--color-accent-brick)' : 'var(--color-surface-petrol)',
-                color: isSelected ? 'var(--color-on-brick)' : 'var(--color-text-cream)',
-                border: `1px solid ${isSelected ? 'transparent' : 'rgba(240,228,204,0.08)'}`,
-              }}
+              aria-pressed={isSelected}
+              className={`chip chip-danger ${isSelected ? 'chip-active' : ''}`}
             >
               {c}
             </button>
           )
         })}
       </div>
-      <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+      <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
         Nothing selected = you're open to everything.
       </p>
     </div>
@@ -140,19 +117,12 @@ export function StepLocation({
 }) {
   return (
     <div className="flex flex-col gap-6 py-4">
-      <div>
-        <h1
-          className="font-display text-3xl font-semibold leading-tight"
-          style={{ color: 'var(--color-text-cream)' }}
-        >
-          Where do you usually eat?
-        </h1>
-        <p className="mt-2 text-sm" style={{ color: 'var(--color-text-mist)' }}>
-          We'll search near here whenever you start a party.
-        </p>
-      </div>
+      <StepHeading
+        title="Where do you usually eat?"
+        sub="We'll search near here whenever you start a party."
+      />
       <LocationInput value={value} onChange={onChange} />
-      <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+      <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
         You can update this anytime from your profile.
       </p>
     </div>

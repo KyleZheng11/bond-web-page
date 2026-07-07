@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'motion/react'
 
 interface EmailAuthFormProps {
   mode: 'signup' | 'login'
@@ -19,58 +18,49 @@ export function EmailAuthForm({ mode, onSubmit, error }: EmailAuthFormProps) {
     setLoading(false)
   }
 
-  const inputClass =
-    'w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 focus:ring-2'
-
-  const inputStyle = {
-    background: 'var(--color-surface-twilight)',
-    border: '1px solid rgba(240,228,204,0.08)',
-    color: 'var(--color-text-cream)',
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        type="email"
-        placeholder="Email"
-        autoComplete="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className={inputClass}
-        style={inputStyle}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-        required
-        minLength={8}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className={inputClass}
-        style={inputStyle}
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="auth-email" className="field-label">
+          Email
+        </label>
+        <input
+          id="auth-email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="input"
+        />
+      </div>
+      <div>
+        <label htmlFor="auth-password" className="field-label">
+          Password
+        </label>
+        <input
+          id="auth-password"
+          type="password"
+          placeholder={mode === 'signup' ? 'At least 8 characters' : 'Your password'}
+          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+          required
+          minLength={8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="input"
+        />
+      </div>
 
       {error && (
-        <p className="text-xs text-center" style={{ color: 'var(--color-accent-brick)' }}>
+        <p role="alert" className="text-sm px-4 py-3 rounded-xl" style={{ background: 'var(--color-error-soft)', color: 'var(--color-error)' }}>
           {error}
         </p>
       )}
 
-      <motion.button
-        type="submit"
-        disabled={loading}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full py-4 rounded-2xl font-bold text-sm mt-1 disabled:opacity-50 transition-opacity"
-        style={{
-          background: 'var(--color-accent-ember)',
-          color: 'var(--color-on-ember)',
-        }}
-      >
+      <button type="submit" disabled={loading} className="btn btn-primary w-full py-3.5 mt-1">
         {loading ? 'Just a sec…' : mode === 'signup' ? 'Create account' : 'Log in'}
-      </motion.button>
+      </button>
     </form>
   )
 }

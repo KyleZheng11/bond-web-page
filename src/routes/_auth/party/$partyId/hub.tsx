@@ -1,12 +1,14 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
+import { MapPin, Check, Pencil } from 'lucide-react'
 import { useAuth } from '#/features/auth'
 import { getPartyLobby } from '#/features/parties'
-import { getLeaderPrefsContext, submitPreferences, CUISINES, BUDGETS, DIETARY } from '#/features/preferences'
+import { getLeaderPrefsContext, submitPreferences, CUISINES, BUDGETS } from '#/features/preferences'
 import { PartyProgressBar } from '#/features/parties'
 import { findRestaurant } from '#/features/recommendations'
 import { supabase } from '#/lib/supabase'
 import type { Tables } from '#/types/database'
+import { AppHeader, ShinyButton } from '#/components/ui'
 
 type LobbyData = {
   party: Tables<'parties'>
@@ -21,6 +23,21 @@ export const Route = createFileRoute('/_auth/party/$partyId/hub')({ component: P
 const BUDGET_SYMBOL: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
 const FIRST_N = 12
 
+function ReadyDot({ ready }: { ready: boolean }) {
+  return (
+    <span
+      className="flex items-center gap-1.5 text-xs font-semibold"
+      style={{ color: ready ? 'var(--color-success)' : 'var(--color-ink-faint)' }}
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ background: ready ? 'var(--color-success)' : 'var(--color-ink-faint)' }}
+      />
+      {ready ? 'Ready' : 'Waiting'}
+    </span>
+  )
+}
+
 function PartyHub() {
   const { partyId } = Route.useParams()
   const { user } = useAuth()
@@ -34,13 +51,11 @@ function PartyHub() {
   const [tasteEditing, setTasteEditing] = useState(false)
   const [cuisineWants, setCuisineWants] = useState<string[]>([])
   const [budget, setBudget] = useState<number | null>(null)
-  const [dietary, setDietary] = useState<string[]>([])
   const [showAllCuisines, setShowAllCuisines] = useState(false)
   const [submittingTaste, setSubmittingTaste] = useState(false)
   const [tasteError, setTasteError] = useState<string | null>(null)
 
   const [copied, setCopied] = useState(false)
-  const [view, setView] = useState<'hub' | 'ready'>('hub')
   const [finding, setFinding] = useState(false)
   const [findError, setFindError] = useState<string | null>(null)
 
@@ -61,10 +76,17 @@ function PartyHub() {
     } finally {
       setLoading(false)
     }
-  }, [partyId, user, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partyId, user?.id, navigate])
 
   useEffect(() => { load() }, [load])
 
+  // Depends on user?.id (a stable string) rather than the user object —
+  // Supabase hands back a new session/user object on every auth event
+  // (including silent background token refreshes), which was churning
+  // this effect and recreating the `lobby:{partyId}` channel faster than
+  // the previous one could finish leaving, throwing "cannot add
+  // postgres_changes callbacks... after subscribe()".
   useEffect(() => {
     if (!user) return
     const channel = supabase
@@ -87,17 +109,18 @@ function PartyHub() {
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [partyId, user, load, navigate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partyId, user?.id, load, navigate])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-surface-deep)' }}>
-        <header className="flex items-center gap-4 px-6 py-5">
-          <div className="h-4 w-12 rounded animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
-        </header>
+      <div className="min-h-dvh flex flex-col">
+        <div className="max-w-lg mx-auto w-full">
+          <AppHeader backTo="/home" />
+        </div>
         <main className="flex-1 px-6 py-4 max-w-lg mx-auto w-full flex flex-col gap-5">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: 'var(--color-surface-petrol)' }} />
+            <div key={i} className="h-24 rounded-[20px] animate-pulse" style={{ background: 'var(--color-surface)' }} />
           ))}
         </main>
       </div>
@@ -106,8 +129,8 @@ function PartyHub() {
 
   if (!lobbyData) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-surface-deep)' }}>
-        <p style={{ color: 'var(--color-text-mist)' }}>Party not found.</p>
+      <div className="min-h-dvh flex items-center justify-center">
+        <p style={{ color: 'var(--color-ink-soft)' }}>Party not found.</p>
       </div>
     )
   }
@@ -124,7 +147,7 @@ function PartyHub() {
   const ctaLabel = finding
     ? 'Finding…'
     : ctaEnabled
-    ? 'Find a restaurant.'
+    ? 'Find a restaurant'
     : 'Set your taste first'
 
   // Cuisine display: first N + any selected outside the first N
@@ -144,7 +167,6 @@ function PartyHub() {
     tasteSummaryParts.push('Open to anything')
   }
   if (budget) tasteSummaryParts.push(BUDGET_SYMBOL[budget])
-  if (dietary.length > 0) tasteSummaryParts.push(dietary.slice(0, 2).join(', '))
 
   async function copyLink() {
     if (!inviteLink) return
@@ -169,7 +191,7 @@ function PartyHub() {
     setTasteError(null)
     try {
       await submitPreferences({
-        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: dietary },
+        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: [] },
       })
       setTasteEditing(false)
       await load()
@@ -186,6 +208,11 @@ function PartyHub() {
     setFindError(null)
     try {
       await findRestaurant({ data: { partyId } })
+      // Broadcast so guests jump to voting immediately instead of waiting
+      // on postgres replication of the party status change.
+      const ch = supabase.channel(`lobby:${partyId}`)
+      await ch.send({ type: 'broadcast', event: 'voting_started', payload: {} })
+      supabase.removeChannel(ch)
       navigate({ to: '/party/$partyId/vote', params: { partyId } })
     } catch (err) {
       setFindError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -193,178 +220,63 @@ function PartyHub() {
     }
   }
 
-  // ── Party Ready view ────────────────────────────────────────────────────────
-  if (view === 'ready') {
-    const readyCount = members.filter((m) => m.preferences_submitted_at).length
-    return (
-      <div
-        className="min-h-screen flex flex-col px-5.5 py-10"
-        style={{ background: 'var(--color-accent-ember)', color: '#fff' }}
-      >
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 max-w-sm mx-auto w-full text-center">
-          {party.name && (
-            <p className="text-[10px] font-black uppercase tracking-[.14em]" style={{ opacity: 0.75 }}>
-              {party.name}
-            </p>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <h1
-              className="font-display font-black leading-none"
-              style={{ fontSize: 44, letterSpacing: '-0.02em' }}
-            >
-              Everyone's in.
-            </h1>
-            <p className="text-base" style={{ opacity: 0.8 }}>
-              You're all set. Bond is picking your spot.
-            </p>
-          </div>
-
-          {members.length > 0 && (
-            <div className="flex items-center justify-center">
-              {members.slice(0, 6).map((m, i) => (
-                <div
-                  key={m.id}
-                  className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 border-white"
-                  style={{
-                    background: 'rgba(255,255,255,0.25)',
-                    color: '#fff',
-                    marginLeft: i === 0 ? 0 : -10,
-                    zIndex: members.length - i,
-                    position: 'relative',
-                  }}
-                >
-                  {(m.guest_name ?? '?')[0].toUpperCase()}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div
-            className="w-full px-4 py-3 rounded-2xl text-left"
-            style={{ background: 'rgba(255,255,255,0.18)' }}
-          >
-            <p className="text-[10px] font-black uppercase tracking-[.12em] mb-1" style={{ opacity: 0.7 }}>
-              Crew
-            </p>
-            <p className="text-sm font-semibold">
-              {readyCount} of {members.length} ready
-            </p>
-          </div>
-        </div>
-
-        <div className="shrink-0 max-w-sm mx-auto w-full pt-8 flex flex-col gap-3">
-          <button
-            onClick={handleFindRestaurant}
-            disabled={finding}
-            className="w-full py-4 rounded-2xl font-bold text-base transition-opacity disabled:opacity-60"
-            style={{ background: '#fff', color: 'var(--color-accent-ember)' }}
-          >
-            {finding ? 'Finding…' : 'Find our spot →'}
-          </button>
-          <button
-            onClick={() => setView('hub')}
-            className="w-full py-3 text-sm font-semibold"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
-          >
-            ← Go back
-          </button>
-          {findError && (
-            <p className="text-sm text-center" style={{ opacity: 0.8 }}>{findError}</p>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   // ── Main Hub view ───────────────────────────────────────────────────────────
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-surface-deep)', color: 'var(--color-text-cream)' }}
-    >
-      <header className="flex flex-col px-6 pt-5 pb-3 shrink-0">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/home"
-            className="text-sm font-semibold transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-mist)' }}
-          >
-            ← Back
-          </Link>
-          <span className="font-display text-xl font-semibold" style={{ color: 'var(--color-accent-ember)' }}>
-            Bond
-          </span>
+    <div className="min-h-dvh flex flex-col">
+      <div className="max-w-lg mx-auto w-full shrink-0">
+        <AppHeader backTo="/home" />
+        <div className="px-6">
+          <PartyProgressBar step={2} />
         </div>
-        <PartyProgressBar step={2} />
-      </header>
+      </div>
 
-      <main className="flex-1 overflow-y-auto px-5.5 max-w-lg mx-auto w-full pb-52 flex flex-col gap-4">
+      <main className="flex-1 overflow-y-auto px-6 max-w-lg mx-auto w-full pb-52 pt-4 flex flex-col gap-4">
 
         {/* ── Identity zone ──────────────────────────────────────── */}
-        <div className="pt-2 flex flex-col gap-2">
-          <h1
-            className="font-display font-black leading-none"
-            style={{ fontSize: 25, letterSpacing: '-0.02em', color: 'var(--color-text-cream)' }}
-          >
+        <div className="flex flex-col gap-2">
+          <h1 className="display text-2xl leading-none">
             {party.name ?? 'Your party'}
           </h1>
           {party.location && (
             <span
-              className="self-start text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{
-                background: 'var(--color-surface-petrol)',
-                border: '1.5px solid var(--color-accent-ember)',
-                color: 'var(--color-text-cream)',
-              }}
+              className="self-start inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
+              style={{ background: '#dcebf4', color: 'var(--color-blueberry)' }}
             >
-              ◉ {party.location}
+              <MapPin size={12} aria-hidden />
+              {party.location}
             </span>
           )}
         </div>
 
         {/* ── Invite zone ────────────────────────────────────────── */}
         {!inviteZoneDone ? (
-          <div
-            className="flex flex-col gap-3 px-4 py-4 rounded-2xl"
-            style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)' }}
-          >
-            <p className="text-[10px] font-black uppercase tracking-[.12em]" style={{ color: 'var(--color-text-mist)' }}>
-              Invite the crew
-            </p>
+          <div className="glass flex flex-col gap-3 px-5 py-5">
+            <p className="eyebrow">Invite the crew</p>
             {inviteLink && (
               <>
                 <div
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                  style={{ background: 'var(--color-surface-twilight)', border: '1px solid var(--color-hairline)' }}
+                  style={{ background: 'var(--color-surface-dim)', border: '1px solid var(--color-line)' }}
                 >
-                  <span className="flex-1 text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
+                  <span className="flex-1 text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
                     {inviteLink}
                   </span>
                   <button
                     onClick={copyLink}
-                    className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-[10px] transition-opacity hover:opacity-80"
-                    style={{
-                      background: copied ? 'var(--color-surface-twilight)' : 'var(--color-accent-ember)',
-                      color: copied ? 'var(--color-text-mist)' : 'var(--color-on-ember)',
-                      border: copied ? '1px solid var(--color-hairline)' : 'none',
-                    }}
+                    className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full cursor-pointer transition-opacity hover:opacity-85"
+                    style={
+                      copied
+                        ? { background: 'var(--color-success-soft)', color: 'var(--color-success)' }
+                        : { background: 'var(--color-deep)', color: '#ffffff' }
+                    }
                   >
                     {copied ? 'Copied!' : 'Copy link'}
                   </button>
                 </div>
-                <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+                <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
                   Anyone with this link can join and add their preferences.
                 </p>
-                <button
-                  onClick={shareLink}
-                  className="py-2.5 rounded-xl text-sm font-semibold text-center transition-opacity hover:opacity-80"
-                  style={{
-                    background: 'var(--color-surface-twilight)',
-                    color: 'var(--color-text-cream)',
-                    border: '1px solid var(--color-hairline)',
-                  }}
-                >
+                <button onClick={shareLink} className="btn btn-secondary !rounded-xl py-2.5 text-sm">
                   Share
                 </button>
               </>
@@ -373,21 +285,17 @@ function PartyHub() {
         ) : (
           <>
             {/* Collapsed invite row */}
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-              style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)' }}
-            >
+            <div className="glass flex items-center gap-3 px-4 py-3">
               <div className="flex items-center shrink-0">
                 {members.slice(0, 4).map((m, i) => (
                   <div
                     key={m.id}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold relative"
                     style={{
-                      background: 'var(--color-surface-twilight)',
-                      border: '2px solid var(--color-surface-petrol)',
-                      color: 'var(--color-text-mist)',
+                      background: '#dcebf4',
+                      border: '2px solid var(--color-surface)',
+                      color: 'var(--color-blueberry)',
                       marginLeft: i === 0 ? 0 : -8,
-                      position: 'relative',
                       zIndex: members.length - i,
                     }}
                   >
@@ -396,22 +304,16 @@ function PartyHub() {
                 ))}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                  {members.length} in the crew
-                </p>
-                <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
+                <p className="text-sm font-semibold">{members.length} in the crew</p>
+                <p className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
                   {members.filter((m) => m.preferences_submitted_at).length} of {members.length} ready
                 </p>
               </div>
               {inviteLink && (
                 <button
                   onClick={shareLink}
-                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full"
-                  style={{
-                    background: 'var(--color-surface-twilight)',
-                    color: 'var(--color-accent-ember)',
-                    border: '1px solid var(--color-hairline)',
-                  }}
+                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full cursor-pointer transition-opacity hover:opacity-85"
+                  style={{ background: 'var(--color-sunrise-soft)', color: 'var(--color-ember-text)' }}
                 >
                   Share +
                 </button>
@@ -419,106 +321,68 @@ function PartyHub() {
             </div>
 
             {/* Crew status list */}
-            <div className="flex flex-col gap-1.5">
-              <p className="text-[10px] font-black uppercase tracking-[.12em] px-1" style={{ color: 'var(--color-text-mist)' }}>
-                Crew status
-              </p>
+            <div className="glass flex flex-col px-1 py-1">
+              <p className="eyebrow px-4 pt-3 pb-1">Crew status</p>
               {/* Leader row — always first */}
               {isCreator && (
-                <div
-                  className="flex items-center justify-between px-4 py-2.5 rounded-xl"
-                  style={{ background: 'var(--color-surface-petrol)' }}
-                >
-                  <span className="flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--color-text-cream)' }}>
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
                     You
                     <span
                       className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                      style={{ background: 'var(--color-accent-ember)', color: 'var(--color-on-ember)' }}
+                      style={{ background: 'var(--color-sunrise)', color: 'var(--color-on-sunrise)' }}
                     >
                       host
                     </span>
                   </span>
-                  <span
-                    className="flex items-center gap-1.5 text-xs font-semibold"
-                    style={{ color: leaderHasSubmitted ? 'var(--color-accent-gold)' : 'var(--color-text-mist)' }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        background: leaderHasSubmitted ? 'var(--color-accent-gold)' : 'var(--color-text-mist)',
-                        opacity: leaderHasSubmitted ? 1 : 0.4,
-                      }}
-                    />
-                    {leaderHasSubmitted ? 'Ready' : 'Waiting'}
-                  </span>
+                  <ReadyDot ready={leaderHasSubmitted} />
                 </div>
               )}
-              {members.map((m) => {
-                const ready = !!m.preferences_submitted_at
-                return (
-                  <div
-                    key={m.id}
-                    className="flex items-center justify-between px-4 py-2.5 rounded-xl"
-                    style={{ background: 'var(--color-surface-petrol)' }}
-                  >
-                    <span className="text-sm font-medium" style={{ color: 'var(--color-text-cream)' }}>
-                      {m.guest_name ?? '—'}
-                    </span>
-                    <span
-                      className="flex items-center gap-1.5 text-xs font-semibold"
-                      style={{ color: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)' }}
-                    >
-                      <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{
-                          background: ready ? 'var(--color-accent-gold)' : 'var(--color-text-mist)',
-                          opacity: ready ? 1 : 0.4,
-                        }}
-                      />
-                      {ready ? 'Ready' : 'Waiting'}
-                    </span>
-                  </div>
-                )
-              })}
+              {members.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex items-center justify-between px-4 py-2.5 border-t"
+                  style={{ borderColor: 'var(--color-line)' }}
+                >
+                  <span className="text-sm font-medium">{m.guest_name ?? '—'}</span>
+                  <ReadyDot ready={!!m.preferences_submitted_at} />
+                </div>
+              ))}
             </div>
           </>
         )}
 
         {/* ── Taste zone ─────────────────────────────────────────── */}
         {tasteDone ? (
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-            style={{ background: 'var(--color-surface-petrol)', border: '1px solid var(--color-hairline)' }}
-          >
-            <span style={{ color: 'var(--color-accent-gold)' }}>✓</span>
+          <div className="glass flex items-center gap-3 px-4 py-3">
+            <span
+              className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}
+            >
+              <Check size={15} aria-hidden />
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-cream)' }}>Your taste</p>
-              <p className="text-xs truncate" style={{ color: 'var(--color-text-mist)' }}>
+              <p className="text-sm font-semibold">Your taste</p>
+              <p className="text-xs truncate" style={{ color: 'var(--color-ink-soft)' }}>
                 {tasteSummaryParts.join(' · ')}
               </p>
             </div>
             <button
               onClick={() => setTasteEditing(true)}
-              className="shrink-0 text-xs font-semibold transition-opacity hover:opacity-70"
-              style={{ color: 'var(--color-text-mist)' }}
+              className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold cursor-pointer transition-opacity hover:opacity-70"
+              style={{ color: 'var(--color-ink-soft)' }}
             >
-              ✎ Edit
+              <Pencil size={12} aria-hidden />
+              Edit
             </button>
           </div>
         ) : (
-          <div
-            className="flex flex-col gap-4 px-4 py-4 rounded-2xl"
-            style={{ background: 'var(--color-surface-petrol)', border: '1.5px solid var(--color-accent-ember)' }}
-          >
-            <p className="text-[10px] font-black uppercase tracking-[.12em]" style={{ color: 'var(--color-text-mist)' }}>
-              Your taste
-            </p>
+          <div className="glass flex flex-col gap-4 px-5 py-5" style={{ borderColor: 'var(--color-bond)', borderWidth: '1.5px' }}>
+            <p className="eyebrow">Your taste</p>
 
             {/* Cuisine chips */}
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                In the mood for?
-              </p>
+              <p className="text-xs font-semibold">In the mood for?</p>
               <div className="flex flex-wrap gap-2">
                 {visibleCuisines.map((c) => {
                   const sel = cuisineWants.includes(c)
@@ -528,12 +392,8 @@ function PartyHub() {
                       onClick={() =>
                         setCuisineWants((prev) => sel ? prev.filter((x) => x !== c) : [...prev, c])
                       }
-                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                      style={{
-                        background: sel ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-                        color: sel ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                        border: `1px solid ${sel ? 'transparent' : 'var(--color-hairline)'}`,
-                      }}
+                      aria-pressed={sel}
+                      className={`chip-glass ${sel ? 'chip-glass-active' : ''}`}
                     >
                       {c}
                     </button>
@@ -542,12 +402,8 @@ function PartyHub() {
                 {hiddenCount > 0 && (
                   <button
                     onClick={() => setShowAllCuisines(true)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium"
-                    style={{
-                      border: '1.5px dashed var(--color-hairline)',
-                      color: 'var(--color-text-mist)',
-                      background: 'transparent',
-                    }}
+                    className="chip-glass"
+                    style={{ borderStyle: 'dashed', color: 'var(--color-ink-soft)', background: 'transparent' }}
                   >
                     + {hiddenCount} more
                   </button>
@@ -555,12 +411,8 @@ function PartyHub() {
                 {showAllCuisines && (
                   <button
                     onClick={() => setShowAllCuisines(false)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium"
-                    style={{
-                      border: '1.5px dashed var(--color-hairline)',
-                      color: 'var(--color-text-mist)',
-                      background: 'transparent',
-                    }}
+                    className="chip-glass"
+                    style={{ borderStyle: 'dashed', color: 'var(--color-ink-soft)', background: 'transparent' }}
                   >
                     Show less
                   </button>
@@ -570,7 +422,7 @@ function PartyHub() {
 
             {/* Budget bar */}
             <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold" style={{ color: 'var(--color-text-cream)' }}>Budget</p>
+              <p className="text-xs font-semibold">Budget</p>
               <div className="flex gap-2">
                 {BUDGETS.map(({ tier, symbol }: { tier: number; symbol: string; label: string; sub: string }) => {
                   const active = budget === tier
@@ -578,12 +430,8 @@ function PartyHub() {
                     <button
                       key={tier}
                       onClick={() => setBudget(tier)}
-                      className="flex-1 py-2 rounded-xl text-sm font-bold text-center transition-all"
-                      style={{
-                        background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-                        color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                        border: `1px solid ${active ? 'transparent' : 'var(--color-hairline)'}`,
-                      }}
+                      aria-pressed={active}
+                      className={`chip-glass flex-1 justify-center !rounded-xl font-bold ${active ? 'chip-glass-active' : ''}`}
                     >
                       {symbol}
                     </button>
@@ -592,51 +440,14 @@ function PartyHub() {
               </div>
             </div>
 
-            {/* Dietary chips */}
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold" style={{ color: 'var(--color-text-cream)' }}>
-                Dietary{' '}
-                <span style={{ color: 'var(--color-text-mist)', fontWeight: 400 }}>· optional</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {DIETARY.map((d) => {
-                  const active = dietary.includes(d)
-                  return (
-                    <button
-                      key={d}
-                      onClick={() =>
-                        setDietary((prev) => active ? prev.filter((x) => x !== d) : [...prev, d])
-                      }
-                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-                      style={{
-                        background: active ? 'var(--color-accent-ember)' : 'var(--color-surface-twilight)',
-                        color: active ? 'var(--color-on-ember)' : 'var(--color-text-cream)',
-                        border: `1px solid ${active ? 'transparent' : 'var(--color-hairline)'}`,
-                      }}
-                    >
-                      {d}
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="text-xs" style={{ color: 'var(--color-text-mist)' }}>
-                Never shown to anyone else in your party.
-              </p>
-            </div>
-
             {tasteError && (
-              <p className="text-xs" style={{ color: 'var(--color-accent-brick)' }}>{tasteError}</p>
+              <p role="alert" className="text-xs" style={{ color: 'var(--color-error)' }}>{tasteError}</p>
             )}
 
             <button
               onClick={saveTaste}
               disabled={budget === null || submittingTaste}
-              className="w-full py-3 rounded-2xl font-semibold text-sm transition-opacity"
-              style={{
-                background: budget !== null ? 'var(--color-accent-ember)' : '#D9CDBA',
-                color: budget !== null ? 'var(--color-on-ember)' : '#A09485',
-                cursor: budget !== null && !submittingTaste ? 'pointer' : 'not-allowed',
-              }}
+              className="btn btn-dark w-full py-3 !rounded-2xl text-sm"
             >
               {submittingTaste ? 'Saving…' : 'Save my taste'}
             </button>
@@ -644,31 +455,37 @@ function PartyHub() {
         )}
       </main>
 
-      {/* ── Pinned CTA ────────────────────────────────────────────── */}
+      {/* ── Pinned CTA ──────────────────────────────────────────────
+          A frosted scrim, not a flat fade — it blurs and softly tints
+          whatever sky color sits behind it instead of masking it with
+          an opaque box, so the wash stays visible underneath. */}
       <div
-        className="fixed bottom-0 left-0 right-0 px-5.5 pb-8 pt-6"
-        style={{ background: 'linear-gradient(to top, var(--color-surface-deep) 75%, transparent)' }}
+        className="fixed bottom-0 left-0 right-0 px-6 pb-8 pt-6"
+        style={{
+          background: 'linear-gradient(to top, rgba(237,238,243,0.92) 55%, rgba(237,238,243,0) 100%)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        }}
       >
-        <div className="max-w-lg mx-auto flex flex-col gap-3">
+        <div className="max-w-lg mx-auto flex flex-col gap-2">
           {/* Hint — only shown when CTA is locked */}
           {!ctaEnabled && (
-            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--color-text-mist)' }}>
+            <p className="text-xs font-semibold" style={{ color: 'var(--color-ink-soft)' }}>
               Set your taste above to unlock this.
             </p>
           )}
 
-          <button
-            onClick={() => ctaEnabled && !finding && setView('ready')}
+          <ShinyButton
+            onClick={() => ctaEnabled && !finding && handleFindRestaurant()}
             disabled={!ctaEnabled || finding}
-            className="w-full py-4 rounded-2xl font-bold text-base transition-all"
-            style={{
-              background: ctaEnabled ? 'var(--color-accent-ember)' : '#D9CDBA',
-              color: ctaEnabled ? 'var(--color-on-ember)' : '#A09485',
-              cursor: ctaEnabled && !finding ? 'pointer' : 'not-allowed',
-            }}
+            className="w-full"
           >
             {ctaLabel}
-          </button>
+          </ShinyButton>
+
+          {findError && (
+            <p role="alert" className="text-xs text-center" style={{ color: 'var(--color-error)' }}>{findError}</p>
+          )}
         </div>
       </div>
     </div>
