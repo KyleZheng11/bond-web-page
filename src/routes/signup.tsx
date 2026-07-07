@@ -12,6 +12,9 @@ import { supabase } from '#/lib/supabase'
 import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/signup')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: typeof search.returnTo === 'string' ? search.returnTo : undefined,
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession()
     if (data.session) throw redirect({ to: '/home' })
@@ -21,13 +24,18 @@ export const Route = createFileRoute('/signup')({
 
 function SignUp() {
   const navigate = useNavigate()
+  const { returnTo } = Route.useSearch()
   const [oauthLoading, setOauthLoading] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
 
   async function handleGoogle() {
     setOauthLoading(true)
+    if (returnTo) localStorage.setItem('bond:returnTo', returnTo)
     const { error } = await signInWithGoogle()
-    if (error) setOauthLoading(false)
+    if (error) {
+      localStorage.removeItem('bond:returnTo')
+      setOauthLoading(false)
+    }
     // on success the browser is redirected by Supabase — no manual nav needed
   }
 
@@ -40,21 +48,21 @@ function SignUp() {
       // Supabase email confirmation is on — user exists but can't log in yet
       setEmailError('Check your email and click the confirmation link before logging in.')
     } else {
-      navigate({ to: '/onboarding' })
+      navigate({ to: (returnTo ?? '/onboarding') as '/' })
     }
   }
 
   return (
     <div className="min-h-dvh flex flex-col items-center px-6 py-6">
       <div className="w-full max-w-sm flex items-center justify-between">
-        <Link
-          to="/welcome"
+        <button
+          onClick={() => navigate({ to: (returnTo ?? '/welcome') as '/' })}
           className="inline-flex items-center gap-1.5 text-sm font-semibold min-h-11 transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-ink-soft)' }}
         >
           <ArrowLeft size={16} aria-hidden />
           Back
-        </Link>
+        </button>
         <Link to="/" aria-label="Bond home">
           <Wordmark className="text-xl" />
         </Link>
@@ -91,6 +99,7 @@ function SignUp() {
           Already have an account?{' '}
           <Link
             to="/login"
+            search={{ returnTo }}
             className="font-semibold transition-opacity hover:opacity-70"
             style={{ color: 'var(--color-blueberry)' }}
           >

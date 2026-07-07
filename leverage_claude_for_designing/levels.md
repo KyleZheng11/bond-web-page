@@ -53,7 +53,7 @@ What we need to master
 
 - Reading and understanding source code
 - identify which techniques = effects
-- adapting cloned pattersnt o your design
+- adapting cloned patterns to your design
 
 The trap we dont want to fall into
 

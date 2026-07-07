@@ -45,11 +45,12 @@ function Welcome() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut', delay: 0.25 }}
         >
-          <Link to="/signup" className="btn btn-primary w-full py-4 text-base">
+          <Link to="/signup" search={{ returnTo: undefined }} className="btn btn-primary w-full py-4 text-base">
             Create a party
           </Link>
           <Link
             to="/login"
+            search={{ returnTo: undefined }}
             className="text-sm font-semibold py-2 transition-opacity hover:opacity-80 text-on-dawn"
             style={{ color: 'var(--color-on-deep)' }}
           >

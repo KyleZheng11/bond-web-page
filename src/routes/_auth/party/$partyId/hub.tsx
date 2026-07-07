@@ -20,7 +20,7 @@ type LobbyData = {
 
 export const Route = createFileRoute('/_auth/party/$partyId/hub')({ component: PartyHub })
 
-const BUDGET_SYMBOL: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' }
+const BUDGET_SYMBOL: Record<number, string> = { 1: 'Under $15', 2: '$15–$30', 3: '$30–$60', 4: '$60+' }
 const FIRST_N = 12
 
 function ReadyDot({ ready }: { ready: boolean }) {
@@ -424,7 +424,7 @@ function PartyHub() {
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold">Budget</p>
               <div className="flex gap-2">
-                {BUDGETS.map(({ tier, symbol }: { tier: number; symbol: string; label: string; sub: string }) => {
+                {BUDGETS.map(({ tier, symbol }: { tier: number; symbol: string; sub: string }) => {
                   const active = budget === tier
                   return (
                     <button

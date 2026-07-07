@@ -11,6 +11,12 @@ function AuthCallback() {
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
+        const returnTo = localStorage.getItem('bond:returnTo')
+        localStorage.removeItem('bond:returnTo')
+        if (returnTo) {
+          navigate({ to: returnTo as '/' })
+          return
+        }
         const { data: profile } = await supabase
           .from('users')
           .select('location')

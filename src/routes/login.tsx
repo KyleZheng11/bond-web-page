@@ -12,6 +12,9 @@ import { supabase } from '#/lib/supabase'
 import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/login')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    returnTo: typeof search.returnTo === 'string' ? search.returnTo : undefined,
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession()
     if (data.session) throw redirect({ to: '/home' })
@@ -21,13 +24,18 @@ export const Route = createFileRoute('/login')({
 
 function LogIn() {
   const navigate = useNavigate()
+  const { returnTo } = Route.useSearch()
   const [oauthLoading, setOauthLoading] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
 
   async function handleGoogle() {
     setOauthLoading(true)
+    if (returnTo) localStorage.setItem('bond:returnTo', returnTo)
     const { error } = await signInWithGoogle()
-    if (error) setOauthLoading(false)
+    if (error) {
+      localStorage.removeItem('bond:returnTo')
+      setOauthLoading(false)
+    }
   }
 
   async function handleEmail(email: string, password: string) {
@@ -40,21 +48,21 @@ function LogIn() {
         setEmailError('Incorrect email or password.')
       }
     } else {
-      navigate({ to: '/home' })
+      navigate({ to: (returnTo ?? '/home') as '/' })
     }
   }
 
   return (
     <div className="min-h-dvh flex flex-col items-center px-6 py-6">
       <div className="w-full max-w-sm flex items-center justify-between">
-        <Link
-          to="/welcome"
+        <button
+          onClick={() => navigate({ to: (returnTo ?? '/welcome') as '/' })}
           className="inline-flex items-center gap-1.5 text-sm font-semibold min-h-11 transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-ink-soft)' }}
         >
           <ArrowLeft size={16} aria-hidden />
           Back
-        </Link>
+        </button>
         <Link to="/" aria-label="Bond home">
           <Wordmark className="text-xl" />
         </Link>
@@ -91,6 +99,7 @@ function LogIn() {
           Don't have an account?{' '}
           <Link
             to="/signup"
+            search={{ returnTo }}
             className="font-semibold transition-opacity hover:opacity-70"
             style={{ color: 'var(--color-blueberry)' }}
           >
