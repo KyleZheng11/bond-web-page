@@ -10,17 +10,14 @@ export const updateUserProfile = createServerFn()
     cuisine_blacklist: string[]
   }) => d)
   .handler(async ({ data }) => {
-    const updateData: Record<string, unknown> = {
-      location: data.location,
-      dietary_restrictions: data.dietary_restrictions,
-      cuisine_blacklist: data.cuisine_blacklist,
-    }
-    if (data.display_name !== undefined) {
-      updateData.display_name = data.display_name
-    }
     const { error } = await supabaseServer
       .from('users')
-      .update(updateData)
+      .update({
+        location: data.location,
+        dietary_restrictions: data.dietary_restrictions,
+        cuisine_blacklist: data.cuisine_blacklist,
+        ...(data.display_name !== undefined && { display_name: data.display_name }),
+      })
       .eq('id', data.userId)
     if (error) throw new Error(error.message)
   })

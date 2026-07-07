@@ -54,15 +54,13 @@ export const submitGuestPreferences = createServerFn()
         if (prefError) throw new Error(prefError.message)
       }
 
-      const memberUpdate: Record<string, string> = {
-        preferences_submitted_at: new Date().toISOString(),
-      }
-      // Only overwrite the name if one was provided (editing from lobby skips name entry)
-      if (data.guestName) memberUpdate.guest_name = data.guestName
-
       await supabaseServer
         .from('party_members')
-        .update(memberUpdate)
+        .update({
+          preferences_submitted_at: new Date().toISOString(),
+          // Only overwrite the name if one was provided (editing from lobby skips name entry)
+          ...(data.guestName && { guest_name: data.guestName }),
+        })
         .eq('guest_token', data.token)
 
       return { ok: true, partyId: member.party_id }
