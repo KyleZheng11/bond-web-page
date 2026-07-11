@@ -15,6 +15,9 @@ export interface Place {
   lat: number | null
   lng: number | null
   servesVegetarianFood?: boolean
+  // Restaurant's own site — where reservations live. Optional because
+  // recommendations saved before this field existed won't have it.
+  website?: string | null
 }
 
 export const CUISINE_TO_GOOGLE_TYPE: Record<string, string> = {
@@ -171,6 +174,9 @@ export async function searchNearbyRestaurants(params: {
         'places.photos',
         'places.location',
         'places.servesVegetarianFood',
+        // websiteUri bumps this request into Google's Enterprise pricing tier
+        // (slightly costlier per call) — it's what powers the reserve button
+        'places.websiteUri',
       ].join(','),
     },
     // priceLevels is included as a hint but the API often ignores it; we filter client-side below
@@ -197,6 +203,7 @@ export async function searchNearbyRestaurants(params: {
       photos?: Array<{ name: string }>
       location?: { latitude: number; longitude: number }
       servesVegetarianFood?: boolean
+      websiteUri?: string
     }>
   }
 
@@ -222,6 +229,7 @@ export async function searchNearbyRestaurants(params: {
       lat: p.location?.latitude ?? null,
       lng: p.location?.longitude ?? null,
       servesVegetarianFood: p.servesVegetarianFood,
+      website: p.websiteUri ?? null,
     }))
 }
 
