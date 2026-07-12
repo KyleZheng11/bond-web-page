@@ -1,11 +1,17 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const inviteFriends = createServerFn()
   .inputValidator((d: { partyId: string; friendUserIds: string[] }) => d)
   .handler(async ({ data }) => {
+    const user = await requireUser()
     const { partyId, friendUserIds } = data
     if (friendUserIds.length === 0) return { ok: true }
+
+    const { data: party } = await supabaseServer
+      .from('parties').select('creator_id').eq('id', partyId).single()
+    if (!party) throw new Error('Party not found')
+    if (party.creator_id !== user.id) throw new Error('Only the creator can invite friends.')
 
     const { data: users } = await supabaseServer
       .from('users')

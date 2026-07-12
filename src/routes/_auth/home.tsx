@@ -18,7 +18,7 @@ function greeting() {
 function Home() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { parties, loading, error, refresh } = useParties(user?.id)
+  const { parties, loading, error, refresh } = useParties()
 
   return (
     <div className="min-h-dvh px-6 py-8 max-w-lg md:max-w-285 mx-auto flex flex-col gap-8">
@@ -122,7 +122,7 @@ function Home() {
                 onDelete={
                   party.creator_id === user?.id
                     ? async () => {
-                        await deleteParty({ data: { partyId: party.id, userId: user.id } })
+                        await deleteParty({ data: { partyId: party.id } })
                         refresh()
                       }
                     : undefined

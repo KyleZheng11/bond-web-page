@@ -22,10 +22,10 @@ function NewParty() {
 
   useEffect(() => {
     if (!user) return
-    getUserProfile({ data: { userId: user.id } }).then((p) => {
+    getUserProfile().then((p) => {
       if (p.location) setLocation(p.location)
     })
-    getFriends({ data: { userId: user.id } }).then(setFriends)
+    getFriends().then(setFriends)
   }, [user])
 
   function toggleFriend(id: string) {
@@ -52,7 +52,6 @@ function NewParty() {
         data: {
           name: name.trim() || undefined,
           location: location.trim(),
-          creatorId: user.id,
         },
       })
 

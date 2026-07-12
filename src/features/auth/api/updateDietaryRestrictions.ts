@@ -1,12 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const updateDietaryRestrictions = createServerFn()
-  .inputValidator((d: { userId: string; restrictions: string[] }) => d)
+  .inputValidator((d: { restrictions: string[] }) => d)
   .handler(async ({ data }) => {
+    const user = await requireUser()
     const { error } = await supabaseServer
       .from('users')
       .update({ dietary_restrictions: data.restrictions })
-      .eq('id', data.userId)
+      .eq('id', user.id)
     if (error) throw new Error(error.message)
   })

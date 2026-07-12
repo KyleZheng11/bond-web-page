@@ -9,6 +9,6 @@ export const getRecommendation = createServerFn()
       .select('*')
       .eq('party_id', data.partyId)
       .single()
-    if (error || !rec) throw new Error('Recommendation not found')
+    if (error) throw new Error('Recommendation not found')
     return rec
   })

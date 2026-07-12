@@ -2,9 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { MapPin, Check, Pencil } from 'lucide-react'
 import { useAuth } from '#/features/auth'
-import { getPartyLobby } from '#/features/parties'
+import { getPartyLobby, PartyProgressBar  } from '#/features/parties'
 import { getLeaderPrefsContext, submitPreferences, CUISINES, BUDGETS } from '#/features/preferences'
-import { PartyProgressBar } from '#/features/parties'
 import { findRestaurant } from '#/features/recommendations'
 import { supabase } from '#/lib/supabase'
 import type { Tables } from '#/types/database'
@@ -63,8 +62,8 @@ function PartyHub() {
     if (!user) return
     try {
       const [result, prefs] = await Promise.all([
-        getPartyLobby({ data: { partyId, userId: user.id } }),
-        getLeaderPrefsContext({ data: { userId: user.id } }),
+        getPartyLobby({ data: { partyId } }),
+        getLeaderPrefsContext(),
       ])
       setLobbyData(result)
       setCuisineBlacklist(prefs.profileCuisineBlacklist)
@@ -76,7 +75,6 @@ function PartyHub() {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partyId, user?.id, navigate])
 
   useEffect(() => { load() }, [load])
@@ -109,7 +107,6 @@ function PartyHub() {
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partyId, user?.id, load, navigate])
 
   if (loading) {
@@ -178,7 +175,8 @@ function PartyHub() {
   async function shareLink() {
     if (!inviteLink) return
     const text = `Join my Bond party! Add your preferences here: ${inviteLink}`
-    if (navigator.share) {
+    // 'in' check because desktop browsers lack share() despite the DOM types
+    if ('share' in navigator) {
       await navigator.share({ title: 'Bond', text, url: inviteLink })
     } else {
       window.open(`sms:&body=${encodeURIComponent(text)}`)
@@ -191,7 +189,7 @@ function PartyHub() {
     setTasteError(null)
     try {
       await submitPreferences({
-        data: { partyId, userId: user.id, cuisineWants, budgetTier: budget, dietaryRestrictions: [] },
+        data: { partyId, cuisineWants, budgetTier: budget, dietaryRestrictions: [] },
       })
       setTasteEditing(false)
       await load()

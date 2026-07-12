@@ -160,7 +160,7 @@ export function Avatar({
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }) {
-  const letter = (name ?? '?').trim()[0]?.toUpperCase() ?? '?'
+  const letter = name?.trim().at(0)?.toUpperCase() ?? '?'
   const cls = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-20 h-20 text-3xl' }[size]
   return (
     <div

@@ -1,20 +1,9 @@
 import { useState } from 'react'
 import { X, MessageSquare } from 'lucide-react'
+import { evenSplit } from '../lib/evenSplit'
 import type { Tables } from '#/types/database'
 
 type Member = Tables<'party_members'>
-
-/* Splits a dollar total into n cent-accurate shares. Cents don't always
-   divide evenly, so the first (cents % n) people get one extra cent —
-   the shares always sum back to the exact total. */
-function evenSplit(total: number, n: number): string[] {
-  const cents = Math.round(total * 100)
-  const base = Math.floor(cents / n)
-  const extra = cents % n
-  return Array.from({ length: n }, (_, i) =>
-    ((base + (i < extra ? 1 : 0)) / 100).toFixed(2),
-  )
-}
 
 /* Builds the text-message body for one member. The Venmo link opens the
    app pre-filled to pay the leader; its own query params get percent-

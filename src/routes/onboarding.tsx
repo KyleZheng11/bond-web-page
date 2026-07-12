@@ -2,8 +2,7 @@ import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { supabase } from '#/lib/supabase'
-import { updateUserProfile } from '#/features/auth'
+import { updateUserProfile, getAuthState } from '#/features/auth'
 import {
   StepUsername,
   StepDietaryOnboarding,
@@ -14,15 +13,10 @@ import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/onboarding')({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession()
-    if (!data.session) throw redirect({ to: '/welcome' })
+    const auth = await getAuthState()
+    if (!auth) throw redirect({ to: '/welcome' })
     // Skip onboarding only when both display_name and location are already set
-    const { data: profile } = await supabase
-      .from('users')
-      .select('display_name, location')
-      .eq('id', data.session.user.id)
-      .maybeSingle()
-    if (profile?.display_name?.trim() && profile?.location) throw redirect({ to: '/home' })
+    if (auth.displayName?.trim() && auth.location) throw redirect({ to: '/home' })
   },
   component: Onboarding,
 })
@@ -57,11 +51,8 @@ function Onboarding() {
     setError(null)
     let saved = false
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Not signed in')
       await updateUserProfile({
         data: {
-          userId: session.user.id,
           display_name: username.trim(),
           location: location.trim(),
           dietary_restrictions: dietary,

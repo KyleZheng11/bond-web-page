@@ -105,14 +105,14 @@ function Profile() {
 
   useEffect(() => {
     if (!user) return
-    getUserProfile({ data: { userId: user.id } })
+    getUserProfile()
       .then((p) => {
         setRestrictions(p.dietary_restrictions)
         setLocation(p.location ?? '')
         setCuisineBlacklist(p.cuisine_blacklist)
       })
       .finally(() => setLoadingProfile(false))
-    getMyParties({ data: { userId: user.id } })
+    getMyParties()
       .then(setParties)
       .finally(() => setLoadingParties(false))
   }, [user])
@@ -134,7 +134,7 @@ function Profile() {
     if (!user) return
     setSavingDietary(true)
     try {
-      await updateDietaryRestrictions({ data: { userId: user.id, restrictions: draftRestrictions } })
+      await updateDietaryRestrictions({ data: { restrictions: draftRestrictions } })
       setRestrictions(draftRestrictions)
       setEditingDietary(false)
       setDietaryFlash(true)
@@ -161,7 +161,7 @@ function Profile() {
     if (!user) return
     setSavingBlacklist(true)
     try {
-      await updateCuisineBlacklist({ data: { userId: user.id, blacklist: draftBlacklist } })
+      await updateCuisineBlacklist({ data: { blacklist: draftBlacklist } })
       setCuisineBlacklist(draftBlacklist)
       setEditingBlacklist(false)
       setBlacklistFlash(true)
@@ -182,7 +182,7 @@ function Profile() {
     if (!user || !draftLocation.trim()) return
     setSavingLocation(true)
     try {
-      await updateLocation({ data: { userId: user.id, location: draftLocation.trim() } })
+      await updateLocation({ data: { location: draftLocation.trim() } })
       setLocation(draftLocation.trim())
       setEditingLocation(false)
       setLocationFlash(true)
@@ -205,7 +205,7 @@ function Profile() {
       : { to: '/party/$partyId/hub' as const, params: { partyId: party.id } }
   }
 
-  const name = user?.user_metadata?.full_name ?? user?.email ?? '—'
+  const name = user?.user_metadata.full_name ?? user?.email ?? '—'
 
   return (
     <div className="min-h-dvh">

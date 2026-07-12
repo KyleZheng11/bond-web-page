@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 import { aggregatePreferences } from '../lib/aggregatePreferences'
 import { geocodeLocation, searchNearbyRestaurants, resolvePhotoUrl, CUISINE_TO_GOOGLE_TYPE } from '../lib/googlePlaces'
 import type { Place } from '../lib/googlePlaces'
@@ -74,16 +74,18 @@ export const findRestaurant = createServerFn()
   .inputValidator((d: { partyId: string }) => d)
   .handler(async ({ data }) => {
     const { partyId } = data
+    const user = await requireUser()
 
     const { data: party, error: partyError } = await supabaseServer
       .from('parties').select('*').eq('id', partyId).single()
-    if (partyError || !party) throw new Error('Party not found')
+    if (partyError) throw new Error('Party not found')
+    if (party.creator_id !== user.id) throw new Error('Only the leader can start the search.')
     if (!party.location) throw new Error('Party has no location set')
 
     const { data: preferences, error: prefsError } = await supabaseServer
       .from('preferences').select('*').eq('party_id', partyId)
     if (prefsError) throw new Error(prefsError.message)
-    if (!preferences?.length) throw new Error('No preferences submitted yet')
+    if (!preferences.length) throw new Error('No preferences submitted yet')
 
     const { data: creatorProfile } = await supabaseServer
       .from('users')
@@ -103,11 +105,11 @@ export const findRestaurant = createServerFn()
     // Only the group's top cuisine preference and budget — fall back to the
     // runner-up cuisine (same budget) if that alone doesn't fill 4 slots.
     // The card label is the cuisine itself rather than a generic tag.
-    const topCuisine = signal.rankedCuisines[0] ?? null
+    const topCuisine = signal.rankedCuisines.at(0) ?? null
     await fill(coords, topCuisine, signal.commonPriceLevels, vegOnly, topCuisine ?? 'Nearby', candidates, usedIds, usedNames)
 
     if (candidates.length < TARGET) {
-      const runnerUpCuisine = signal.rankedCuisines[1] ?? null
+      const runnerUpCuisine = signal.rankedCuisines.at(1) ?? null
       if (runnerUpCuisine) {
         await fill(coords, runnerUpCuisine, signal.commonPriceLevels, vegOnly, runnerUpCuisine, candidates, usedIds, usedNames)
       }

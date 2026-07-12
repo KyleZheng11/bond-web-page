@@ -1,16 +1,20 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const searchUsers = createServerFn()
-  .inputValidator((d: { query: string; currentUserId: string }) => d)
+  .inputValidator((d: { query: string }) => d)
   .handler(async ({ data }) => {
-    const { query, currentUserId } = data
-    if (query.trim().length < 2) return []
+    const user = await requireUser()
+
+    // Strip characters that have meaning in PostgREST .or() filters so a
+    // search term can't break out of the pattern below.
+    const query = data.query.replace(/[,()%]/g, '').trim()
+    if (query.length < 2) return []
 
     const { data: users } = await supabaseServer
       .from('users')
       .select('id, display_name, email')
-      .neq('id', currentUserId)
+      .neq('id', user.id)
       .or(`display_name.ilike.%${query}%,email.ilike.%${query}%`)
       .limit(10)
 

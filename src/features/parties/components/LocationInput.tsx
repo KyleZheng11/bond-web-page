@@ -54,7 +54,9 @@ export function LocationInput({ value, onChange }: LocationInputProps) {
   }
 
   async function detectLocation() {
-    if (!navigator.geolocation) return
+    // Runtime guard — geolocation is missing in some webviews even though
+    // the DOM types say it's always there.
+    if (!('geolocation' in navigator)) return
     setDetecting(true)
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {

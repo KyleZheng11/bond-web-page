@@ -2,8 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { Star, Check } from 'lucide-react'
 import { useAuth } from '#/features/auth'
-import { finalizeVoting } from '#/features/votes'
-import { getCandidates, submitVote } from '#/features/votes'
+import { finalizeVoting, getCandidates, submitVote  } from '#/features/votes'
 import { PartyProgressBar } from '#/features/parties'
 import { supabase } from '#/lib/supabase'
 import { getRecommendation } from '#/features/recommendations'
@@ -170,7 +169,7 @@ function VoteScreen() {
   async function handleVote(restaurantId: string) {
     if (!voterId) return
     setMyVote(restaurantId)
-    await submitVote({ data: { partyId, voterId, restaurantId } })
+    await submitVote({ data: { partyId, restaurantId } })
     // Broadcast so others refresh without polling
     const ch = supabase.channel(`vote:${partyId}`)
     await ch.send({ type: 'broadcast', event: 'vote_cast', payload: {} })
@@ -271,7 +270,7 @@ function VoteScreen() {
 
         {!isLeader && myVote && (
           <div className="card px-4 py-4 text-sm text-center md:max-w-sm md:mx-auto" style={{ color: 'var(--color-ink-soft)' }}>
-            You're locked in. The host will reveal the result.
+            Vote's in — you can still change your pick until the host locks in the result.
           </div>
         )}
       </main>

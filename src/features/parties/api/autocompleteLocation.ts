@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { requireUser } from '#/lib/supabase.server'
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY!
 const AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete'
@@ -12,6 +13,8 @@ export interface LocationSuggestion {
 export const autocompleteLocation = createServerFn()
   .inputValidator((d: { input: string }) => d)
   .handler(async ({ data }) => {
+    // Signed-in users only — this endpoint spends Google Places quota
+    await requireUser()
     const { input } = data
     if (input.trim().length < 2) return [] as LocationSuggestion[]
 

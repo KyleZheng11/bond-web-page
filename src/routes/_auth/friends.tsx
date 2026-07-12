@@ -37,10 +37,7 @@ function Friends() {
 
   useEffect(() => {
     if (!user) return
-    Promise.all([
-      getFriendRequests({ data: { userId: user.id } }),
-      getFriends({ data: { userId: user.id } }),
-    ])
+    Promise.all([getFriendRequests(), getFriends()])
       .then(([reqs, frs]) => {
         setRequests(reqs)
         setFriends(frs)
@@ -56,7 +53,7 @@ function Friends() {
     if (searchTimer.current) clearTimeout(searchTimer.current)
     searchTimer.current = setTimeout(async () => {
       setSearching(true)
-      const results = await searchUsers({ data: { query, currentUserId: user.id } })
+      const results = await searchUsers({ data: { query } })
       setSearchResults(results)
       setSearching(false)
     }, 300)
@@ -66,7 +63,7 @@ function Friends() {
     if (!user) return
     setPendingRequests((p) => ({ ...p, [addresseeId]: true }))
     try {
-      await sendFriendRequest({ data: { requesterId: user.id, addresseeId } })
+      await sendFriendRequest({ data: { addresseeId } })
     } catch {
       setPendingRequests((p) => ({ ...p, [addresseeId]: false }))
     }
@@ -76,14 +73,14 @@ function Friends() {
     await respondToFriendRequest({ data: { friendshipId, accept } })
     setRequests((r) => r.filter((req) => req.friendshipId !== friendshipId))
     if (accept && user) {
-      const updated = await getFriends({ data: { userId: user.id } })
+      const updated = await getFriends()
       setFriends(updated)
     }
   }
 
   async function handleGenerateInvite() {
     if (!user) return
-    const { token } = await generateFriendInvite({ data: { userId: user.id } })
+    const { token } = await generateFriendInvite()
     const link = `${window.location.origin}/friend-invite/${token}`
     setInviteLink(link)
   }
@@ -98,7 +95,8 @@ function Friends() {
   async function shareInviteLink() {
     if (!inviteLink) return
     const text = `Add me on Bond! ${inviteLink}`
-    if (navigator.share) {
+    // 'in' check because desktop browsers lack share() despite the DOM types
+    if ('share' in navigator) {
       await navigator.share({ title: 'Bond', text, url: inviteLink })
     } else {
       window.open(`sms:&body=${encodeURIComponent(text)}`)

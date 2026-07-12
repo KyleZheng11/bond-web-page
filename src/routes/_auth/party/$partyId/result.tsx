@@ -48,7 +48,7 @@ function Result() {
 
   useEffect(() => {
     if (!user) return
-    getPartyLobby({ data: { partyId, userId: user.id } })
+    getPartyLobby({ data: { partyId } })
       .then((lobby) => {
         setInviteToken(lobby.party.invite_token ?? null)
         setMembers(lobby.members)

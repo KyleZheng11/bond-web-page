@@ -1,10 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const resolveAndAcceptFriendInvite = createServerFn()
-  .inputValidator((d: { token: string; acceptorId: string }) => d)
+  .inputValidator((d: { token: string }) => d)
   .handler(async ({ data }) => {
-    const { token, acceptorId } = data
+    const { id: acceptorId } = await requireUser()
+    const { token } = data
 
     const { data: invite } = await supabaseServer
       .from('friend_invites')
@@ -47,6 +48,6 @@ export const resolveAndAcceptFriendInvite = createServerFn()
       .eq('id', invite.inviter_id)
       .single()
 
-    const inviterName = inviter?.display_name ?? inviter?.email?.split('@')[0] ?? 'Your friend'
+    const inviterName = inviter?.display_name ?? inviter?.email.split('@')[0] ?? 'Your friend'
     return { ok: true, alreadyFriends: false, inviterName }
   })

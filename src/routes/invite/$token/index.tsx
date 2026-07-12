@@ -99,7 +99,7 @@ function GuestHub() {
 
   useEffect(() => {
     resolveInvite({ data: { token } })
-      .then((result) => {
+      .then(async (result) => {
         setInvite(result)
         setPartyId(result.party.id)
         setLeaderName(result.leaderName)
@@ -113,6 +113,23 @@ function GuestHub() {
         } else if (result.alreadySubmitted) {
           // Guest already submitted — show waiting state
           setGuestView('waiting')
+        } else if (result.tokenType === 'party') {
+          // General-link guest reloading the page: their personal token only
+          // lives in this browser, so recover it — otherwise they'd be asked
+          // to submit again and end up in the party twice.
+          const saved = localStorage.getItem(`bond:guest:${result.party.id}`)
+          if (saved) {
+            try {
+              const mine = await resolveInvite({ data: { token: saved } })
+              if (mine.alreadySubmitted) {
+                setPersonalToken(saved)
+                setGuestView('waiting')
+              }
+            } catch {
+              // saved token no longer valid (e.g. member removed) — start fresh
+              localStorage.removeItem(`bond:guest:${result.party.id}`)
+            }
+          }
         }
       })
       .catch((err: Error) => setLoadError(err.message))
@@ -169,7 +186,11 @@ function GuestHub() {
       setPartyId(result.partyId)
       // For general-link guests, use the unique guestToken returned as our personal token.
       // This ensures each guest gets a unique voterId when the party moves to voting.
-      if (result.guestToken) setPersonalToken(result.guestToken)
+      // Saved to localStorage so a page refresh doesn't lose it.
+      if (result.guestToken) {
+        setPersonalToken(result.guestToken)
+        localStorage.setItem(`bond:guest:${result.partyId}`, result.guestToken)
+      }
       setGuestView('waiting')
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -178,8 +199,9 @@ function GuestHub() {
   }
 
   function shareResult() {
-    if (!partyId) return
-    navigator.clipboard.writeText(`${window.location.origin}/party/${partyId}/result`)
+    // Share the guest-visible invite link — /party/…/result requires login,
+    // so anyone without an account would hit the welcome page instead.
+    navigator.clipboard.writeText(`${window.location.origin}/invite/${token}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -195,7 +217,8 @@ function GuestHub() {
     if (!lobbyInviteToken) return
     const link = `${window.location.origin}/invite/${lobbyInviteToken}`
     const text = `Join my Bond party! Add your preferences here: ${link}`
-    if (navigator.share) {
+    // 'in' check because desktop browsers lack share() despite the DOM types
+    if ('share' in navigator) {
       await navigator.share({ title: 'Bond', text, url: link })
     } else {
       window.open(`sms:&body=${encodeURIComponent(text)}`)
