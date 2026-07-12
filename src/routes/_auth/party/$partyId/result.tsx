@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { Star, Navigation, Share2, Compass } from 'lucide-react'
+import { Star, Navigation, Share2, Compass, CalendarCheck, Receipt } from 'lucide-react'
 import { getRecommendation } from '#/features/recommendations'
 import { getPartyLobby, PartyProgressBar } from '#/features/parties'
+import { SplitBillDialog } from '#/features/bills'
 import { useAuth } from '#/features/auth'
 import type { Place } from '#/features/recommendations'
 import type { Tables } from '#/types/database'
 import { AppHeader, Spinner } from '#/components/ui'
 
-export const Route = createFileRoute('/_auth/party/$partyId/result')({ component: Result })
+export const Route = createFileRoute('/_auth/party/$partyId/result')({
+  component: Result,
+})
 
 const PRICE_SYMBOL: Record<string, string> = {
   PRICE_LEVEL_INEXPENSIVE: 'Under $15',
@@ -31,8 +34,10 @@ function Result() {
   const { user } = useAuth()
   const [rec, setRec] = useState<Tables<'recommendations'> | null>(null)
   const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [members, setMembers] = useState<Tables<'party_members'>[]>([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [splitOpen, setSplitOpen] = useState(false)
 
   useEffect(() => {
     getRecommendation({ data: { partyId } })
@@ -43,8 +48,11 @@ function Result() {
 
   useEffect(() => {
     if (!user) return
-    getPartyLobby({ data: { partyId, userId: user.id } })
-      .then((lobby) => setInviteToken(lobby.party.invite_token ?? null))
+    getPartyLobby({ data: { partyId } })
+      .then((lobby) => {
+        setInviteToken(lobby.party.invite_token ?? null)
+        setMembers(lobby.members)
+      })
       .catch(() => {})
   }, [partyId, user])
 
@@ -66,7 +74,10 @@ function Result() {
         <div className="relative z-10 flex flex-col items-center gap-6 max-w-xs">
           <Spinner size={48} dark />
           <div className="flex flex-col gap-2 text-on-dawn">
-            <h1 className="font-display font-bold text-3xl leading-tight" style={{ color: '#ffffff', letterSpacing: '-0.02em' }}>
+            <h1
+              className="font-display font-bold text-3xl leading-tight"
+              style={{ color: '#ffffff', letterSpacing: '-0.02em' }}
+            >
               Reading the room…
             </h1>
             <p className="text-sm" style={{ color: 'var(--color-on-deep)' }}>
@@ -83,7 +94,10 @@ function Result() {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-6">
         <p className="display text-xl">No result yet.</p>
-        <p className="text-sm text-center" style={{ color: 'var(--color-ink-soft)' }}>
+        <p
+          className="text-sm text-center"
+          style={{ color: 'var(--color-ink-soft)' }}
+        >
           The recommendation hasn't been generated yet, or something went wrong.
         </p>
         <Link
@@ -102,7 +116,13 @@ function Result() {
   const priceSymbol = PRICE_SYMBOL[place.priceLevel] ?? '—'
 
   const cuisineTags = place.types
-    .filter((t) => t !== 'restaurant' && t !== 'food' && t !== 'establishment' && t !== 'point_of_interest')
+    .filter(
+      (t) =>
+        t !== 'restaurant' &&
+        t !== 'food' &&
+        t !== 'establishment' &&
+        t !== 'point_of_interest',
+    )
     .map(formatCuisineTag)
     .slice(0, 3)
 
@@ -132,7 +152,10 @@ function Result() {
               />
               <div
                 className="absolute inset-0"
-                style={{ background: 'linear-gradient(to bottom, rgba(11,39,64,0.5) 0%, transparent 50%)' }}
+                style={{
+                  background:
+                    'linear-gradient(to bottom, rgba(11,39,64,0.5) 0%, transparent 50%)',
+                }}
               />
             </>
           ) : (
@@ -143,7 +166,10 @@ function Result() {
           )}
           <span
             className="relative text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full"
-            style={{ background: 'var(--color-sunrise)', color: 'var(--color-on-sunrise)' }}
+            style={{
+              background: 'var(--color-sunrise)',
+              color: 'var(--color-on-sunrise)',
+            }}
           >
             Bond's pick
           </span>
@@ -156,11 +182,13 @@ function Result() {
           desktop page instead of a phone screen stretched wide. */}
       <main className="flex-1 px-6 pb-10 max-w-285 mx-auto w-full pt-6">
         <div className="max-w-2xl md:max-w-none mx-auto grid md:grid-cols-[1fr_21rem] gap-8 md:gap-14 lg:gap-20">
-
           <div className="flex flex-col gap-6 min-w-0">
             {/* Name + cuisine tags */}
             <div className="flex flex-col gap-3">
-              <h1 className="font-display font-bold leading-tight text-[30px] md:text-4xl" style={{ letterSpacing: '-0.02em' }}>
+              <h1
+                className="font-display font-bold leading-tight text-[30px] md:text-4xl"
+                style={{ letterSpacing: '-0.02em' }}
+              >
                 {rec.restaurant_name}
               </h1>
               {cuisineTags.length > 0 && (
@@ -169,7 +197,11 @@ function Result() {
                     <span
                       key={tag}
                       className="text-xs font-semibold px-3 py-1 rounded-full"
-                      style={{ background: 'var(--color-surface)', color: 'var(--color-ink-soft)', border: '1px solid var(--color-line)' }}
+                      style={{
+                        background: 'var(--color-surface)',
+                        color: 'var(--color-ink-soft)',
+                        border: '1px solid var(--color-line)',
+                      }}
                     >
                       {tag}
                     </span>
@@ -182,10 +214,18 @@ function Result() {
             <div className="card flex items-center gap-4 px-4 py-3 flex-wrap">
               {place.rating > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Star size={15} fill="var(--color-sunrise)" color="var(--color-sunrise)" aria-hidden />
+                  <Star
+                    size={15}
+                    fill="var(--color-sunrise)"
+                    color="var(--color-sunrise)"
+                    aria-hidden
+                  />
                   <span className="text-sm font-semibold">{place.rating}</span>
                   {place.reviewCount > 0 && (
-                    <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
+                    <span
+                      className="text-xs"
+                      style={{ color: 'var(--color-ink-soft)' }}
+                    >
                       ({place.reviewCount.toLocaleString()})
                     </span>
                   )}
@@ -195,7 +235,10 @@ function Result() {
               {priceSymbol !== '—' && (
                 <>
                   <span style={{ color: 'var(--color-line)' }}>·</span>
-                  <span className="text-sm font-semibold" style={{ color: 'var(--color-blueberry)' }}>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--color-blueberry)' }}
+                  >
                     {priceSymbol}
                   </span>
                 </>
@@ -204,7 +247,10 @@ function Result() {
               {place.address && (
                 <>
                   <span style={{ color: 'var(--color-line)' }}>·</span>
-                  <span className="text-xs" style={{ color: 'var(--color-ink-soft)' }}>
+                  <span
+                    className="text-xs"
+                    style={{ color: 'var(--color-ink-soft)' }}
+                  >
                     {place.address}
                   </span>
                 </>
@@ -220,20 +266,58 @@ function Result() {
 
           {/* Actions — stays put while the reading column scrolls */}
           <div className="flex flex-col gap-3 md:pt-1 md:sticky md:top-24 md:self-start">
+            {/* Only rendered when Google gave us a website — recommendations
+                saved before that field was fetched won't have one. */}
+            {place.website && (
+              <a
+                href={place.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary w-full py-4 text-sm"
+              >
+                <CalendarCheck size={16} aria-hidden />
+                Visit their Site!
+              </a>
+            )}
+
             <a
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary w-full py-4 text-sm"
+              className={`btn ${place.website ? 'btn-secondary' : 'btn-primary'} w-full py-4 text-sm`}
             >
               <Navigation size={16} aria-hidden />
               Get directions
             </a>
 
-            <button onClick={shareResult} className="btn btn-secondary w-full py-4 text-sm">
+            <button
+              onClick={shareResult}
+              className="btn btn-secondary w-full py-4 text-sm"
+            >
               <Share2 size={16} aria-hidden />
               {copied ? 'Link copied!' : 'Share result'}
             </button>
+
+            {/* Needs the member list from the lobby fetch — hidden until
+                it arrives (or if it failed, where there'd be no one to split with) */}
+            {members.length > 0 && (
+              <button
+                onClick={() => setSplitOpen(true)}
+                className="btn btn-secondary w-full py-4 text-sm"
+              >
+                <Receipt size={16} aria-hidden />
+                Split the Bill!
+              </button>
+            )}
+
+            {splitOpen && user && (
+              <SplitBillDialog
+                restaurantName={rec.restaurant_name}
+                members={members}
+                currentUserId={user.id}
+                onClose={() => setSplitOpen(false)}
+              />
+            )}
 
             <Link
               to="/party/$partyId/explore"

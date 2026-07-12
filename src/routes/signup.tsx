@@ -7,8 +7,8 @@ import {
   EmailAuthForm,
   signInWithGoogle,
   signUpWithEmail,
+  getAuthState,
 } from '#/features/auth'
-import { supabase } from '#/lib/supabase'
 import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/signup')({
@@ -16,8 +16,7 @@ export const Route = createFileRoute('/signup')({
     returnTo: typeof search.returnTo === 'string' ? search.returnTo : undefined,
   }),
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession()
-    if (data.session) throw redirect({ to: '/home' })
+    if (await getAuthState()) throw redirect({ to: '/home' })
   },
   component: SignUp,
 })
@@ -27,6 +26,7 @@ function SignUp() {
   const { returnTo } = Route.useSearch()
   const [oauthLoading, setOauthLoading] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [emailNotice, setEmailNotice] = useState<string | null>(null)
 
   async function handleGoogle() {
     setOauthLoading(true)
@@ -41,12 +41,14 @@ function SignUp() {
 
   async function handleEmail(email: string, password: string) {
     setEmailError(null)
+    setEmailNotice(null)
     const { data, error } = await signUpWithEmail(email, password)
     if (error) {
       setEmailError(error.message)
     } else if (!data.session) {
-      // Supabase email confirmation is on — user exists but can't log in yet
-      setEmailError('Check your email and click the confirmation link before logging in.')
+      // Supabase email confirmation is on — user exists but can't log in yet.
+      // A notice, not an error: the signup worked.
+      setEmailNotice('Almost there — check your email and click the confirmation link to finish signing up.')
     } else {
       navigate({ to: (returnTo ?? '/onboarding') as '/' })
     }
@@ -92,7 +94,7 @@ function SignUp() {
             <div className="flex-1 h-px" style={{ background: 'var(--color-line)' }} />
           </div>
 
-          <EmailAuthForm mode="signup" onSubmit={handleEmail} error={emailError} />
+          <EmailAuthForm mode="signup" onSubmit={handleEmail} error={emailError} notice={emailNotice} />
         </div>
 
         <p className="text-center text-sm mt-6" style={{ color: 'var(--color-ink-soft)' }}>

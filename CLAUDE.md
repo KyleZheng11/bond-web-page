@@ -1,7 +1,7 @@
 ## Commands
 
 ```bash
-npm run dev          # Start dev server on port 3000
+npm run dev          # Start dev server on port 5173 (Vite default; uses the next free port if taken)
 ```
 
 ```Deploying on Cloudflare

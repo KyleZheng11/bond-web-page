@@ -7,8 +7,8 @@ import {
   EmailAuthForm,
   signInWithGoogle,
   signInWithEmail,
+  getAuthState,
 } from '#/features/auth'
-import { supabase } from '#/lib/supabase'
 import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/login')({
@@ -16,8 +16,7 @@ export const Route = createFileRoute('/login')({
     returnTo: typeof search.returnTo === 'string' ? search.returnTo : undefined,
   }),
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession()
-    if (data.session) throw redirect({ to: '/home' })
+    if (await getAuthState()) throw redirect({ to: '/home' })
   },
   component: LogIn,
 })

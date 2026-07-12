@@ -38,7 +38,7 @@ export const resolveInvite = createServerFn()
       return {
         tokenType: 'member' as const,
         party: { id: party.id, name: party.name, status: party.status },
-        leaderName: leader?.display_name?.trim() || leader?.email?.trim() || 'Someone',
+        leaderName: leader?.display_name?.trim() || leader?.email.trim() || 'Someone',
         memberCount: count ?? 0,
         alreadySubmitted: !!member.preferences_submitted_at,
       }
@@ -67,7 +67,7 @@ export const resolveInvite = createServerFn()
     return {
       tokenType: 'party' as const,
       party: { id: party.id, name: party.name, status: party.status },
-      leaderName: leader?.display_name?.trim() || leader?.email?.trim() || 'Someone',
+      leaderName: leader?.display_name?.trim() || leader?.email.trim() || 'Someone',
       memberCount: count ?? 0,
       alreadySubmitted: false,
     }

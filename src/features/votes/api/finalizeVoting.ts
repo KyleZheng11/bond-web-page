@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 import type { Candidate } from '#/features/recommendations'
 import type { Json } from '#/types/database'
 
@@ -7,6 +7,12 @@ export const finalizeVoting = createServerFn()
   .inputValidator((d: { partyId: string }) => d)
   .handler(async ({ data }) => {
     const { partyId } = data
+
+    const user = await requireUser()
+    const { data: party } = await supabaseServer
+      .from('parties').select('creator_id').eq('id', partyId).single()
+    if (!party) throw new Error('Party not found')
+    if (party.creator_id !== user.id) throw new Error('Only the leader can lock in the result.')
 
     const { data: rec } = await supabaseServer
       .from('recommendations')

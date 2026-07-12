@@ -1,19 +1,34 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const submitPreferences = createServerFn()
   .inputValidator((d: {
     partyId: string
-    userId: string
     cuisineWants: string[]
     budgetTier: number
     dietaryRestrictions: string[]
   }) => d)
   .handler(async ({ data }) => {
+    const user = await requireUser()
+
+    // Only the creator or an invited member can add preferences to a party
+    const [{ data: party }, { data: member }] = await Promise.all([
+      supabaseServer.from('parties').select('creator_id').eq('id', data.partyId).single(),
+      supabaseServer
+        .from('party_members')
+        .select('id')
+        .eq('party_id', data.partyId)
+        .eq('user_id', user.id)
+        .maybeSingle(),
+    ])
+    if (party?.creator_id !== user.id && !member) {
+      throw new Error('You are not part of this party.')
+    }
+
     const { data: profile } = await supabaseServer
       .from('users')
       .select('dietary_restrictions')
-      .eq('id', data.userId)
+      .eq('id', user.id)
       .maybeSingle()
 
     const profileRestrictions = profile?.dietary_restrictions ?? []
@@ -24,7 +39,7 @@ export const submitPreferences = createServerFn()
       .upsert(
         {
           party_id: data.partyId,
-          user_id: data.userId,
+          user_id: user.id,
           cuisine_preferences: data.cuisineWants,
           budget_tier: data.budgetTier,
           vibe: null,

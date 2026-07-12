@@ -31,7 +31,7 @@ function FriendInviteLanding() {
     if (!user) return
     setAccepting(true)
     try {
-      const result = await resolveAndAcceptFriendInvite({ data: { token, acceptorId: user.id } })
+      const result = await resolveAndAcceptFriendInvite({ data: { token } })
       setAlreadyFriends(result.alreadyFriends)
       setDone(true)
     } catch (err) {

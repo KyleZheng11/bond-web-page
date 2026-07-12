@@ -19,6 +19,6 @@ export const getInviterInfo = createServerFn()
       .eq('id', invite.inviter_id)
       .single()
 
-    const name = inviter?.display_name ?? inviter?.email?.split('@')[0] ?? 'Someone'
+    const name = inviter?.display_name ?? inviter?.email.split('@')[0] ?? 'Someone'
     return { name, inviterId: invite.inviter_id }
   })

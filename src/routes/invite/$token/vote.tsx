@@ -39,8 +39,20 @@ function GuestVoteScreen() {
           return
         }
         setPartyId(result.party.id)
-        // token is the per-member guestToken (unique per guest), safe to use as voterId
-        setVoterId(token)
+        if (result.tokenType === 'member') {
+          // Per-member token (unique per guest) — safe to use as voterId
+          setVoterId(token)
+        } else {
+          // Shared party link: every guest has the same URL token, so using it
+          // as voterId would make their votes overwrite each other. Use the
+          // personal token saved when they joined, or send them to join first.
+          const saved = localStorage.getItem(`bond:guest:${result.party.id}`)
+          if (saved) {
+            setVoterId(saved)
+          } else {
+            navigate({ to: '/invite/$token', params: { token } })
+          }
+        }
       })
       .catch(() => setError('Invalid or expired invite link.'))
   }, [token, navigate])
@@ -106,7 +118,7 @@ function GuestVoteScreen() {
   async function handleVote(restaurantId: string) {
     if (!partyId || !voterId) return
     setMyVote(restaurantId)
-    await submitVote({ data: { partyId, voterId, restaurantId } })
+    await submitVote({ data: { partyId, restaurantId, guestToken: voterId } })
     const ch = supabase.channel(`vote:${partyId}`)
     await ch.send({ type: 'broadcast', event: 'vote_cast', payload: {} })
     supabase.removeChannel(ch)
@@ -204,9 +216,9 @@ function GuestVoteScreen() {
 
                   <button
                     onClick={() => handleVote(place.id)}
-                    disabled={!!myVote}
+                    disabled={selected}
                     className={`btn w-full py-3 !rounded-xl text-sm disabled:cursor-default ${selected ? 'btn-dark' : 'btn-secondary'}`}
-                    style={myVote && !selected ? { opacity: 0.5 } : undefined}
+                    style={myVote && !selected ? { opacity: 0.7 } : undefined}
                   >
                     {selected && <Check size={15} aria-hidden />}
                     {selected ? 'Your pick' : 'Vote for this'}
@@ -219,7 +231,7 @@ function GuestVoteScreen() {
 
         {myVote && (
           <div className="card px-4 py-4 text-sm text-center md:max-w-sm md:mx-auto" style={{ color: 'var(--color-ink-soft)' }}>
-            You're locked in. The group leader will reveal the result.
+            Vote's in — you can still change your pick until the leader locks in the result.
           </div>
         )}
       </main>

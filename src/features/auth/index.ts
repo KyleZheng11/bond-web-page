@@ -1,4 +1,5 @@
 export { signInWithGoogle, signUpWithEmail, signInWithEmail, signOut } from './api/auth'
+export { getAuthState } from './api/getAuthState'
 export { getUserProfile } from './api/getUserProfile'
 export { updateDietaryRestrictions } from './api/updateDietaryRestrictions'
 export { updateUserProfile } from './api/updateUserProfile'

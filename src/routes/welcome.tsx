@@ -1,12 +1,11 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { motion } from 'motion/react'
-import { supabase } from '#/lib/supabase'
+import { getAuthState } from '#/features/auth'
 import { Wordmark } from '#/components/ui'
 
 export const Route = createFileRoute('/welcome')({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession()
-    if (data.session) throw redirect({ to: '/home' })
+    if (await getAuthState()) throw redirect({ to: '/home' })
   },
   component: Welcome,
 })

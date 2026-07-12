@@ -4,9 +4,11 @@ interface EmailAuthFormProps {
   mode: 'signup' | 'login'
   onSubmit: (email: string, password: string) => Promise<void>
   error?: string | null
+  // Success-styled message (e.g. "check your email") — errors turn red, this doesn't
+  notice?: string | null
 }
 
-export function EmailAuthForm({ mode, onSubmit, error }: EmailAuthFormProps) {
+export function EmailAuthForm({ mode, onSubmit, error, notice }: EmailAuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -55,6 +57,12 @@ export function EmailAuthForm({ mode, onSubmit, error }: EmailAuthFormProps) {
       {error && (
         <p role="alert" className="text-sm px-4 py-3 rounded-xl" style={{ background: 'var(--color-error-soft)', color: 'var(--color-error)' }}>
           {error}
+        </p>
+      )}
+
+      {notice && (
+        <p role="status" className="text-sm px-4 py-3 rounded-xl" style={{ background: 'var(--color-success-soft)', color: 'var(--color-success)' }}>
+          {notice}
         </p>
       )}
 

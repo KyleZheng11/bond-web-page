@@ -1,10 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
-import { supabaseServer } from '#/lib/supabase.server'
+import { requireUser, supabaseServer } from '#/lib/supabase.server'
 
 export const sendFriendRequest = createServerFn()
-  .inputValidator((d: { requesterId: string; addresseeId: string }) => d)
+  .inputValidator((d: { addresseeId: string }) => d)
   .handler(async ({ data }) => {
-    const { requesterId, addresseeId } = data
+    const { id: requesterId } = await requireUser()
+    const { addresseeId } = data
 
     if (requesterId === addresseeId) throw new Error('Cannot add yourself.')
 
